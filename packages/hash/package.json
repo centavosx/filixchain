@@ -6,7 +6,5 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
-  "dependencies": {
-    "level": "^9.0.0"
-  }
+  "dependencies": {}
 }
