@@ -6,7 +6,18 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
   "dependencies": {
     "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/elliptic": "^6.4.18"
   }
 }

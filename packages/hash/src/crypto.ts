@@ -1,10 +1,12 @@
 import { AppHash } from './hash';
-import tweetnacl from 'tweetnacl';
-import crypto from 'crypto';
+import * as tweetnacl from 'tweetnacl';
 
 export class Crypto {
+  static generatePrivateKey() {
+    return;
+  }
   static generateKeyPairs() {
-    return tweetnacl.box.keyPair();
+    return tweetnacl.sign.keyPair();
   }
 
   static toHexString(data: string | Uint8Array) {
@@ -19,50 +21,56 @@ export class Crypto {
     return Crypto.fromHexStringToBuffer(data).toString();
   }
 
-  static concatToHexString(...args: (string | Uint8Array)[]) {
-    return Buffer.concat(args.map((value) => Buffer.from(value))).toString(
-      'hex',
-    );
-  }
-
-  static getKeyPairs(privateKey: Buffer) {
-    const keyPair = tweetnacl.box.keyPair.fromSecretKey(privateKey);
+  static getKeyPairs(privateKey: Uint8Array) {
+    const keyPair = tweetnacl.sign.keyPair.fromSecretKey(privateKey);
     return keyPair;
   }
 
-  static generateWalletAddress(publicKey: Uint8Array, version = 1) {
-    const hashedPublicKey = AppHash.createSha256Hash(
-      `${Buffer.from(publicKey).toString('hex')}${version}`,
+  static getKeyPairsFromSeed(seed: Uint8Array) {
+    const keyPair = tweetnacl.sign.keyPair.fromSeed(seed);
+    return keyPair;
+  }
+
+  static deriveKeyPair(keypair: tweetnacl.SignKeyPair, index: number) {
+    const indexBuffer = Buffer.alloc(4);
+    indexBuffer.writeUInt32BE(index, 0);
+    const data = Buffer.concat([keypair.secretKey, indexBuffer]);
+    const newPrivateKey = AppHash.createSha512Hash(data);
+    return Crypto.getKeyPairs(Buffer.from(newPrivateKey, 'hex'));
+  }
+
+  static generateWalletAddress(publicKey: Uint8Array) {
+    const hashedPublicKey = AppHash.createRipemd160(
+      AppHash.createSha256Hash(Buffer.from(publicKey).toString('hex')),
     );
     return `ph-${hashedPublicKey}`;
   }
 
-  static signMessage(
-    publicKey: Uint8Array,
-    privateKey: Uint8Array,
-    message: string,
-  ) {
+  static signMessage(privateKey: Uint8Array, message: string) {
     const messageBytes = new TextEncoder().encode(message);
-    return Crypto.concatToHexString(
-      publicKey,
-      tweetnacl.sign(messageBytes, privateKey),
+    return Crypto.toHexString(
+      tweetnacl.sign.detached(messageBytes, privateKey),
     );
   }
 
-  static validateMessage(signedMessage: string) {
+  static isValid(
+    publicKey: Uint8Array,
+    actualMessage: string,
+    signedMessage: string,
+  ) {
     try {
-      const buffer = Buffer.from(signedMessage);
-      const publicKeyUint8Array = new Uint8Array(buffer.subarray(0, 32));
-      const signUint8Array = new Uint8Array(buffer.subarray(32));
-      const verifiedMessage = tweetnacl.sign.open(
-        signUint8Array,
-        publicKeyUint8Array,
+      const signUint8Array = new Uint8Array(
+        Crypto.fromHexStringToBuffer(signedMessage),
       );
-      if (!verifiedMessage) throw new Error('Not Valid!');
-
-      return {};
-    } catch {
-      return null;
+      const messageUint8Array = new TextEncoder().encode(actualMessage);
+      return tweetnacl.sign.detached.verify(
+        messageUint8Array,
+        signUint8Array,
+        publicKey,
+      );
+    } catch (e) {
+      console.log(e);
+      return false;
     }
   }
 }

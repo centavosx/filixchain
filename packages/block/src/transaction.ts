@@ -53,6 +53,10 @@ export class Transaction {
     return `${Crypto.toHexString(version)}-${Crypto.toHexString(publicKey)}-${Crypto.toHexString(from)}-${Crypto.toHexString(to)}-${Crypto.toHexString(amount)}-${Crypto.toHexString(nonce)}-${signedMessage}`;
   }
 
+  static buildMessage(transaction: Transaction) {
+    return `${transaction.from}${transaction.to}${transaction.amount}${transaction.nonce}${transaction.version}${transaction.transactionId}`;
+  }
+
   static decode(encodedMessage: string) {
     const encodedHexes = encodedMessage.split('-');
 
@@ -70,10 +74,28 @@ export class Transaction {
       amount,
       nonce,
       signature: {
-        publicKey: Buffer.from(publicKey, 'hex'),
+        publicKey: new Uint8Array(Crypto.fromHexStringToBuffer(publicKey)),
         signedMessage: signature,
       },
     });
+
+    const message = Transaction.buildMessage(transaction);
+
+    if (
+      !transaction.signature?.publicKey ||
+      !transaction.signature?.signedMessage
+    )
+      throw new Error('Public key or signature is required');
+
+    const isValidMessage = Crypto.isValid(
+      transaction.signature?.publicKey,
+      message,
+      signature,
+    );
+
+    if (!isValidMessage) throw new Error('This is not a valid encoded message');
+
+    return transaction;
   }
 
   private get hashedFrom() {
@@ -97,9 +119,8 @@ export class Transaction {
   sign(privateKey: Buffer) {
     const keyPair = Crypto.getKeyPairs(privateKey);
     const message = Crypto.signMessage(
-      keyPair.publicKey,
       privateKey,
-      `${this.from}${this.to}${this.amount}${this.nonce}${this.version}${this.transactionId}`,
+      Transaction.buildMessage(this),
     );
     this.signature = {
       publicKey: keyPair.publicKey,
@@ -112,13 +133,3 @@ export class Transaction {
     return Transaction.encode(this);
   }
 }
-
-// export class SignedTransaction extends Transaction {
-//   private readonly signature: string;
-
-//   private sign(privateKey: string) {}
-
-//   static encodeTransaction() {
-//     return;
-//   }
-// }

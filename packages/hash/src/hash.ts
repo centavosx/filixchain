@@ -1,8 +1,19 @@
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 export class AppHash {
-  static createSha256Hash(data: string) {
+  static createSha256Hash(data: string | Buffer) {
     return crypto.createHash('sha-256').update(data).digest('hex');
+  }
+
+  static createSha512Hash(data: string | Buffer) {
+    return crypto.createHash('sha-512').update(data).digest('hex');
+  }
+
+  static createRipemd160(hashString: string) {
+    return crypto
+      .createHash('ripemd160')
+      .update(Buffer.from(hashString, 'hex'))
+      .digest('hex');
   }
 
   static generateMerkleRoot(transactions: string[]): string {
