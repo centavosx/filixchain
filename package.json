@@ -10,7 +10,8 @@
   ],
   "license": "UNLICENSED",
   "scripts": {
-    "protocol": "yarn workspace @ph-blockchain/protocol"
+    "protocol": "yarn workspace @ph-blockchain/protocol",
+    "hash": "yarn workspace @ph-blockchain/hash"
   },
   "devDependencies": {
     "@types/jest": "^29.5.2",

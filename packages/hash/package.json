@@ -6,5 +6,7 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
-  "dependencies": {}
+  "dependencies": {
+    "tweetnacl": "^1.0.3"
+  }
 }
