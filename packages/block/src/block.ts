@@ -40,12 +40,4 @@ export class Block {
       `${this.version}${this.previousHash}${this.merkleRoot}${this.transactionSize}${this.timestamp}${this.index}${this.nonce}`,
     );
   }
-
-  public addTransaction(tx: string) {
-    if (this.transactions.has(tx))
-      throw new Error('Transaction already existed');
-    this.transactions.add(tx);
-  }
-
-  public updateNonce() {}
 }
