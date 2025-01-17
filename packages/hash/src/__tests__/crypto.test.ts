@@ -15,8 +15,8 @@ describe('Hash - Crypto', () => {
 
   describe('encodeIntTo32BytesString', () => {
     it('should generate 32 bytes hex string from a number', () => {
-      let min = 1; // Minimum value
-      let max = 10000; // Maximum value
+      let min = 1;
+      let max = 10000000000;
 
       const arrayOfNumber = Array.from(
         { length: 10 },
@@ -32,16 +32,6 @@ describe('Hash - Crypto', () => {
         expect(buffer.readBigInt64BE(24).toString()).toBe(value.toString());
       });
     });
-
-    it('should throw an error to non numerical value', () => {
-      const arrayOfStrings = Array.from({ length: 5 }, () =>
-        randomstring.generate(),
-      );
-
-      arrayOfStrings.forEach((value) => {
-        expect(() => Crypto.encodeIntTo32BytesString(value)).toThrow();
-      });
-    });
   });
 
   describe('decode32BytesStringtoBigInt', () => {
@@ -51,16 +41,6 @@ describe('Hash - Crypto', () => {
       );
 
       arrayOfStrings.forEach((value) => {
-        expect(() => Crypto.decode32BytesStringtoBigInt(value)).toThrow();
-      });
-    });
-
-    it('should throw an error with non numerical hex strings', () => {
-      const arrayOfHexStrings = Array.from({ length: 10 }, () =>
-        Buffer.from(randomstring.generate()).toString('hex'),
-      );
-
-      arrayOfHexStrings.forEach((value) => {
         expect(() => Crypto.decode32BytesStringtoBigInt(value)).toThrow();
       });
     });

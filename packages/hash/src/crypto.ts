@@ -10,25 +10,15 @@ export class Crypto {
     return buffer.toString('hex');
   }
 
-  static decode32BytesStringtoBigInt(data: string) {
+  static decode32BytesStringtoBigInt = (data: string) => {
     if (!data.match(/^[0-9a-fA-F]+$/)) throw new Error('Not a hex string');
     if (data.length !== 64) throw new Error('Should be a 32 byte hex string');
+    const converted = +`0x${data}`;
 
-    let index = 0;
+    if (isNaN(converted)) throw new Error('Not a valid number hex string');
 
-    while (index < 64) {
-      const currentHex = data.slice(index + 1, index + 2);
-      const convertedNumber = +currentHex;
-
-      if (convertedNumber < 30 || convertedNumber > 39)
-        throw new Error('Not a valid integer hex string');
-
-      index += 2;
-    }
-
-    const buffer = Buffer.from(data, 'hex');
-    return buffer.readBigInt64BE(24);
-  }
+    return BigInt(converted);
+  };
 
   static generateKeyPairs() {
     return tweetnacl.sign.keyPair();
@@ -65,6 +55,8 @@ export class Crypto {
   }
 
   static generateWalletAddress(publicKey: Uint8Array) {
+    if (publicKey.length !== 32) throw new Error('Not a valid public key');
+
     const hashedPublicKey = AppHash.createRipemd160(
       AppHash.createSha256Hash(Buffer.from(publicKey).toString('hex')),
     );
@@ -94,7 +86,6 @@ export class Crypto {
         publicKey,
       );
     } catch (e) {
-      console.log(e);
       return false;
     }
   }

@@ -6,36 +6,41 @@ export type KeyPairs = {
   privateKey: Uint8Array;
 };
 
+export type TransactionSignature = Partial<
+  KeyPairs & {
+    signedMessage: string;
+  }
+>;
+
+export type RawTransaction = {
+  from: string;
+  to: string;
+  amount: bigint | string | number;
+  nonce: bigint | string | number;
+  version: bigint | string | number;
+  signature?: TransactionSignature;
+};
+
 export class Transaction {
+  // MILLION PESOS is our main unit
+  // [MILLION, THOUSAND,  HUNDRED, PESOS, CENTAVOS, CHAIN CENTAVOS]
+  public readonly CONVERSION_UNITS = [1, 100, 1000];
   public readonly from: string;
   public readonly to: string;
-  public readonly amount: string;
-  public readonly nonce: string;
-  public readonly version: string;
+  public readonly amount: bigint;
+  public readonly nonce: bigint;
+  public readonly version: bigint;
 
-  public signature?: Partial<
-    KeyPairs & {
-      signedMessage: string;
-    }
-  >;
+  public signature?: TransactionSignature;
 
-  constructor(
-    data: Omit<
-      Transaction,
-      | 'hashedFrom'
-      | 'hashedTo'
-      | 'hashedAmount'
-      | 'transactionId'
-      | 'sign'
-      | 'encode'
-    >,
-  ) {
+  constructor(data: RawTransaction) {
     const { from, to, amount, nonce, version, signature } = data;
+
     this.from = from;
     this.to = to;
-    this.amount = amount;
-    this.nonce = nonce;
-    this.version = version;
+    this.amount = BigInt(amount);
+    this.nonce = BigInt(nonce);
+    this.version = BigInt(version);
     this.signature = signature;
   }
 
@@ -77,6 +82,7 @@ export class Transaction {
     const version = Crypto.decode32BytesStringtoBigInt(
       encodedMessage.slice(0, 64),
     ).toString();
+
     const nonce = Crypto.decode32BytesStringtoBigInt(
       encodedMessage.slice(64, 128),
     ).toString();
@@ -94,11 +100,18 @@ export class Transaction {
       encodedMessage.slice(296, 336),
       this.prefix,
     );
+
     const signature = encodedMessage.slice(336, 464);
+
+    const currentPublicKeyWalletAddress =
+      Crypto.generateWalletAddress(publicKey);
+
+    if (currentPublicKeyWalletAddress !== fromAddress)
+      throw new Error('Transaction is from a different wallet address');
 
     const transaction = new Transaction({
       version,
-      from: fromAddress,
+      from: currentPublicKeyWalletAddress,
       to: toAddress,
       amount,
       nonce,
@@ -122,40 +135,31 @@ export class Transaction {
       signature,
     );
 
-    if (!isValidMessage) throw new Error('This is not a valid encoded message');
+    if (!isValidMessage)
+      throw new Error('This is not a valid transaction encoded message');
 
     return transaction;
   }
 
-  private get hashedFrom() {
-    return AppHash.createSha256Hash(this.from);
-  }
-
-  private get hashedTo() {
-    return AppHash.createSha256Hash(this.to);
-  }
-
-  private get hashedAmount() {
-    return AppHash.createSha256Hash(this.amount);
-  }
-
   get transactionId() {
     return AppHash.createSha256Hash(
-      `${this.hashedFrom}${this.hashedTo}${this.hashedAmount}${this.nonce}${this.version}`,
+      `${this.from}${this.to}${this.amount}${this.nonce}${this.version}`,
     );
   }
 
-  sign(privateKey: Buffer) {
+  sign(privateKey: Uint8Array) {
     const keyPair = Crypto.getKeyPairs(privateKey);
     const message = Crypto.signMessage(
       privateKey,
       Transaction.buildMessage(this),
     );
+
     this.signature = {
       publicKey: keyPair.publicKey,
       privateKey: keyPair.secretKey,
       signedMessage: message,
     };
+
     return this;
   }
 
