@@ -2,9 +2,17 @@ import { AppHash } from './hash';
 import * as tweetnacl from 'tweetnacl';
 
 export class Crypto {
-  static generatePrivateKey() {
-    return;
+  static encodeNumberTo32BytesString(data: string) {
+    const buffer = Buffer.alloc(32);
+    buffer.writeBigInt64BE(BigInt(data), 24);
+    return buffer.toString('hex');
   }
+
+  static decode32BytesStringtoNumber(data: string) {
+    const buffer = Buffer.from(data, 'hex');
+    return buffer.readBigInt64BE(24);
+  }
+
   static generateKeyPairs() {
     return tweetnacl.sign.keyPair();
   }

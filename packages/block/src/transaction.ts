@@ -1,4 +1,5 @@
 import { AppHash, Crypto } from '@ph-blockchain/hash';
+import { Transform } from '@ph-blockchain/transformer';
 
 export type KeyPairs = {
   publicKey: Uint8Array;
@@ -38,7 +39,9 @@ export class Transaction {
     this.signature = signature;
   }
 
-  static readonly ENCODED_SIZE = 7;
+  static prefix = 'ph-';
+
+  static readonly ENCODED_SIZE = 64 + 64 + 64 + 64 + 40 + 40 + 128;
 
   static encode(transaction: Transaction) {
     const { from, to, amount, nonce, version, signature } = transaction;
@@ -50,7 +53,16 @@ export class Transaction {
 
     const { publicKey, signedMessage } = signature;
 
-    return `${Crypto.toHexString(version)}-${Crypto.toHexString(publicKey)}-${Crypto.toHexString(from)}-${Crypto.toHexString(to)}-${Crypto.toHexString(amount)}-${Crypto.toHexString(nonce)}-${signedMessage}`;
+    const encodedVersion = Crypto.encodeNumberTo32BytesString(version);
+    const encodedNonce = Crypto.encodeNumberTo32BytesString(nonce);
+    const encodedAmount = Crypto.encodeNumberTo32BytesString(amount);
+    const encodedPublicKey = Crypto.toHexString(publicKey);
+    const fromAddress = Transform.removePrefix(from, this.prefix);
+    const toAddress = Transform.removePrefix(to, this.prefix);
+
+    const data = `${encodedVersion}${encodedNonce}${encodedAmount}${encodedPublicKey}${fromAddress}${toAddress}${signedMessage}`;
+
+    return data;
   }
 
   static buildMessage(transaction: Transaction) {
@@ -58,23 +70,40 @@ export class Transaction {
   }
 
   static decode(encodedMessage: string) {
-    const encodedHexes = encodedMessage.split('-');
-
-    if (encodedHexes.length !== Transaction.ENCODED_SIZE) {
-      throw new Error('Not a valid message');
+    if (encodedMessage.length !== Transaction.ENCODED_SIZE) {
+      throw new Error('Not a transaction');
     }
 
-    const [version, publicKey, from, to, amount, nonce, signature] =
-      encodedHexes.map((value) => Crypto.fromHexStringToRawString(value));
+    const version = Crypto.decode32BytesStringtoNumber(
+      encodedMessage.slice(0, 64),
+    ).toString();
+    const nonce = Crypto.decode32BytesStringtoNumber(
+      encodedMessage.slice(64, 128),
+    ).toString();
+    const amount = Crypto.decode32BytesStringtoNumber(
+      encodedMessage.slice(128, 192),
+    ).toString();
+    const publicKey = Crypto.fromHexStringToBuffer(
+      encodedMessage.slice(192, 256),
+    );
+    const fromAddress = Transform.addPrefix(
+      encodedMessage.slice(256, 296),
+      this.prefix,
+    );
+    const toAddress = Transform.addPrefix(
+      encodedMessage.slice(296, 336),
+      this.prefix,
+    );
+    const signature = encodedMessage.slice(336, 464);
 
     const transaction = new Transaction({
       version,
-      from,
-      to,
+      from: fromAddress,
+      to: toAddress,
       amount,
       nonce,
       signature: {
-        publicKey: new Uint8Array(Crypto.fromHexStringToBuffer(publicKey)),
+        publicKey: new Uint8Array(publicKey),
         signedMessage: signature,
       },
     });
@@ -110,7 +139,7 @@ export class Transaction {
     return AppHash.createSha256Hash(this.amount);
   }
 
-  private get transactionId() {
+  get transactionId() {
     return AppHash.createSha256Hash(
       `${this.hashedFrom}${this.hashedTo}${this.hashedAmount}${this.nonce}${this.version}`,
     );
@@ -127,6 +156,7 @@ export class Transaction {
       privateKey: keyPair.secretKey,
       signedMessage: message,
     };
+    return this;
   }
 
   encode() {
