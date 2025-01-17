@@ -13,6 +13,59 @@ describe('Hash - Crypto', () => {
     expect(keyPair.secretKey).toHaveLength(64);
   };
 
+  describe('encodeIntTo32BytesString', () => {
+    it('should generate 32 bytes hex string from a number', () => {
+      let min = 1; // Minimum value
+      let max = 10000; // Maximum value
+
+      const arrayOfNumber = Array.from(
+        { length: 10 },
+        () => Math.floor(Math.random() * (max - min + 1)) + min,
+      );
+
+      arrayOfNumber.forEach((value) => {
+        const hexString = Crypto.encodeIntTo32BytesString(value.toString());
+        expect(typeof hexString).toBe('string');
+        expect(hexString).toMatch(/^[0-9a-fA-F]+$/);
+        expect(hexString).toHaveLength(64);
+        const buffer = Buffer.from(hexString, 'hex');
+        expect(buffer.readBigInt64BE(24).toString()).toBe(value.toString());
+      });
+    });
+
+    it('should throw an error to non numerical value', () => {
+      const arrayOfStrings = Array.from({ length: 5 }, () =>
+        randomstring.generate(),
+      );
+
+      arrayOfStrings.forEach((value) => {
+        expect(() => Crypto.encodeIntTo32BytesString(value)).toThrow();
+      });
+    });
+  });
+
+  describe('decode32BytesStringtoBigInt', () => {
+    it('should throw an error with non hex strings', () => {
+      const arrayOfStrings = Array.from({ length: 10 }, () =>
+        randomstring.generate(),
+      );
+
+      arrayOfStrings.forEach((value) => {
+        expect(() => Crypto.decode32BytesStringtoBigInt(value)).toThrow();
+      });
+    });
+
+    it('should throw an error with non numerical hex strings', () => {
+      const arrayOfHexStrings = Array.from({ length: 10 }, () =>
+        Buffer.from(randomstring.generate()).toString('hex'),
+      );
+
+      arrayOfHexStrings.forEach((value) => {
+        expect(() => Crypto.decode32BytesStringtoBigInt(value)).toThrow();
+      });
+    });
+  });
+
   describe('generateKeyPairs', () => {
     it('should generate correct keypairs', () => {
       const keyPair = Crypto.generateKeyPairs();

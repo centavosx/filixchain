@@ -2,13 +2,30 @@ import { AppHash } from './hash';
 import * as tweetnacl from 'tweetnacl';
 
 export class Crypto {
-  static encodeNumberTo32BytesString(data: string) {
+  static encodeIntTo32BytesString(data: string | number | bigint) {
+    const bigInt = BigInt(data);
+    if (bigInt < 0) throw new Error('Minimum value is zero');
     const buffer = Buffer.alloc(32);
-    buffer.writeBigInt64BE(BigInt(data), 24);
+    buffer.writeBigInt64BE(bigInt, 24);
     return buffer.toString('hex');
   }
 
-  static decode32BytesStringtoNumber(data: string) {
+  static decode32BytesStringtoBigInt(data: string) {
+    if (!data.match(/^[0-9a-fA-F]+$/)) throw new Error('Not a hex string');
+    if (data.length !== 64) throw new Error('Should be a 32 byte hex string');
+
+    let index = 0;
+
+    while (index < 64) {
+      const currentHex = data.slice(index + 1, index + 2);
+      const convertedNumber = +currentHex;
+
+      if (convertedNumber < 30 || convertedNumber > 39)
+        throw new Error('Not a valid integer hex string');
+
+      index += 2;
+    }
+
     const buffer = Buffer.from(data, 'hex');
     return buffer.readBigInt64BE(24);
   }

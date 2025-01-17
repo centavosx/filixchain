@@ -53,9 +53,9 @@ export class Transaction {
 
     const { publicKey, signedMessage } = signature;
 
-    const encodedVersion = Crypto.encodeNumberTo32BytesString(version);
-    const encodedNonce = Crypto.encodeNumberTo32BytesString(nonce);
-    const encodedAmount = Crypto.encodeNumberTo32BytesString(amount);
+    const encodedVersion = Crypto.encodeIntTo32BytesString(version);
+    const encodedNonce = Crypto.encodeIntTo32BytesString(nonce);
+    const encodedAmount = Crypto.encodeIntTo32BytesString(amount);
     const encodedPublicKey = Crypto.toHexString(publicKey);
     const fromAddress = Transform.removePrefix(from, this.prefix);
     const toAddress = Transform.removePrefix(to, this.prefix);
@@ -74,13 +74,13 @@ export class Transaction {
       throw new Error('Not a transaction');
     }
 
-    const version = Crypto.decode32BytesStringtoNumber(
+    const version = Crypto.decode32BytesStringtoBigInt(
       encodedMessage.slice(0, 64),
     ).toString();
-    const nonce = Crypto.decode32BytesStringtoNumber(
+    const nonce = Crypto.decode32BytesStringtoBigInt(
       encodedMessage.slice(64, 128),
     ).toString();
-    const amount = Crypto.decode32BytesStringtoNumber(
+    const amount = Crypto.decode32BytesStringtoBigInt(
       encodedMessage.slice(128, 192),
     ).toString();
     const publicKey = Crypto.fromHexStringToBuffer(
