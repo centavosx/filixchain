@@ -1,10 +1,12 @@
-import { AppHash, Crypto } from '@ph-blockchain/hash';
+import { Crypto } from '@ph-blockchain/hash';
 import { Transaction } from '../transaction';
 import { Block } from '../block';
 
-const MAX_DIFFICULTY = 100000;
 const RESET_NUMBER_OF_BLOCK = 10;
 const BLOCK_MINE_MILLISECONDS = 1000;
+const MAX_TARGET = BigInt(
+  '0x0000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+);
 
 describe('Block - Block', () => {
   const generateTransactions = () => {
@@ -34,7 +36,7 @@ describe('Block - Block', () => {
     });
   };
 
-  const calculateTargetDifficulty = (block: Block[]) => {
+  const calculateTargetHash = (block: Block[]) => {
     const lastBlocks = block.slice(-RESET_NUMBER_OF_BLOCK);
     const firstBlock = lastBlocks[0];
     const lastBlock = lastBlocks[lastBlocks.length - 1];
@@ -44,19 +46,24 @@ describe('Block - Block', () => {
       (lastTimestamp - firstTimestamp) /
       (RESET_NUMBER_OF_BLOCK * BLOCK_MINE_MILLISECONDS);
 
-    const newDifficulty =
-      Math.round((lastBlock?.targetDifficulty ?? 0x1) * (timeTaken || 1)) || 1;
+    const currentTargetHashInBigInt = lastBlock?.targetHash
+      ? BigInt(`0x${lastBlock?.targetHash}`)
+      : MAX_TARGET;
 
-    if (newDifficulty > +MAX_DIFFICULTY) {
-      return +MAX_DIFFICULTY;
+    const newDifficulty = BigInt(
+      Math.round(Number(currentTargetHashInBigInt) * (timeTaken || 1)),
+    );
+
+    if (newDifficulty > MAX_TARGET) {
+      return MAX_TARGET.toString(16);
     }
 
-    return newDifficulty;
+    return newDifficulty.toString(16);
   };
 
   describe('Block', () => {
     const blockchain: Block[] = [];
-    let targetDifficulty = calculateTargetDifficulty(blockchain);
+    let targetHash = calculateTargetHash(blockchain);
 
     it('should create a genesis block', () => {
       const transactions = generateTransactions();
@@ -69,12 +76,12 @@ describe('Block - Block', () => {
         height,
         timestamp,
         transactions,
-        targetDifficulty,
+        targetHash,
       );
 
       expect(block).toHaveProperty('version', version);
       expect(block).toHaveProperty('height', height);
-      expect(block).toHaveProperty('targetDifficulty', targetDifficulty);
+      expect(block).toHaveProperty('targetHash', targetHash);
       expect(block).toHaveProperty('transactions', new Set(transactions));
       expect(block).toHaveProperty('timestamp', timestamp);
       expect(block).toHaveProperty('previousHash');
@@ -103,7 +110,7 @@ describe('Block - Block', () => {
           height,
           timestamp,
           transactions,
-          targetDifficulty,
+          targetHash,
           blockchain[height - 1].blockHash,
         );
         blockchain.push(block.mine());
@@ -114,7 +121,7 @@ describe('Block - Block', () => {
         );
       }
 
-      targetDifficulty = calculateTargetDifficulty(blockchain);
+      targetHash = calculateTargetHash(blockchain);
     }, 60000);
 
     it('should decode block transactions', async () => {
@@ -130,7 +137,7 @@ describe('Block - Block', () => {
           height,
           timestamp,
           transactions,
-          targetDifficulty,
+          targetHash,
           blockchain[height - 1].blockHash,
         );
         blockchain.push(block.mine());
@@ -147,7 +154,7 @@ describe('Block - Block', () => {
         );
       }
 
-      targetDifficulty = calculateTargetDifficulty(blockchain);
+      targetHash = calculateTargetHash(blockchain);
     }, 60000);
 
     describe('toJson', () =>
@@ -164,7 +171,7 @@ describe('Block - Block', () => {
             height,
             timestamp,
             transactions,
-            targetDifficulty,
+            targetHash,
             blockchain[height - 1].blockHash,
           );
           blockchain.push(block.mine());
@@ -181,10 +188,7 @@ describe('Block - Block', () => {
             'previousHash',
             block.previousHash,
           );
-          expect(blockInJson).toHaveProperty(
-            'targetDifficulty',
-            block.targetDifficulty,
-          );
+          expect(blockInJson).toHaveProperty('targetHash', block.targetHash);
           expect(blockInJson).toHaveProperty('blockHash', block.blockHash);
           expect(blockInJson).toHaveProperty('nonce', block.nonce);
           expect(blockInJson).toHaveProperty('merkleRoot', block.merkleRoot);
@@ -194,7 +198,7 @@ describe('Block - Block', () => {
           );
         }
 
-        targetDifficulty = calculateTargetDifficulty(blockchain);
+        targetHash = calculateTargetHash(blockchain);
       }));
   });
 });

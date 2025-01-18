@@ -1,21 +1,16 @@
-import { AppHash } from '@ph-blockchain/hash';
+import { AppHash, Crypto } from '@ph-blockchain/hash';
 import { Transaction } from './transaction';
+import { Blockchain } from './blockchain';
 
-const MAX_TARGET = BigInt(
-  '0x0000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
-);
 export class Block {
   public readonly size = 1000000;
-
-  readonly genesisHash =
-    '0000000000000000000000000000000000000000000000000000000000000000';
 
   readonly version: string;
   readonly height: number;
   readonly timestamp: number;
   readonly transactions = new Set<string>();
   readonly previousHash: string;
-  readonly targetDifficulty: number;
+  readonly targetHash: string;
 
   private _blockHash: string;
   private _merkleRoot: string;
@@ -26,15 +21,15 @@ export class Block {
     height: number,
     timestamp: number,
     transactions: string[],
-    difficulty: number,
+    targetHash: string,
     previousHash?: string,
   ) {
     this.version = version;
     this.height = height;
     this.timestamp = timestamp;
     this.transactions = new Set(transactions);
-    this.previousHash = previousHash ?? this.genesisHash;
-    this.targetDifficulty = difficulty;
+    this.previousHash = previousHash ?? Blockchain.genesisHash;
+    this.targetHash = targetHash;
   }
 
   private generateBlockHash(nonce: number) {
@@ -77,7 +72,8 @@ export class Block {
     let blockHash = this.blockHash;
     let nonce = this._nonce;
 
-    const target = MAX_TARGET / BigInt(this.targetDifficulty);
+    const target = BigInt(`0x${this.targetHash}`);
+
     while (BigInt(`0x${blockHash}`) > target) {
       nonce += 1;
       blockHash = this.generateBlockHash(nonce);
@@ -96,7 +92,7 @@ export class Block {
       timestamp: this.timestamp,
       transactions: Array.from(this.transactions.values()),
       previousHash: this.previousHash,
-      targetDifficulty: this.targetDifficulty,
+      targetHash: this.targetHash,
       blockHash: this.blockHash,
       nonce: this.nonce,
       merkleRoot: this.merkleRoot,
