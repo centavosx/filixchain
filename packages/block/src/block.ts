@@ -2,7 +2,7 @@ import { AppHash } from '@ph-blockchain/hash';
 import { Transaction } from './transaction';
 
 const MAX_TARGET = BigInt(
-  '0x000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+  '0x0000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
 );
 export class Block {
   public readonly size = 1000000;
@@ -14,7 +14,7 @@ export class Block {
   readonly height: number;
   readonly timestamp: number;
   readonly transactions = new Set<string>();
-  readonly previousHash: string | null;
+  readonly previousHash: string;
   readonly targetDifficulty: number;
 
   private _blockHash: string;
@@ -77,7 +77,7 @@ export class Block {
     let blockHash = this.blockHash;
     let nonce = this._nonce;
 
-    const target = MAX_TARGET / BigInt(2 ** this.targetDifficulty);
+    const target = MAX_TARGET / BigInt(this.targetDifficulty);
     while (BigInt(`0x${blockHash}`) > target) {
       nonce += 1;
       blockHash = this.generateBlockHash(nonce);

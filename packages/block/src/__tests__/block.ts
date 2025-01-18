@@ -2,8 +2,9 @@ import { AppHash, Crypto } from '@ph-blockchain/hash';
 import { Transaction } from '../transaction';
 import { Block } from '../block';
 
-const MAX_DIFFICULTY =
-  '0x000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+const MAX_DIFFICULTY = 100000;
+const RESET_NUMBER_OF_BLOCK = 10;
+const BLOCK_MINE_MILLISECONDS = 1000;
 
 describe('Block - Block', () => {
   const generateTransactions = () => {
@@ -34,19 +35,17 @@ describe('Block - Block', () => {
   };
 
   const calculateTargetDifficulty = (block: Block[]) => {
-    const resetNumber = 10;
-    const blockMineTime = 10;
-    const lastBlocks = block.slice(-10);
+    const lastBlocks = block.slice(-RESET_NUMBER_OF_BLOCK);
     const firstBlock = lastBlocks[0];
     const lastBlock = lastBlocks[lastBlocks.length - 1];
     const lastTimestamp = lastBlock?.timestamp ?? Date.now();
     const firstTimestamp = firstBlock?.timestamp ?? Date.now();
-    const timeTaken = Math.round(
-      (lastTimestamp - firstTimestamp) / (resetNumber * blockMineTime),
-    );
+    const timeTaken =
+      (lastTimestamp - firstTimestamp) /
+      (RESET_NUMBER_OF_BLOCK * BLOCK_MINE_MILLISECONDS);
 
     const newDifficulty =
-      (firstBlock?.targetDifficulty ?? 0x1) * (timeTaken || 1);
+      Math.round((lastBlock?.targetDifficulty ?? 0x1) * (timeTaken || 1)) || 1;
 
     if (newDifficulty > +MAX_DIFFICULTY) {
       return +MAX_DIFFICULTY;
@@ -91,11 +90,11 @@ describe('Block - Block', () => {
       blockchain.push(block.mine());
     });
 
-    it('should create a blocks', async () => {
+    it('should create blocks chained together', async () => {
       const transactions = generateTransactions();
       const version = '0';
 
-      for (const _ of Array(3).fill(null)) {
+      for (const _ of Array(RESET_NUMBER_OF_BLOCK).fill(null)) {
         const height = blockchain.length;
         const timestamp = Date.now();
 
@@ -108,15 +107,94 @@ describe('Block - Block', () => {
           blockchain[height - 1].blockHash,
         );
         blockchain.push(block.mine());
-        console.log(block);
         await new Promise<void>((resolve) =>
           setTimeout(() => {
             resolve();
-          }, 1000),
+          }, BLOCK_MINE_MILLISECONDS),
         );
       }
+
       targetDifficulty = calculateTargetDifficulty(blockchain);
-      console.log(targetDifficulty);
-    }, 600000000);
+    }, 60000);
+
+    it('should decode block transactions', async () => {
+      const transactions = generateTransactions();
+      const version = '0';
+
+      for (const _ of Array(RESET_NUMBER_OF_BLOCK).fill(null)) {
+        const height = blockchain.length;
+        const timestamp = Date.now();
+
+        const block = new Block(
+          version,
+          height,
+          timestamp,
+          transactions,
+          targetDifficulty,
+          blockchain[height - 1].blockHash,
+        );
+        blockchain.push(block.mine());
+        const decodedTransactions = block.decodeTransactions();
+
+        decodedTransactions.forEach((value) =>
+          expect(value).toBeInstanceOf(Transaction),
+        );
+
+        await new Promise<void>((resolve) =>
+          setTimeout(() => {
+            resolve();
+          }, BLOCK_MINE_MILLISECONDS),
+        );
+      }
+
+      targetDifficulty = calculateTargetDifficulty(blockchain);
+    }, 60000);
+
+    describe('toJson', () =>
+      it('should generate json object', async () => {
+        const transactions = generateTransactions();
+        const version = '0';
+
+        for (const _ of Array(RESET_NUMBER_OF_BLOCK).fill(null)) {
+          const height = blockchain.length;
+          const timestamp = Date.now();
+
+          const block = new Block(
+            version,
+            height,
+            timestamp,
+            transactions,
+            targetDifficulty,
+            blockchain[height - 1].blockHash,
+          );
+          blockchain.push(block.mine());
+          const blockInJson = block.toJson();
+
+          expect(blockInJson).toHaveProperty('version', block.version);
+          expect(blockInJson).toHaveProperty('height', block.height);
+          expect(blockInJson).toHaveProperty('timestamp', block.timestamp);
+          expect(blockInJson).toHaveProperty(
+            'transactions',
+            Array.from(block.transactions.values()),
+          );
+          expect(blockInJson).toHaveProperty(
+            'previousHash',
+            block.previousHash,
+          );
+          expect(blockInJson).toHaveProperty(
+            'targetDifficulty',
+            block.targetDifficulty,
+          );
+          expect(blockInJson).toHaveProperty('blockHash', block.blockHash);
+          expect(blockInJson).toHaveProperty('nonce', block.nonce);
+          expect(blockInJson).toHaveProperty('merkleRoot', block.merkleRoot);
+          expect(blockInJson).toHaveProperty(
+            'transactionSize',
+            block.transactionSize,
+          );
+        }
+
+        targetDifficulty = calculateTargetDifficulty(blockchain);
+      }));
   });
 });
