@@ -22,9 +22,12 @@ export type RawTransaction = {
 };
 
 export class Transaction {
-  // MILLION PESOS is our main unit
-  // [MILLION, THOUSAND,  HUNDRED, PESOS, CENTAVOS, CHAIN CENTAVOS]
-  public readonly CONVERSION_UNITS = [1, 100, 1000];
+  /**
+   * PESO is the main unit
+   * [PESO, CENTAVOS, CHAIN CENT]
+   * The lowest unit will be used for the blockchain transactions
+   */
+  public readonly CONVERSION_UNITS = [1, 100, 1_000_000];
   public readonly from: string;
   public readonly to: string;
   public readonly amount: bigint;

@@ -8,8 +8,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "jest --verbose",
+    "test:watch": "jest --watch --verbose"
   },
   "dependencies": {
     "level": "^9.0.0"
