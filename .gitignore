@@ -1,11 +1,14 @@
 # compiled output
 
+/database
+
 /dist
 /node_modules
 /build
 
 */**/dist
 */**/build
+*/**/database
 
 
 # Logs
