@@ -1,5 +1,3 @@
 export * from './block';
+export * from './keypairs';
 export * from './transaction';
-export * from './blockchain';
-
-export * from './types';

@@ -1,6 +1,7 @@
 import { AppHash, Crypto } from '@ph-blockchain/hash';
 import { Transaction } from './transaction';
 import { Blockchain } from './blockchain';
+import { RawBlock } from './types';
 
 export class Block {
   public readonly size = 1000000;
@@ -23,6 +24,7 @@ export class Block {
     transactions: string[],
     targetHash: string,
     previousHash?: string,
+    nonce?: number,
   ) {
     this.version = version;
     this.height = height;
@@ -30,6 +32,7 @@ export class Block {
     this.transactions = new Set(transactions);
     this.previousHash = previousHash ?? Blockchain.genesisHash;
     this.targetHash = targetHash;
+    this._nonce = nonce ?? 0;
   }
 
   private generateBlockHash(nonce: number) {
@@ -85,7 +88,7 @@ export class Block {
     return this;
   }
 
-  public toJson() {
+  public toJson(): RawBlock {
     return {
       version: this.version,
       height: this.height,
@@ -97,6 +100,6 @@ export class Block {
       nonce: this.nonce,
       merkleRoot: this.merkleRoot,
       transactionSize: this.transactionSize,
-    } as const;
+    };
   }
 }

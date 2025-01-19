@@ -1,17 +1,19 @@
 {
-  "type": "module",
   "name": "@ph-blockchain/block",
   "version": "0.0.1",
   "description": "",
-  "main": "src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
     "test": "jest --verbose",
-    "test:watch": "jest --watch --verbose"
+    "test:watch": "jest --watch --verbose",
+    "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build"
   },
   "dependencies": {
+    "@ph-blockchain/hash": "*",
     "level": "^9.0.0"
   },
   "jest": {

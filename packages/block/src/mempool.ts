@@ -1,9 +1,9 @@
 import { Level } from 'level';
-export class BlockDb {
+export class MempoolDb {
   readonly db: Level;
 
-  constructor(path: string) {
-    this.db = new Level(path, { valueEncoding: 'json' });
+  constructor() {
+    this.db = new Level('./mempool', { valueEncoding: 'json' });
   }
 
   mempool() {

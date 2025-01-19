@@ -1,25 +1,6 @@
 import { AppHash, Crypto } from '@ph-blockchain/hash';
 import { Transform } from '@ph-blockchain/transformer';
-
-export type KeyPairs = {
-  publicKey: Uint8Array;
-  privateKey: Uint8Array;
-};
-
-export type TransactionSignature = Partial<
-  KeyPairs & {
-    signedMessage: string;
-  }
->;
-
-export type RawTransaction = {
-  from: string;
-  to: string;
-  amount: bigint | string | number;
-  nonce: bigint | string | number;
-  version: bigint | string | number;
-  signature?: TransactionSignature;
-};
+import { RawTransaction, TransactionSignature } from './types';
 
 export class Transaction {
   /**
