@@ -20,6 +20,18 @@ export class Blockchain {
     typeof this.intializeBlockTimestampIndexDb
   >;
 
+  static readonly MAX_TARGET = BigInt(
+    '0x0000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+  );
+
+  static readonly genesisHash =
+    '0000000000000000000000000000000000000000000000000000000000000000';
+
+  // Block should reset in 200 height
+  static readonly RESET_NUMBER_OF_BLOCK = 200;
+  // 1 minute block creation time
+  static readonly BLOCK_MINE_TIME = 60 * 1000;
+
   public intializeTx() {
     return this._db.sublevel<string, string>('transactions', {});
   }
@@ -97,18 +109,6 @@ export class Blockchain {
       throw e;
     }
   }
-
-  static readonly MAX_TARGET = BigInt(
-    '0x0000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
-  );
-
-  static readonly genesisHash =
-    '0000000000000000000000000000000000000000000000000000000000000000';
-
-  // Block should reset in 200 height
-  static readonly RESET_NUMBER_OF_BLOCK = 200;
-  // 1 minute block creation time
-  static readonly BLOCK_MINE_TIME = 60 * 1000;
 
   /**
    *  Need to recalculate target hash to dynamically adjust the hash if it solving the problem becomes too slow or too fast.
