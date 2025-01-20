@@ -10,11 +10,7 @@ export class MempoolService implements OnModuleInit {
 
   constructor() {}
 
-  async onModuleInit() {
-    const level = new Level('./database/accounts', { valueEncoding: 'json' });
-    await level.open();
-    this.db = level;
-  }
+  async onModuleInit() {}
 
   public getMempool() {
     return this.mempoolArray;
