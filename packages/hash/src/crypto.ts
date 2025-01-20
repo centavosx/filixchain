@@ -2,10 +2,14 @@ import { AppHash } from './hash';
 import * as tweetnacl from 'tweetnacl';
 
 export class Crypto {
+  static zero32BytesString =
+    '0000000000000000000000000000000000000000000000000000000000000000';
+
   static encodeIntTo32BytesString(data: string | number | bigint) {
     const bigInt = BigInt(data);
     if (bigInt < 0) throw new Error('Minimum value is zero');
     const buffer = Buffer.alloc(32);
+
     buffer.writeBigInt64BE(bigInt, 24);
     return buffer.toString('hex');
   }

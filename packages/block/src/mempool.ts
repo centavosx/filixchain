@@ -1,12 +1,12 @@
 import { Level } from 'level';
 export class MempoolDb {
-  readonly db: Level;
+  readonly db: Level<string>;
 
   constructor() {
     this.db = new Level('./mempool', { valueEncoding: 'json' });
   }
 
   mempool() {
-    const db = new Level('./mempool', { valueEncoding: 'json' });
+    this.db.put();
   }
 }

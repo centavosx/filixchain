@@ -1,6 +1,7 @@
 import { AppHash, Crypto } from '@ph-blockchain/hash';
 import { Transform } from '@ph-blockchain/transformer';
 import { RawTransaction, TransactionSignature } from './types';
+import { Level } from 'level';
 
 export class Transaction {
   /**
@@ -15,6 +16,8 @@ export class Transaction {
   public readonly nonce: bigint;
   public readonly version: bigint;
 
+  private _transactionId: string;
+
   public signature?: TransactionSignature;
 
   constructor(data: RawTransaction) {
@@ -26,6 +29,14 @@ export class Transaction {
     this.nonce = BigInt(nonce);
     this.version = BigInt(version);
     this.signature = signature;
+  }
+
+  public get rawFromAddress() {
+    return Transform.removePrefix(this.from, Transaction.prefix);
+  }
+
+  public get rawToAddress() {
+    return Transform.removePrefix(this.to, Transaction.prefix);
   }
 
   static prefix = 'ph-';
@@ -126,9 +137,12 @@ export class Transaction {
   }
 
   get transactionId() {
-    return AppHash.createSha256Hash(
-      `${this.from}${this.to}${this.amount}${this.nonce}${this.version}`,
-    );
+    if (!this._transactionId) {
+      this._transactionId = AppHash.createSha256Hash(
+        `${this.from}${this.to}${this.amount}${this.nonce}${this.version}`,
+      );
+    }
+    return this._transactionId;
   }
 
   sign(privateKey: Uint8Array) {

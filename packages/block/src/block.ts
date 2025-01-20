@@ -66,9 +66,10 @@ export class Block {
   }
 
   public decodeTransactions() {
-    return Array.from(this.transactions.values()).map((value) =>
-      Transaction.decode(value),
-    );
+    return Array.from(this.transactions.values()).map((value) => ({
+      encoded: value,
+      decoded: Transaction.decode(value),
+    }));
   }
 
   public mine() {

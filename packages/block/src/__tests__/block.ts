@@ -144,7 +144,7 @@ describe('Block - Block', () => {
         const decodedTransactions = block.decodeTransactions();
 
         decodedTransactions.forEach((value) =>
-          expect(value).toBeInstanceOf(Transaction),
+          expect(value.decoded).toBeInstanceOf(Transaction),
         );
 
         await new Promise<void>((resolve) =>

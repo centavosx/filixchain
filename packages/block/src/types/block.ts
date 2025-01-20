@@ -10,3 +10,16 @@ export type RawBlock = {
   readonly merkleRoot: string;
   readonly transactionSize: number;
 };
+
+export type RawBlockDb = {
+  version: string;
+  height: string;
+  timestamp: string;
+  transactions: string[];
+  previousHash: string;
+  targetHash: string;
+  blockHash: string;
+  nonce: string;
+  merkleRoot: string;
+  transactionSize: number;
+};
