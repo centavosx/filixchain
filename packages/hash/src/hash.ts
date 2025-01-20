@@ -1,6 +1,8 @@
 import * as crypto from 'crypto';
 
 export class AppHash {
+  static HASH_REGEX = /^[0-9a-fA-F]+$/g;
+
   static createSha256Hash(data: string | Buffer) {
     return crypto.createHash('sha-256').update(data).digest('hex');
   }

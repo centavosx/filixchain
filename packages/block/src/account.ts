@@ -97,6 +97,8 @@ export class AccountDb {
   private _db: Level<string, RawAccountData>;
   private _txDb: ReturnType<typeof this.intializeTx>;
 
+  constructor() {}
+
   public get db() {
     return this._db;
   }
@@ -127,12 +129,14 @@ export class AccountDb {
       return address.map((value, index) => {
         const accountData = accounts[index];
         return this.createAccount(value, accountData);
-      });
+      }) as T extends string ? Account : Account[];
     }
 
     const accountData = await this._db.get(address);
 
-    return this.createAccount(address, accountData);
+    return this.createAccount(address, accountData) as T extends string
+      ? Account
+      : Account[];
   }
 
   public toJsonData(account: Account): RawAccountData {

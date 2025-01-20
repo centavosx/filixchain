@@ -1,44 +1,70 @@
-import { ChainedBatch, Level } from 'level';
-
 import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
-import * as tx from '@ph-blockchain/block';
+import { Account, AccountDb, Transaction } from '@ph-blockchain/block';
 
 @Injectable()
 export class MempoolService implements OnModuleInit {
-  private mempoolArray: string[] = [];
-  private db: Level;
+  private mempoolMap = new Map<string, Transaction[]>();
+  private mempoolQueue: Transaction[] = [];
+  private accountDb: AccountDb;
 
   constructor() {}
 
-  async onModuleInit() {}
-
-  public getMempool() {
-    return this.mempoolArray;
+  async onModuleInit() {
+    this.accountDb = new AccountDb();
+    await this.accountDb.initialize();
   }
 
-  public async postToMempool(transactionSignature: string) {
+  public getMempool() {
+    return this.mempoolQueue;
+  }
+
+  public getMempoolFromAddress(address: string) {
+    return this.mempoolMap.get(address) || [];
+  }
+
+  public async postToMempool(encodedTransactions: string[]) {
     try {
-      // tx.Transaction.decode(transactionSignature);
-      // this.mempoolArray.push(transactionSignature);
+      const validatedTransactions: Transaction[] = [];
+      const accountTemp = new Map<string, Account>();
 
-      // await db.put('testuser:account', transactionSignature);
-      // const data = await this.db.get('testuser:account');
-      // this.db.sublevel('idk').put('HEY', 'e');
-      // console.log(data, await this.db.sublevel('idk').getMany(['HYE', 'YOW']));
+      // The purpose of this is just to check transactions validity
+      for (const encodedTransaction of encodedTransactions) {
+        const transaction = Transaction.decode(encodedTransaction);
+        const rawFromAddress = transaction.rawFromAddress;
 
-      // const batch = this.db.batch();
-      const batch = this.db.batch();
-      const batchDb = batch.db;
-      await batchDb.open();
-      // console.log('HEy');
-      const sublevel = batchDb.sublevel('test');
-      await sublevel.open();
-      const sublevelBatch = sublevel.batch();
+        let account = accountTemp.get(rawFromAddress);
 
-      await batch.write();
-      batch.close();
+        if (!account) {
+          account = await this.accountDb.findByAddress(rawFromAddress);
+          let userExistingTxs = this.mempoolMap.get(account.address);
 
-      return this.db.sublevel('test').getMany(['Test1', 'Test2', 'Test3']);
+          if (!userExistingTxs) {
+            userExistingTxs = [];
+            this.mempoolMap.set(account.address, userExistingTxs);
+          }
+
+          account.addTransaction(
+            ...userExistingTxs.sort((a, b) => Number(a.nonce - b.nonce)),
+          );
+          accountTemp.set(rawFromAddress, account);
+        }
+
+        account.addTransaction(transaction);
+        validatedTransactions.push(transaction);
+      }
+
+      // Add to the state once transaction has been validated
+      for (const transaction of validatedTransactions) {
+        let userExistingTxs = this.mempoolMap.get(transaction.rawFromAddress);
+
+        if (!userExistingTxs) {
+          userExistingTxs = [];
+          this.mempoolMap.set(transaction.rawFromAddress, userExistingTxs);
+        }
+
+        userExistingTxs.push(transaction);
+        this.mempoolQueue.push(transaction);
+      }
     } catch (e) {
       throw new BadRequestException(e.message);
     }

@@ -19,6 +19,8 @@ describe('Block - Block', () => {
       const from = Crypto.generateKeyPairs();
       const to = Crypto.generateKeyPairs();
 
+      console.log(from);
+
       const fromWalletAddress = Crypto.generateWalletAddress(from.publicKey);
       const toWalletAddress = Crypto.generateWalletAddress(to.publicKey);
 
@@ -26,11 +28,12 @@ describe('Block - Block', () => {
         from: fromWalletAddress,
         to: toWalletAddress,
         amount: value,
-        nonce: value,
-        version: value,
+        nonce: 0,
+        version: 1,
       })
         .sign(from.secretKey)
         .encode();
+      console.log(encodedTransaction);
 
       return encodedTransaction;
     });

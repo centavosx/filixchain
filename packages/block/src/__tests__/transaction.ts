@@ -122,8 +122,8 @@ describe('Block - Transaction', () => {
           transaction.sign(fromKeyPair.secretKey);
           expect(transaction.signature).toBeTruthy();
           const encodedMessage = transaction.encode();
-          expect(encodedMessage).toHaveLength(464);
-          expect(encodedMessage).toMatch(/^[0-9a-fA-F]+$/);
+          expect(encodedMessage).toHaveLength(Transaction.ENCODED_SIZE);
+          expect(encodedMessage).toMatch(AppHash.HASH_REGEX);
         });
       });
     });
@@ -137,7 +137,7 @@ describe('Block - Transaction', () => {
         transaction.sign(fromKeyPair.secretKey);
         expect(transaction.signature).toBeTruthy();
         const encodedMessage = Transaction.encode(transaction);
-        expect(encodedMessage).toHaveLength(464);
+        expect(encodedMessage).toHaveLength(Transaction.ENCODED_SIZE);
         expect(encodedMessage).toMatch(/^[0-9a-fA-F]+$/);
       });
     });

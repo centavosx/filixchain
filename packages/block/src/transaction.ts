@@ -4,6 +4,10 @@ import { RawTransaction, TransactionSignature } from './types';
 import { Level } from 'level';
 
 export class Transaction {
+  static prefix = 'ph-';
+
+  static readonly ENCODED_SIZE = 64 + 64 + 64 + 64 + 40 + 40 + 128;
+
   /**
    * PESO is the main unit
    * [PESO, CENTAVOS, CHAIN CENT]
@@ -38,10 +42,6 @@ export class Transaction {
   public get rawToAddress() {
     return Transform.removePrefix(this.to, Transaction.prefix);
   }
-
-  static prefix = 'ph-';
-
-  static readonly ENCODED_SIZE = 64 + 64 + 64 + 64 + 40 + 40 + 128;
 
   static encode(transaction: Transaction) {
     const { from, to, amount, nonce, version, signature } = transaction;
