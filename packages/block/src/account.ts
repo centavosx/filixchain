@@ -175,11 +175,11 @@ export class Account {
         }
         batch.put(account.address, this.toJsonData(account));
       }
-      return () => ({
+      return {
         write: async () => {
           await Promise.all([txBatch.write(), batch.write()]);
         },
-      });
+      };
     } catch (e) {
       await Promise.all([txBatch.close(), batch.close()]);
       throw e;

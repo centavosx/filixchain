@@ -1,14 +1,10 @@
 import { Level } from 'level';
 import { Block } from './block';
-import { RawBlock, RawBlockDb } from './types';
+import { RawBlockDb } from './types';
 import { Transaction } from './transaction';
 
 export class Blockchain {
-  private activeBlockHash: string;
-  private chains: Block[] = [];
-  private currentTargetHash: string;
-  private currentHeight: number;
-
+  private static version = '1';
   private static _isOpen = false;
   private static _db: Level<string, string>;
   private static _txDb: ReturnType<typeof this.intializeTx>;
@@ -85,11 +81,70 @@ export class Blockchain {
       : Transaction[];
   }
 
+  static async mapToBlock(rawBlockDb: RawBlockDb) {
+    const transactions = await Blockchain.findTransactionsById(
+      rawBlockDb.transactions,
+    );
+    return new Block(
+      Blockchain.version,
+      +rawBlockDb.height,
+      +rawBlockDb.timestamp,
+      transactions.map((tx) => tx.encode()),
+      rawBlockDb.targetHash,
+      rawBlockDb.previousHash,
+      +rawBlockDb.nonce,
+    );
+  }
+
+  static async getBlocksFromLatest(limit = Blockchain.RESET_NUMBER_OF_BLOCK) {
+    const data = await Blockchain._blockTimestampIndexDb
+      .values({ lte: `${Date.now()}`, reverse: true, limit: limit })
+      .all();
+
+    const blocks: Block[] = [];
+
+    for (const blockHash of data) {
+      const rawBlock = await Blockchain._blockDb.get(blockHash);
+      blocks.push(await Blockchain.mapToBlock(rawBlock));
+    }
+
+    return blocks;
+  }
+
+  static async getLatestBlock() {
+    const blocks = await this.getBlocksFromLatest(1);
+    return blocks?.[0];
+  }
+
+  static async getBlockByHeight() {
+    const data = await Blockchain._blockTimestampIndexDb
+      .values({ lte: `${Date.now()}`, reverse: true, limit: 1 })
+      .all();
+    const blockHash = data?.[0];
+    const rawBlock = blockHash
+      ? await Blockchain._blockDb.get(blockHash)
+      : undefined;
+
+    return rawBlock ? await Blockchain.mapToBlock(rawBlock) : undefined;
+  }
+
   static async saveBlock(blocks: Block | Block[]) {
+    const blockHeightIndexBatch = Blockchain._blockHeightIndexDb.batch();
+    const blockTimestampIndexBatch = Blockchain._blockTimestampIndexDb.batch();
     const blockBatch = Blockchain._blockDb.batch();
     const txBatch = Blockchain._txDb.batch();
 
     const transactions: Transaction[] = [];
+
+    const close = async () => {
+      await Promise.all([
+        txBatch.close(),
+        blockBatch.close(),
+        blockBatch.close(),
+        blockHeightIndexBatch.close(),
+        blockTimestampIndexBatch.close(),
+      ]);
+    };
 
     try {
       for (const block of Array.isArray(blocks) ? blocks : [blocks]) {
@@ -116,16 +171,28 @@ export class Blockchain {
           blockHash: block.blockHash,
           merkleRoot: block.merkleRoot,
         });
+        blockHeightIndexBatch.put(BigInt(block.height).toString(), blockHash);
+        blockTimestampIndexBatch.put(
+          BigInt(block.timestamp).toString(),
+          blockHash,
+        );
       }
 
-      return () => ({
+      return {
         transactions,
+        close,
         write: async () => {
-          await Promise.all([txBatch.write(), blockBatch.write()]);
+          await Promise.all([
+            txBatch.write(),
+            blockBatch.write(),
+            blockBatch.write(),
+            blockHeightIndexBatch.write(),
+            blockTimestampIndexBatch.write(),
+          ]);
         },
-      });
+      };
     } catch (e) {
-      await Promise.all([txBatch.close(), blockBatch.close()]);
+      await close();
       throw e;
     }
   }
@@ -157,74 +224,4 @@ export class Blockchain {
 
     return newDifficulty.toString(16);
   };
-
-  /**
-   *  To validate block if it matches with the current chain state.
-   */
-  private validateBlockState(block: Block) {
-    if (block.previousHash !== this.activeBlockHash)
-      throw new Error('Previous hash is not valid');
-
-    if (block.targetHash !== this.currentTargetHash)
-      throw new Error('Block contains invalid target hash');
-
-    if (block.height !== this.currentHeight)
-      throw new Error('Block is not synced to the latest height');
-
-    // If block time is two minutes ahead or behind the current time then it is not a valid block
-    if (Math.abs(block.timestamp - Date.now()) > 120000) {
-      throw new Error('Block is one minute ahead or behind the current time');
-    }
-    try {
-      const transactions = block.decodeTransactions();
-      //   transactions.forEach((value) => {
-      // TODO: Validate each transaction and check if the address has a valid spent amount
-      //   });
-    } catch {
-      throw new Error('Block contains invalid transactions');
-    }
-  }
-
-  addBlockInChain(rawBlock: RawBlock) {
-    const {
-      version,
-      height,
-      timestamp,
-      transactions,
-      previousHash,
-      targetHash,
-      blockHash,
-      nonce,
-      merkleRoot,
-      transactionSize,
-    } = rawBlock;
-
-    const block = new Block(
-      version,
-      height,
-      timestamp,
-      transactions,
-      targetHash,
-      previousHash,
-      nonce,
-    );
-
-    // To make sure that the generated blockhash, merkleroot, or size matches the specified value
-    if (
-      block.blockHash !== blockHash ||
-      block.merkleRoot !== merkleRoot ||
-      block.transactionSize !== transactionSize
-    )
-      throw new Error(
-        `Invalid block, provided details didnt meet the blockhash`,
-      );
-
-    this.validateBlockState(block);
-    this.chains.push(block);
-    this.currentHeight++;
-
-    if (this.currentHeight % Blockchain.RESET_NUMBER_OF_BLOCK === 0) {
-      this.currentTargetHash = Blockchain.calculateTargetHash(this.chains);
-    }
-  }
 }
