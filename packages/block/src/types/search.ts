@@ -3,4 +3,6 @@ export type SearchListQuery = {
   end?: number;
   limit?: number;
   reverse?: boolean;
+  from?: string;
+  to?: string;
 };

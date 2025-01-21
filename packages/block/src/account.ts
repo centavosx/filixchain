@@ -164,8 +164,14 @@ export class Account {
           const currentTxId = tx.transactionId;
           const rawFromAddress = tx.rawFromAddress;
           const rawToAddress = tx.rawToAddress;
-          txBatch.put(`${rawFromAddress}-${blockTimestamp}`, currentTxId);
-          txBatch.put(`${rawToAddress}-${blockTimestamp}`, currentTxId);
+          txBatch.put(
+            `${rawFromAddress}-${blockTimestamp}-${rawFromAddress}-${rawToAddress}`,
+            currentTxId,
+          );
+          txBatch.put(
+            `${rawToAddress}-${blockTimestamp}-${rawFromAddress}-${rawToAddress}`,
+            currentTxId,
+          );
         }
         batch.put(account.address, this.toJsonData(account));
       }
@@ -182,15 +188,21 @@ export class Account {
 
   public static async getTx(
     account: Account,
-    { start = 0, end, limit, reverse }: SearchListQuery = {},
+    { start = 0, end, limit, reverse, from, to }: SearchListQuery = {},
   ) {
     if (start < 0) throw new Error('Not valid start index');
 
+    let searchQuery = '';
+
+    if (from || to) {
+      searchQuery = `-${!!from ? from : account._address}-${!!to ? to : account._address}`;
+    }
+
     const data = await Account._txDb
       .values({
-        gte: `${account.address}-${start}`,
+        gte: `${account.address}-${start}${searchQuery}`,
         ...(!!end && {
-          lte: `${account.address}-${end}`,
+          lte: `${account.address}-${end}${searchQuery}`,
         }),
         ...(!!limit && {
           limit,

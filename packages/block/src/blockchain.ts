@@ -67,6 +67,24 @@ export class Blockchain {
     Blockchain._isOpen = true;
   }
 
+  static async findTransactionsById<T extends string | Array<string>>(
+    transactionId: T,
+  ) {
+    if (Array.isArray(transactionId)) {
+      const encodedTransactions = await Blockchain._txDb.getMany(transactionId);
+
+      return encodedTransactions.map(Transaction.decode) as T extends string
+        ? Transaction
+        : Transaction[];
+    }
+
+    const encodedTransaction = await Blockchain._txDb.get(transactionId);
+
+    return Transaction.decode(encodedTransaction) as T extends string
+      ? Transaction
+      : Transaction[];
+  }
+
   static async saveBlock(blocks: Block | Block[]) {
     const blockBatch = Blockchain._blockDb.batch();
     const txBatch = Blockchain._txDb.batch();
