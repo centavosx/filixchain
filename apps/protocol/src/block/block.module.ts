@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { BlockController } from './block.controller';
 import { BlockService } from './block.service';
-import { MempoolModule } from '../mempool/mempool.module';
+import { BlockGateway } from './block.gateway';
 
 @Module({
-  imports: [MempoolModule],
   controllers: [BlockController],
-  providers: [BlockService],
+  providers: [BlockService, BlockGateway],
+  exports: [BlockGateway],
 })
 export class BlockModule {}

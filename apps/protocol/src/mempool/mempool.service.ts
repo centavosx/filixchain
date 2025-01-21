@@ -1,33 +1,21 @@
 import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
 import { Account, Transaction } from '@ph-blockchain/block';
+import { BlockGateway } from '../block/block.gateway';
 
 @Injectable()
 export class MempoolService implements OnModuleInit {
-  private mempoolMap = new Map<string, Map<string, Transaction>>();
-  private mempoolQueue = new Map<string, Transaction>();
-
-  constructor() {}
-
-  updateMempoolState(trasactions: Transaction[]) {
-    for (const transaction of trasactions) {
-      const transactionId = transaction.transactionId;
-      const rawFromAddress = transaction.rawFromAddress;
-      const addressMempool = this.mempoolMap.get(rawFromAddress);
-      addressMempool?.delete(transactionId);
-      this.mempoolQueue?.delete(transactionId);
-    }
-  }
+  constructor(private readonly blockGateway: BlockGateway) {}
 
   async onModuleInit() {
     await Account.initialize();
   }
 
   public getMempool() {
-    return [...this.mempoolQueue.values()];
+    return [...this.blockGateway.mempoolQueue.values()];
   }
 
   public getMempoolFromAddress(address: string) {
-    return [...(this.mempoolMap.get(address)?.values() ?? [])];
+    return [...(this.blockGateway.mempoolMap.get(address)?.values() ?? [])];
   }
 
   public async postToMempool(encodedTransactions: string[]) {
@@ -44,11 +32,13 @@ export class MempoolService implements OnModuleInit {
 
         if (!account) {
           account = await Account.findByAddress(rawFromAddress);
-          let userExistingTxs = this.mempoolMap.get(account.address);
+          let userExistingTxs = this.blockGateway.mempoolMap.get(
+            account.address,
+          );
 
           if (!userExistingTxs) {
             userExistingTxs = new Map<string, Transaction>();
-            this.mempoolMap.set(account.address, userExistingTxs);
+            this.blockGateway.mempoolMap.set(account.address, userExistingTxs);
           }
 
           account.addTransaction(
@@ -65,15 +55,23 @@ export class MempoolService implements OnModuleInit {
 
       // Add to the state once transaction has been validated
       for (const transaction of validatedTransactions) {
-        let userExistingTxs = this.mempoolMap.get(transaction.rawFromAddress);
+        let userExistingTxs = this.blockGateway.mempoolMap.get(
+          transaction.rawFromAddress,
+        );
 
         if (!userExistingTxs) {
           userExistingTxs = new Map<string, Transaction>();
-          this.mempoolMap.set(transaction.rawFromAddress, userExistingTxs);
+          this.blockGateway.mempoolMap.set(
+            transaction.rawFromAddress,
+            userExistingTxs,
+          );
         }
 
         userExistingTxs.set(transaction.transactionId, transaction);
-        this.mempoolQueue.set(transaction.transactionId, transaction);
+        this.blockGateway.mempoolQueue.set(
+          transaction.transactionId,
+          transaction,
+        );
       }
     } catch (e) {
       throw new BadRequestException(e.message);

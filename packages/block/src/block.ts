@@ -4,8 +4,6 @@ import { Blockchain } from './blockchain';
 import { RawBlock } from './types';
 
 export class Block {
-  public readonly size = 1000000;
-
   readonly version: string;
   readonly height: number;
   readonly timestamp: number;
