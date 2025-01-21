@@ -27,7 +27,9 @@ export class BlockService implements OnModuleInit {
       throw new BadRequestException('Not available for mining');
   }
 
-  getLatestBlock() {}
+  //   getLatestBlock() {
+  //     retr;
+  //   }
 
   async getTargetHashFromBlock(block?: Block) {
     if (!block) {
