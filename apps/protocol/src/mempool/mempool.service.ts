@@ -1,17 +1,15 @@
 import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
-import { Account, AccountDb, Transaction } from '@ph-blockchain/block';
+import { Account, Transaction } from '@ph-blockchain/block';
 
 @Injectable()
 export class MempoolService implements OnModuleInit {
   private mempoolMap = new Map<string, Transaction[]>();
   private mempoolQueue: Transaction[] = [];
-  private accountDb: AccountDb;
 
   constructor() {}
 
   async onModuleInit() {
-    this.accountDb = new AccountDb();
-    await this.accountDb.initialize();
+    await Account.initialize();
   }
 
   public getMempool() {
@@ -35,7 +33,7 @@ export class MempoolService implements OnModuleInit {
         let account = accountTemp.get(rawFromAddress);
 
         if (!account) {
-          account = await this.accountDb.findByAddress(rawFromAddress);
+          account = await Account.findByAddress(rawFromAddress);
           let userExistingTxs = this.mempoolMap.get(account.address);
 
           if (!userExistingTxs) {

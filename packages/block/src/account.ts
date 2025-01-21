@@ -5,6 +5,10 @@ import { Transaction } from './transaction';
 import { SearchListQuery } from './types/search';
 
 export class Account {
+  private static _isOpen = false;
+  private static _db: Level<string, RawAccountData>;
+  private static _txDb: ReturnType<typeof this.intializeTx>;
+
   private readonly pendingTxToSave: Transaction[] = [];
 
   private _address: string;
@@ -15,6 +19,14 @@ export class Account {
     this._address = address;
     this._nonce = Crypto.decode32BytesStringtoBigInt(nonce);
     this._amount = Crypto.decode32BytesStringtoBigInt(amount);
+  }
+
+  serialize() {
+    return {
+      address: this._address,
+      nonce: this._nonce.toString(),
+      amount: this._amount.toString(),
+    };
   }
 
   get address() {
@@ -90,65 +102,62 @@ export class Account {
 
     this._amount = amount;
   }
-}
 
-export class AccountDb {
-  private _isOpen = false;
-  private _db: Level<string, RawAccountData>;
-  private _txDb: ReturnType<typeof this.intializeTx>;
-
-  constructor() {}
-
-  public get db() {
-    return this._db;
+  public static get db() {
+    return Account._db;
   }
 
-  public intializeTx() {
-    return this._db.sublevel<string, string>('transactions', {});
+  public static intializeTx() {
+    return Account._db.sublevel<string, string>('transactions', {});
   }
 
-  public async initialize() {
-    if (this._isOpen) return;
-    this._db = new Level('./database/accounts', { valueEncoding: 'json' });
-    await this._db.open();
-    this._txDb = this.intializeTx();
-    await this._txDb.open();
-    this._isOpen = true;
+  public static async initialize() {
+    if (Account._isOpen) return;
+    Account._db = new Level('./database/accounts', { valueEncoding: 'json' });
+    await Account._db.open();
+    Account._txDb = this.intializeTx();
+    await Account._txDb.open();
+    Account._isOpen = true;
   }
 
-  public createAccount(address: string, data: RawAccountData) {
+  public static createAccount(address: string, data: RawAccountData) {
     const rawAmount = data?.amount || Crypto.zero32BytesString;
     const rawNonce = data?.nonce || Crypto.zero32BytesString;
     return new Account(address, rawAmount, rawNonce);
   }
 
-  public async findByAddress<T extends string | Array<string>>(address: T) {
+  public static async findByAddress<T extends string | Array<string>>(
+    address: T,
+  ) {
     if (Array.isArray(address)) {
-      const accounts = await this._db.getMany(address);
+      const accounts = await Account._db.getMany(address);
 
       return address.map((value, index) => {
         const accountData = accounts[index];
-        return this.createAccount(value, accountData);
+        return Account.createAccount(value, accountData);
       }) as T extends string ? Account : Account[];
     }
 
-    const accountData = await this._db.get(address);
+    const accountData = await Account._db.get(address);
 
-    return this.createAccount(address, accountData) as T extends string
+    return Account.createAccount(address, accountData) as T extends string
       ? Account
       : Account[];
   }
 
-  public toJsonData(account: Account): RawAccountData {
+  public static toJsonData(account: Account): RawAccountData {
     return {
       amount: Crypto.encodeIntTo32BytesString(account.amount),
       nonce: Crypto.encodeIntTo32BytesString(account.nonce),
     };
   }
 
-  public async save(blockTimestamp: number, accounts: Account | Account[]) {
-    const txBatch = this._txDb.batch();
-    const batch = this._db.batch();
+  public static async save(
+    blockTimestamp: number,
+    accounts: Account | Account[],
+  ) {
+    const txBatch = Account._txDb.batch();
+    const batch = Account._db.batch();
     try {
       for (const account of Array.isArray(accounts) ? accounts : [accounts]) {
         for (const tx of account.pendingTxs) {
@@ -171,13 +180,13 @@ export class AccountDb {
     }
   }
 
-  public async getTx(
+  public static async getTx(
     account: Account,
     { start = 0, end, limit, reverse }: SearchListQuery = {},
   ) {
     if (start < 0) throw new Error('Not valid start index');
 
-    const data = await this._txDb
+    const data = await Account._txDb
       .values({
         gte: `${account.address}-${start}`,
         ...(!!end && {

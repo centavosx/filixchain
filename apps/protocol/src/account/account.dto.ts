@@ -2,9 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transaction } from '@ph-blockchain/block';
 import { AppHash } from '@ph-blockchain/hash';
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, Length, Matches } from 'class-validator';
+import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
 
-export class MempoolDto {
+export class AccountDto {
   @ApiProperty({
     description: 'Signed transaction to be added in the mempool',
   })
@@ -15,6 +15,7 @@ export class MempoolDto {
     return value;
   })
   @IsNotEmpty()
+  @IsString()
   @Matches(AppHash.HASH_REGEX, {
     each: true,
     message: 'Not a valid signed message',

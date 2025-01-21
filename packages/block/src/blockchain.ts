@@ -9,14 +9,14 @@ export class Blockchain {
   private currentTargetHash: string;
   private currentHeight: number;
 
-  private _isOpen = false;
-  private _db: Level<string, string>;
-  private _txDb: ReturnType<typeof this.intializeTx>;
-  private _blockDb: ReturnType<typeof this.intializeBlock>;
-  private _blockHeightIndexDb: ReturnType<
+  private static _isOpen = false;
+  private static _db: Level<string, string>;
+  private static _txDb: ReturnType<typeof this.intializeTx>;
+  private static _blockDb: ReturnType<typeof this.intializeBlock>;
+  private static _blockHeightIndexDb: ReturnType<
     typeof this.intializeBlockHeightIndexDb
   >;
-  private _blockTimestampIndexDb: ReturnType<
+  private static _blockTimestampIndexDb: ReturnType<
     typeof this.intializeBlockTimestampIndexDb
   >;
 
@@ -32,42 +32,44 @@ export class Blockchain {
   // 1 minute block creation time
   static readonly BLOCK_MINE_TIME = 60 * 1000;
 
-  public intializeTx() {
-    return this._db.sublevel<string, string>('transactions', {});
+  private static intializeTx() {
+    return Blockchain._db.sublevel<string, string>('transactions', {});
   }
 
-  public intializeBlock() {
-    return this._db.sublevel<string, RawBlockDb>('block', {
+  private static intializeBlock() {
+    return Blockchain._db.sublevel<string, RawBlockDb>('block', {
       valueEncoding: 'json',
     });
   }
 
-  public intializeBlockHeightIndexDb() {
-    return this._blockDb.sublevel<string, string>('heightIndex', {});
+  private static intializeBlockHeightIndexDb() {
+    return Blockchain._blockDb.sublevel<string, string>('heightIndex', {});
   }
 
-  public intializeBlockTimestampIndexDb() {
-    return this._blockDb.sublevel<string, string>('timestampIndex', {});
+  private static intializeBlockTimestampIndexDb() {
+    return Blockchain._blockDb.sublevel<string, string>('timestampIndex', {});
   }
 
-  async initialize() {
-    if (this._isOpen) return;
-    this._db = new Level('./database/blockchain', { valueEncoding: 'json' });
-    await this._db.open();
-    this._txDb = this.intializeTx();
-    await this._txDb.open();
-    this._blockDb = this.intializeBlock();
-    await this._blockDb.open();
-    this._blockHeightIndexDb = this.intializeBlockHeightIndexDb();
-    await this._blockHeightIndexDb.open();
-    this._blockTimestampIndexDb = this.intializeBlockTimestampIndexDb();
-    await this._blockTimestampIndexDb.open();
-    this._isOpen = true;
+  public static async initialize() {
+    if (Blockchain._isOpen) return;
+    Blockchain._db = new Level('./database/blockchain', {
+      valueEncoding: 'json',
+    });
+    await Blockchain._db.open();
+    Blockchain._txDb = this.intializeTx();
+    await Blockchain._txDb.open();
+    Blockchain._blockDb = this.intializeBlock();
+    await Blockchain._blockDb.open();
+    Blockchain._blockHeightIndexDb = this.intializeBlockHeightIndexDb();
+    await Blockchain._blockHeightIndexDb.open();
+    Blockchain._blockTimestampIndexDb = this.intializeBlockTimestampIndexDb();
+    await Blockchain._blockTimestampIndexDb.open();
+    Blockchain._isOpen = true;
   }
 
-  async saveBlock(blocks: Block | Block[]) {
-    const blockBatch = this._blockDb.batch();
-    const txBatch = this._txDb.batch();
+  static async saveBlock(blocks: Block | Block[]) {
+    const blockBatch = Blockchain._blockDb.batch();
+    const txBatch = Blockchain._txDb.batch();
 
     const transactions: Transaction[] = [];
 
