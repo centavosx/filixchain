@@ -3,21 +3,31 @@ import { Account, Transaction } from '@ph-blockchain/block';
 
 @Injectable()
 export class MempoolService implements OnModuleInit {
-  private mempoolMap = new Map<string, Transaction[]>();
-  private mempoolQueue: Transaction[] = [];
+  private mempoolMap = new Map<string, Map<string, Transaction>>();
+  private mempoolQueue = new Map<string, Transaction>();
 
   constructor() {}
+
+  updateMempoolState(trasactions: Transaction[]) {
+    for (const transaction of trasactions) {
+      const transactionId = transaction.transactionId;
+      const rawFromAddress = transaction.rawFromAddress;
+      const addressMempool = this.mempoolMap.get(rawFromAddress);
+      addressMempool?.delete(transactionId);
+      this.mempoolQueue?.delete(transactionId);
+    }
+  }
 
   async onModuleInit() {
     await Account.initialize();
   }
 
   public getMempool() {
-    return this.mempoolQueue;
+    return [...this.mempoolQueue.values()];
   }
 
   public getMempoolFromAddress(address: string) {
-    return this.mempoolMap.get(address) || [];
+    return [...(this.mempoolMap.get(address)?.values() ?? [])];
   }
 
   public async postToMempool(encodedTransactions: string[]) {
@@ -37,12 +47,14 @@ export class MempoolService implements OnModuleInit {
           let userExistingTxs = this.mempoolMap.get(account.address);
 
           if (!userExistingTxs) {
-            userExistingTxs = [];
+            userExistingTxs = new Map<string, Transaction>();
             this.mempoolMap.set(account.address, userExistingTxs);
           }
 
           account.addTransaction(
-            ...userExistingTxs.sort((a, b) => Number(a.nonce - b.nonce)),
+            ...[...userExistingTxs.values()].sort((a, b) =>
+              Number(a.nonce - b.nonce),
+            ),
           );
           accountTemp.set(rawFromAddress, account);
         }
@@ -56,12 +68,12 @@ export class MempoolService implements OnModuleInit {
         let userExistingTxs = this.mempoolMap.get(transaction.rawFromAddress);
 
         if (!userExistingTxs) {
-          userExistingTxs = [];
+          userExistingTxs = new Map<string, Transaction>();
           this.mempoolMap.set(transaction.rawFromAddress, userExistingTxs);
         }
 
-        userExistingTxs.push(transaction);
-        this.mempoolQueue.push(transaction);
+        userExistingTxs.set(transaction.transactionId, transaction);
+        this.mempoolQueue.set(transaction.transactionId, transaction);
       }
     } catch (e) {
       throw new BadRequestException(e.message);

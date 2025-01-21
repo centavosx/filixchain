@@ -5,6 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { Account, Block, Blockchain, RawBlock } from '@ph-blockchain/block';
+import { MempoolService } from '../mempool/mempool.service';
 
 @Injectable()
 export class BlockService implements OnModuleInit {
@@ -12,6 +13,8 @@ export class BlockService implements OnModuleInit {
   private currentHeight: number;
   private targetHash: string;
   private isAvailableForMining = true;
+
+  constructor(private readonly mempoolService: MempoolService) {}
 
   async onModuleInit() {
     await Account.initialize();
@@ -26,10 +29,6 @@ export class BlockService implements OnModuleInit {
     if (!this.isAvailableForMining)
       throw new BadRequestException('Not available for mining');
   }
-
-  //   getLatestBlock() {
-  //     retr;
-  //   }
 
   async getTargetHashFromBlock(block?: Block) {
     if (!block) {
@@ -101,8 +100,8 @@ export class BlockService implements OnModuleInit {
       ]);
 
       this.checkAndRejectBlockMining();
-
       await Promise.all([commitBlock(), commitAccounts()]);
+      this.mempoolService.updateMempoolState(transactions);
     } catch (e) {
       await rejectCommit();
 

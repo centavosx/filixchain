@@ -6,5 +6,6 @@ import { MempoolService } from './mempool.service';
   imports: [],
   controllers: [MempoolController],
   providers: [MempoolService],
+  exports: [MempoolService],
 })
 export class MempoolModule {}
