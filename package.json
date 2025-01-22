@@ -13,6 +13,7 @@
     "protocol": "yarn workspace @ph-blockchain/protocol",
     "hash": "yarn workspace @ph-blockchain/hash",
     "block": "yarn workspace @ph-blockchain/block",
+    "miner": "yarn workspace @ph-blockchain/miner",
     "transformer": "yarn workspace @ph-blockchain/transformer",
     "build:package": "yarn transformer build && yarn hash build && yarn block build"
   },
@@ -33,11 +34,12 @@
     "supertest": "^7.0.0",
     "ts-jest": "^29.1.0",
     "ts-loader": "^9.4.3",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.1.3"
   },
   "dependencies": {
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
   }
 }

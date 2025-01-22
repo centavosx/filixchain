@@ -38,25 +38,32 @@ export class BlockGateway implements OnModuleInit {
 
   public mempoolMap = new Map<string, Map<string, Transaction>>();
   public mempoolQueue = new Map<string, Transaction>();
+  public currentEncodedTxToMine: string[] = [];
 
   async onModuleInit() {
     await Account.initialize();
     await Blockchain.initialize();
     const block = await Blockchain.getLatestBlock();
     this.activeBlockHash = !block ? Blockchain.genesisHash : block.blockHash;
-    this.currentHeight = !block ? 0 : +block.height;
+    this.currentHeight = !block ? 0 : +block.height + 1;
     await this.getTargetHashFromBlock(block);
     this.handleReset();
   }
 
   handleReset() {
     setTimeout(() => {
+      this.currentEncodedTxToMine = [...this.mempoolQueue.values()]
+        .slice(0, Block.MAX_TX_SIZE)
+        .map((value) => value.encode());
+
       this.isValidatingMiner = false;
       this.sendAvailabilityNotification(true);
     }, Blockchain.BLOCK_MINE_TIME);
   }
 
-  async handleConnection(client: Socket) {}
+  async handleConnection(client: Socket) {
+    console.log('Test connect');
+  }
 
   @SubscribeMessage('init-miner')
   handleInitMiner(@ConnectedSocket() client: Socket) {
@@ -69,7 +76,17 @@ export class BlockGateway implements OnModuleInit {
   }
 
   sendAvailabilityNotification(isAvailable: boolean) {
-    this.server.emit('minerAvailable', { isAvailable });
+    this.server.to(this.MINER_ROOM).emit('new-block-info', {
+      isAvailable,
+      details: isAvailable
+        ? {
+            transaction: this.currentEncodedTxToMine,
+            activeBlockHash: this.activeBlockHash,
+            targetHash: this.targetHash,
+            currentHeight: this.currentHeight,
+          }
+        : undefined,
+    });
   }
 
   /**
@@ -95,7 +112,10 @@ export class BlockGateway implements OnModuleInit {
       this.targetHash = Blockchain.calculateTargetHash([]);
       return;
     }
-    if (block.height % Blockchain.RESET_NUMBER_OF_BLOCK !== 0) return;
+
+    if (!block.height || block.height % Blockchain.RESET_NUMBER_OF_BLOCK !== 0)
+      return;
+
     const blocks = await Blockchain.getBlocksFromLatest();
     this.targetHash = Blockchain.calculateTargetHash(blocks);
   }
@@ -210,7 +230,7 @@ export class BlockGateway implements OnModuleInit {
       this.validateBlockState(block);
       await this.saveToDb(block);
       this.activeBlockHash = block.blockHash;
-      this.currentHeight = block.height;
+      this.currentHeight = block.height + 1;
       this.handleReset();
     } catch (e) {
       if (e instanceof ConflictException) {

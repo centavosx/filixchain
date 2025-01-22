@@ -4,6 +4,8 @@ import { Blockchain } from './blockchain';
 import { RawBlock } from './types';
 
 export class Block {
+  static MAX_TX_SIZE = 2000;
+
   readonly version: string;
   readonly height: number;
   readonly timestamp: number;
@@ -33,17 +35,11 @@ export class Block {
     this._nonce = nonce ?? 0;
   }
 
-  private generateBlockHash(nonce: number) {
-    return AppHash.createSha256Hash(
-      `${this.version}${this.previousHash}${this.merkleRoot}${this.transactionSize}${this.timestamp}${this.height}${nonce}`,
-    );
-  }
-
   public get merkleRoot() {
-    if (!this._merkleRoot)
-      this._merkleRoot = AppHash.generateMerkleRoot(
-        Array.from(this.transactions.values()),
-      );
+    if (this._merkleRoot === undefined)
+      this._merkleRoot =
+        AppHash.generateMerkleRoot(Array.from(this.transactions.values())) ||
+        null;
 
     return this._merkleRoot;
   }
@@ -52,15 +48,21 @@ export class Block {
     return this.transactions.size;
   }
 
+  public get nonce() {
+    return this._nonce;
+  }
+
+  private generateBlockHash(nonce: number) {
+    return AppHash.createSha256Hash(
+      `${this.version}${this.previousHash}${this.merkleRoot ? this.merkleRoot : 'null'}${this.transactionSize}${this.timestamp}${this.height}${nonce}`,
+    );
+  }
+
   public get blockHash() {
     if (!this._blockHash) {
       this._blockHash = this.generateBlockHash(this.nonce);
     }
     return this._blockHash;
-  }
-
-  public get nonce() {
-    return this._nonce;
   }
 
   public decodeTransactions() {

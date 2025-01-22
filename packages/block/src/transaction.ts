@@ -1,7 +1,6 @@
 import { AppHash, Crypto } from '@ph-blockchain/hash';
 import { Transform } from '@ph-blockchain/transformer';
 import { RawTransaction, TransactionSignature } from './types';
-import { Level } from 'level';
 
 export class Transaction {
   static prefix = 'ph-';

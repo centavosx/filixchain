@@ -4,7 +4,7 @@ import { RawBlockDb } from './types';
 import { Transaction } from './transaction';
 
 export class Blockchain {
-  private static version = '1';
+  static version = '1';
   private static _isOpen = false;
   private static _db: Level<string, string>;
   private static _txDb: ReturnType<typeof this.intializeTx>;
@@ -140,7 +140,6 @@ export class Blockchain {
       await Promise.all([
         txBatch.close(),
         blockBatch.close(),
-        blockBatch.close(),
         blockHeightIndexBatch.close(),
         blockTimestampIndexBatch.close(),
       ]);
@@ -184,7 +183,6 @@ export class Blockchain {
         write: async () => {
           await Promise.all([
             txBatch.write(),
-            blockBatch.write(),
             blockBatch.write(),
             blockHeightIndexBatch.write(),
             blockTimestampIndexBatch.write(),

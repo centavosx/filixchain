@@ -1,0 +1,12 @@
+{
+  "name": "@ph-blockchain/miner",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "packageManager": "yarn@4.5.3",
+  "scripts": {
+    "start": "npx ts-node src/index.ts"
+  }
+}

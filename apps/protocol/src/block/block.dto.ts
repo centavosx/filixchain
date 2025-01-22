@@ -1,5 +1,11 @@
 import { RawBlock } from '@ph-blockchain/block';
-import { IsNumber, IsString, IsArray, IsNotEmpty } from 'class-validator';
+import {
+  IsNumber,
+  IsString,
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+} from 'class-validator';
 
 export class RawBlockDto implements RawBlock {
   @IsNotEmpty()
@@ -35,7 +41,7 @@ export class RawBlockDto implements RawBlock {
   @IsNumber()
   nonce: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   merkleRoot: string;
 

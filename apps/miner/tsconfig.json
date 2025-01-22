@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ESNext", // Output modern JavaScript
+    "moduleResolution": "Node", // Use Node.js module resolution
+    "esModuleInterop": true, // Enable interop with CommonJS modules
+    "outDir": "./dist", // Optional: if you want to output compiled JS files
+    "resolveJsonModule": true, // Allow importing JSON files
+    "skipLibCheck": true // Skip type checks for libraries (optional)
+  },
+  "include": ["src/**/*.ts"], // Include all TypeScript files under src/
+  "exclude": ["node_modules"] // Exclude node_modules folder
+}
