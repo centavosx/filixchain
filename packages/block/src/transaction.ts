@@ -34,6 +34,18 @@ export class Transaction {
     this.signature = signature;
   }
 
+  serialize() {
+    return {
+      transactionId: this.transactionId,
+      from: this.from,
+      to: this.to,
+      amount: this.amount.toString(),
+      nonce: this.amount.toString(),
+      version: this.version.toString(),
+      signature: this.signature.signedMessage,
+    };
+  }
+
   public get rawFromAddress() {
     return Transform.removePrefix(this.from, Transaction.prefix);
   }

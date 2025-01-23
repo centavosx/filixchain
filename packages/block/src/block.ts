@@ -16,15 +16,18 @@ export class Block {
   private _blockHash: string;
   private _merkleRoot: string;
   private _nonce = 0;
+  private _isMined = false;
+
+  private abortController: AbortController;
 
   constructor(
     version: string,
     height: number,
-    timestamp: number,
     transactions: string[],
     targetHash: string,
     previousHash?: string,
     nonce?: number,
+    timestamp?: number,
   ) {
     this.version = version;
     this.height = height;
@@ -44,6 +47,10 @@ export class Block {
     return this._merkleRoot;
   }
 
+  public get isMined() {
+    return this._isMined;
+  }
+
   public get transactionSize() {
     return this.transactions.size;
   }
@@ -54,7 +61,7 @@ export class Block {
 
   private generateBlockHash(nonce: number) {
     return AppHash.createSha256Hash(
-      `${this.version}${this.previousHash}${this.merkleRoot ? this.merkleRoot : 'null'}${this.transactionSize}${this.timestamp}${this.height}${nonce}`,
+      `${this.version}${this.previousHash}${this.merkleRoot ? this.merkleRoot : 'null'}${this.transactionSize}${this.height}${nonce}`,
     );
   }
 
@@ -72,19 +79,36 @@ export class Block {
     }));
   }
 
-  public mine() {
-    let blockHash = this.blockHash;
-    let nonce = this._nonce;
+  public stopMining() {
+    this.abortController?.abort();
+  }
+
+  public async mine(shouldLog?: boolean) {
+    if (this._isMined) return this;
+
+    this.abortController = new AbortController();
 
     const target = BigInt(`0x${this.targetHash}`);
 
-    while (BigInt(`0x${blockHash}`) > target) {
-      nonce += 1;
-      blockHash = this.generateBlockHash(nonce);
+    if (shouldLog) process.stdout.write('\n');
+
+    while (BigInt(`0x${this.blockHash}`) > target) {
+      if (this.abortController.signal?.aborted) {
+        if (shouldLog) process.stdout.write('\rMINING STOPPED....');
+        return this;
+      }
+
+      this._nonce += 1;
+      this._blockHash = this.generateBlockHash(this._nonce);
+
+      if (shouldLog) process.stdout.write(`\rMINING HASH: ${this.blockHash}`);
+
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Yield control back to the event loop
     }
 
-    this._blockHash = blockHash;
-    this._nonce = nonce;
+    this._isMined = true;
+
+    if (shouldLog) process.stdout.write(`\rMINED!!!: ${this._blockHash}`);
 
     return this;
   }

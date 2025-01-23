@@ -1,7 +1,11 @@
 import { Level } from 'level';
 import { Block } from './block';
-import { RawBlockDb } from './types';
+import { BlockHeightQuery, RawBlockDb } from './types';
 import { Transaction } from './transaction';
+import { Minter } from './minter';
+import { Account } from './account';
+
+export type MintOrTx = Minter | Transaction;
 
 export class Blockchain {
   static version = '1';
@@ -17,7 +21,7 @@ export class Blockchain {
   >;
 
   static readonly MAX_TARGET = BigInt(
-    '0x0000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+    '0x000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
   );
 
   static readonly genesisHash =
@@ -69,16 +73,24 @@ export class Blockchain {
     if (Array.isArray(transactionId)) {
       const encodedTransactions = await Blockchain._txDb.getMany(transactionId);
 
-      return encodedTransactions.map(Transaction.decode) as T extends string
-        ? Transaction
-        : Transaction[];
+      return encodedTransactions.map((value) => {
+        if (value.length === Minter.ENCODED_SIZE) {
+          return Minter.decode(value);
+        }
+        return Transaction.decode(value);
+      }) as T extends string ? MintOrTx : MintOrTx[];
     }
 
     const encodedTransaction = await Blockchain._txDb.get(transactionId);
+    if (encodedTransaction.length === Minter.ENCODED_SIZE) {
+      return Minter.decode(encodedTransaction) as T extends string
+        ? MintOrTx
+        : MintOrTx[];
+    }
 
     return Transaction.decode(encodedTransaction) as T extends string
-      ? Transaction
-      : Transaction[];
+      ? MintOrTx
+      : MintOrTx[];
   }
 
   static async mapToBlock(rawBlockDb: RawBlockDb) {
@@ -88,11 +100,13 @@ export class Blockchain {
     return new Block(
       Blockchain.version,
       +rawBlockDb.height,
-      +rawBlockDb.timestamp,
-      transactions.map((tx) => tx.encode()),
+      transactions
+        .filter((value) => value instanceof Transaction)
+        .map((tx) => tx.encode()),
       rawBlockDb.targetHash,
       rawBlockDb.previousHash,
       +rawBlockDb.nonce,
+      +rawBlockDb.timestamp,
     );
   }
 
@@ -116,25 +130,33 @@ export class Blockchain {
     return blocks?.[0];
   }
 
-  static async getBlockByHeight() {
-    const data = await Blockchain._blockTimestampIndexDb
-      .values({ lte: `${Date.now()}`, reverse: true, limit: 1 })
+  static async getBlocksByHeight({
+    from = 0,
+    to,
+    reverse,
+    limit,
+  }: BlockHeightQuery = {}) {
+    const data = await Blockchain._blockHeightIndexDb
+      .values({ gte: from.toString(), lte: to?.toString(), reverse, limit })
       .all();
-    const blockHash = data?.[0];
-    const rawBlock = blockHash
-      ? await Blockchain._blockDb.get(blockHash)
-      : undefined;
 
-    return rawBlock ? await Blockchain.mapToBlock(rawBlock) : undefined;
+    const blocks: Block[] = [];
+
+    for (const blockHash of data) {
+      const rawBlock = await Blockchain._blockDb.get(blockHash);
+      blocks.push(await Blockchain.mapToBlock(rawBlock));
+    }
+
+    return blocks;
   }
 
-  static async saveBlock(blocks: Block | Block[]) {
+  static async saveBlock(blocks: Block | Block[], mintToAddress?: string) {
     const blockHeightIndexBatch = Blockchain._blockHeightIndexDb.batch();
     const blockTimestampIndexBatch = Blockchain._blockTimestampIndexDb.batch();
     const blockBatch = Blockchain._blockDb.batch();
     const txBatch = Blockchain._txDb.batch();
 
-    const transactions: Transaction[] = [];
+    const transactions: (Transaction | Minter)[] = [];
 
     const close = async () => {
       await Promise.all([
@@ -144,6 +166,20 @@ export class Blockchain {
         blockTimestampIndexBatch.close(),
       ]);
     };
+
+    let minter: Minter;
+
+    if (mintToAddress) {
+      const mintAccount = await Account.findByAddress(Minter.rawFromAddress);
+      minter = new Minter({
+        amount: BigInt(10000000),
+        to: mintToAddress,
+        nonce: mintAccount.nonce,
+        version: '1',
+      });
+      transactions.push(minter);
+      txBatch.put(minter.transactionId, minter.encode());
+    }
 
     try {
       for (const block of Array.isArray(blocks) ? blocks : [blocks]) {
@@ -159,6 +195,7 @@ export class Blockchain {
         }
 
         blockBatch.put(blockHash, {
+          mintId: minter?.transactionId,
           version: block.version,
           nonce: BigInt(block.nonce).toString(),
           height: BigInt(block.height).toString(),
@@ -199,7 +236,9 @@ export class Blockchain {
    *  Need to recalculate target hash to dynamically adjust the hash if it solving the problem becomes too slow or too fast.
    */
   static calculateTargetHash = (block: Block[]) => {
-    const lastBlocks = block.slice(-Blockchain.RESET_NUMBER_OF_BLOCK);
+    const lastBlocks = block
+      .slice(-Blockchain.RESET_NUMBER_OF_BLOCK)
+      .sort((blockA, blockB) => blockA.height - blockB.height);
     const firstBlock = lastBlocks[0];
     const lastBlock = lastBlocks[lastBlocks.length - 1];
     const lastTimestamp = lastBlock?.timestamp ?? Date.now();

@@ -3,13 +3,14 @@ import { Level } from 'level';
 import { RawAccountData } from './types';
 import { Transaction } from './transaction';
 import { SearchListQuery } from './types/search';
+import { Minter } from './minter';
 
 export class Account {
   private static _isOpen = false;
   private static _db: Level<string, RawAccountData>;
   private static _txDb: ReturnType<typeof this.intializeTx>;
 
-  private readonly pendingTxToSave: Transaction[] = [];
+  private readonly pendingTxToSave: (Transaction | Minter)[] = [];
 
   private _address: string;
   private _nonce: bigint;
@@ -57,8 +58,8 @@ export class Account {
     this._nonce += BigInt(1);
   }
 
-  addTransaction(...transaction: Transaction[]) {
-    const temporaryTx: Transaction[] = [];
+  addTransaction(...transaction: (Transaction | Minter)[]) {
+    const temporaryTx: (Transaction | Minter)[] = [];
     let temporaryNonce = this._nonce;
     let amount = this._amount;
 
@@ -72,7 +73,7 @@ export class Account {
         throw new Error('This transaction is not for this account');
       }
 
-      amount -= tx.amount;
+      if (tx instanceof Transaction) amount -= tx.amount;
       temporaryTx.push(tx);
       temporaryNonce++;
     }
@@ -84,9 +85,7 @@ export class Account {
     this._nonce = temporaryNonce;
   }
 
-  receiveTransaction(...transaction: Transaction[]) {
-    const temporaryTx: Transaction[] = [];
-    let temporaryNonce = this._nonce;
+  receiveTransaction(...transaction: (Transaction | Minter)[]) {
     let amount = this._amount;
 
     for (const tx of transaction) {
@@ -96,8 +95,6 @@ export class Account {
       }
 
       amount += tx.amount;
-      temporaryTx.push(tx);
-      temporaryNonce++;
     }
 
     this._amount = amount;
@@ -164,12 +161,10 @@ export class Account {
           const currentTxId = tx.transactionId;
           const rawFromAddress = tx.rawFromAddress;
           const rawToAddress = tx.rawToAddress;
+          txBatch.put(`${rawFromAddress}-${blockTimestamp}`, currentTxId);
+          txBatch.put(`${rawToAddress}-${blockTimestamp}`, currentTxId);
           txBatch.put(
-            `${rawFromAddress}-${blockTimestamp}-${rawFromAddress}-${rawToAddress}`,
-            currentTxId,
-          );
-          txBatch.put(
-            `${rawToAddress}-${blockTimestamp}-${rawFromAddress}-${rawToAddress}`,
+            `${rawFromAddress}-${rawToAddress}-${blockTimestamp}`,
             currentTxId,
           );
         }
@@ -188,28 +183,36 @@ export class Account {
 
   public static async getTx(
     account: Account,
-    { start = 0, end, limit, reverse, from, to }: SearchListQuery = {},
+    {
+      start = 0,
+      end = Date.now(),
+      limit,
+      reverse,
+      from,
+      to,
+    }: SearchListQuery = {},
   ) {
     if (start < 0) throw new Error('Not valid start index');
 
-    let searchQuery = '';
+    let query = {
+      gte: `${account.address}-${start}`,
+      lte: `${account.address}-${end}\xFF`,
+      ...(!!limit && {
+        limit,
+      }),
+      reverse,
+    };
 
     if (from || to) {
-      searchQuery = `-${!!from ? from : account._address}-${!!to ? to : account._address}`;
+      const fromAddress = !!to ? account._address : from;
+      const toAddress = !!from ? account._address : to;
+
+      const filter = `${fromAddress}-${toAddress}`;
+      query.gte = `${filter}-${start}`;
+      query.lte = `${filter}-${end}\xFF`;
     }
 
-    const data = await Account._txDb
-      .values({
-        gte: `${account.address}-${start}${searchQuery}`,
-        ...(!!end && {
-          lte: `${account.address}-${end}${searchQuery}`,
-        }),
-        ...(!!limit && {
-          limit,
-        }),
-        reverse,
-      })
-      .all();
+    const data = await Account._txDb.values(query).all();
 
     return data;
   }

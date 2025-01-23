@@ -5,7 +5,7 @@ import { Block } from '../block';
 const RESET_NUMBER_OF_BLOCK = 10;
 const BLOCK_MINE_MILLISECONDS = 1000;
 const MAX_TARGET = BigInt(
-  '0x0000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+  '0x0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
 );
 
 describe('Block - Block', () => {
@@ -19,8 +19,6 @@ describe('Block - Block', () => {
       const from = Crypto.generateKeyPairs();
       const to = Crypto.generateKeyPairs();
 
-      console.log(from);
-
       const fromWalletAddress = Crypto.generateWalletAddress(from.publicKey);
       const toWalletAddress = Crypto.generateWalletAddress(to.publicKey);
 
@@ -33,7 +31,6 @@ describe('Block - Block', () => {
       })
         .sign(from.secretKey)
         .encode();
-      console.log(encodedTransaction);
 
       return encodedTransaction;
     });
@@ -51,7 +48,9 @@ describe('Block - Block', () => {
 
     const currentTargetHashInBigInt = lastBlock?.targetHash
       ? BigInt(`0x${lastBlock?.targetHash}`)
-      : MAX_TARGET;
+      : BigInt(
+          `0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF`,
+        );
 
     const newDifficulty = BigInt(
       Math.round(Number(currentTargetHashInBigInt) * (timeTaken || 1)),
@@ -68,7 +67,7 @@ describe('Block - Block', () => {
     const blockchain: Block[] = [];
     let targetHash = calculateTargetHash(blockchain);
 
-    it('should create a genesis block', () => {
+    it('should create a genesis block', async () => {
       const transactions = generateTransactions();
       const version = '0';
       const height = blockchain.length;
@@ -77,9 +76,11 @@ describe('Block - Block', () => {
       const block = new Block(
         version,
         height,
-        timestamp,
         transactions,
         targetHash,
+        undefined,
+        undefined,
+        timestamp,
       );
 
       expect(block).toHaveProperty('version', version);
@@ -96,9 +97,8 @@ describe('Block - Block', () => {
       expect(block.merkleRoot).toBeTruthy();
       expect(block.merkleRoot).toHaveLength(64);
       expect(block.merkleRoot).toMatch(/^[0-9a-fA-F]+$/);
-
-      blockchain.push(block.mine());
-    });
+      blockchain.push(await block.mine());
+    }, 10000000);
 
     it('should create blocks chained together', async () => {
       const transactions = generateTransactions();
@@ -111,12 +111,13 @@ describe('Block - Block', () => {
         const block = new Block(
           version,
           height,
-          timestamp,
           transactions,
           targetHash,
           blockchain[height - 1].blockHash,
+          undefined,
+          timestamp,
         );
-        blockchain.push(block.mine());
+        blockchain.push(await block.mine());
         await new Promise<void>((resolve) =>
           setTimeout(() => {
             resolve();
@@ -125,7 +126,7 @@ describe('Block - Block', () => {
       }
 
       targetHash = calculateTargetHash(blockchain);
-    }, 60000);
+    }, 10000000);
 
     it('should decode block transactions', async () => {
       const transactions = generateTransactions();
@@ -138,12 +139,13 @@ describe('Block - Block', () => {
         const block = new Block(
           version,
           height,
-          timestamp,
           transactions,
           targetHash,
           blockchain[height - 1].blockHash,
+          undefined,
+          timestamp,
         );
-        blockchain.push(block.mine());
+        blockchain.push(await block.mine());
         const decodedTransactions = block.decodeTransactions();
 
         decodedTransactions.forEach((value) =>
@@ -158,7 +160,7 @@ describe('Block - Block', () => {
       }
 
       targetHash = calculateTargetHash(blockchain);
-    }, 60000);
+    }, 10000000);
 
     describe('toJson', () =>
       it('should generate json object', async () => {
@@ -172,12 +174,13 @@ describe('Block - Block', () => {
           const block = new Block(
             version,
             height,
-            timestamp,
             transactions,
             targetHash,
             blockchain[height - 1].blockHash,
+            undefined,
+            timestamp,
           );
-          blockchain.push(block.mine());
+          blockchain.push(await block.mine());
           const blockInJson = block.toJson();
 
           expect(blockInJson).toHaveProperty('version', block.version);
@@ -202,6 +205,6 @@ describe('Block - Block', () => {
         }
 
         targetHash = calculateTargetHash(blockchain);
-      }));
+      }, 10000000));
   });
 });

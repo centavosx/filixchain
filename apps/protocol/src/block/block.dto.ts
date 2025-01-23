@@ -10,15 +10,15 @@ import {
 export class RawBlockDto implements RawBlock {
   @IsNotEmpty()
   @IsString()
+  mintAddress: string;
+
+  @IsNotEmpty()
+  @IsString()
   version: string;
 
   @IsNotEmpty()
   @IsNumber()
   height: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  timestamp: number;
 
   @IsNotEmpty()
   @IsArray()

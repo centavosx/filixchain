@@ -1,5 +1,4 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transaction } from '@ph-blockchain/block';
 import { SearchListQuery } from '@ph-blockchain/block/src/types/search';
 import { AppHash } from '@ph-blockchain/hash';
 import { Transform } from 'class-transformer';
@@ -53,7 +52,7 @@ export class AccountTransactionSearchDto implements SearchListQuery {
     each: true,
     message: 'Not a valid signed message',
   })
-  @Length(Transaction.ENCODED_SIZE, Transaction.ENCODED_SIZE, {
+  @Length(40, 40, {
     each: true,
     message: 'Transactions should be in 232 bytes',
   })
@@ -67,7 +66,7 @@ export class AccountTransactionSearchDto implements SearchListQuery {
     each: true,
     message: 'Not a valid signed message',
   })
-  @Length(Transaction.ENCODED_SIZE, Transaction.ENCODED_SIZE, {
+  @Length(40, 40, {
     each: true,
     message: 'Transactions should be in 232 bytes',
   })

@@ -1,7 +1,7 @@
 export type RawBlock = {
   readonly version: string;
   readonly height: number;
-  readonly timestamp: number;
+  readonly timestamp?: number;
   readonly transactions: string[];
   readonly previousHash: string;
   readonly targetHash: string;
@@ -12,6 +12,7 @@ export type RawBlock = {
 };
 
 export type RawBlockDb = {
+  mintId?: string;
   version: string;
   height: string;
   timestamp: string;
@@ -22,4 +23,11 @@ export type RawBlockDb = {
   nonce: string;
   merkleRoot: string;
   transactionSize: number;
+};
+
+export type BlockHeightQuery = {
+  from?: number;
+  to?: number;
+  reverse?: boolean;
+  limit?: number;
 };
