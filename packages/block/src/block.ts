@@ -94,11 +94,8 @@ export class Block {
 
     const target = BigInt(`0x${this.targetHash}`);
 
-    if (shouldLog) process.stdout.write('\n');
-
     while (BigInt(`0x${this.blockHash}`) > target) {
       if (this.abortController.signal?.aborted) {
-        if (shouldLog) process.stdout.write('\rMINING STOPPED....');
         return this;
       }
 
@@ -107,12 +104,10 @@ export class Block {
 
       if (shouldLog) process.stdout.write(`\rMINING HASH: ${this.blockHash}`);
 
-      await new Promise((resolve) => setTimeout(resolve, 0)); // Yield control back to the event loop
+      await new Promise((resolve) => setTimeout(resolve, 0));
     }
 
     this._isMined = true;
-
-    if (shouldLog) process.stdout.write(`\rMINED!!!: ${this._blockHash}`);
 
     return this;
   }

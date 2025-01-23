@@ -151,6 +151,13 @@ export class BlockGateway implements OnModuleInit {
       this.validateBlockState(block);
       await this.saveToDb(block, mintAddress);
       await this.handleReset(block);
+      client.emit('mine-success', {
+        hash: block.blockHash,
+        earned: (
+          BigInt(transactions.length - 1) * Transaction.FIXED_FEE +
+          Minter.FIX_MINT
+        ).toString(),
+      });
     } catch (e) {
       this.blockedClients.add(client.id);
       this.sendAvailabilityNotification(false);

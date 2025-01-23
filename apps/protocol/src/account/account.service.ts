@@ -18,7 +18,6 @@ export class AccountService implements OnModuleInit {
   public async getTransactions(address: string, query: SearchListQuery) {
     const account = await Account.findByAddress(address);
     const data = await Account.getTx(account, query);
-    console.log('HUH');
     return (await Blockchain.findTransactionsById(data)).map((value) =>
       value.serialize(),
     );

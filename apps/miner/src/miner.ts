@@ -62,6 +62,16 @@ export class Miner {
       },
     );
 
+    this.socket.on('mine-success', (data: { hash: string; earned: string }) => {
+      console.log();
+      console.log('==================================================');
+      console.log('MINING SUCCESSFUL');
+      console.log(`MINED: ${data.hash}`);
+      console.log(`REWARD: ${data.earned}`);
+      console.log('==================================================');
+      console.log();
+    });
+
     // this.socket.on('error', (e) => {
     //   if (e.statusCode === HttpStatus.BAD_REQUEST) {
     //     console.log(
