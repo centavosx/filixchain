@@ -209,12 +209,13 @@ export class BlockGateway implements OnModuleInit {
       throw new Error('Block is not synced to the latest height');
   }
 
-  async saveToDb(block: Block, mintAddress?: string) {
+  async saveToDb(block: Block, mintAddress: string) {
     const {
       transactions,
       write: commitBlock,
       close: rejectCommit,
-    } = await Blockchain.saveBlock(block, mintAddress);
+    } = await Blockchain.saveBlock(block);
+    const mintAccount = await Account.findByAddress(mintAddress);
 
     try {
       const mappedAccount = new Map<string, Account>();
@@ -222,6 +223,7 @@ export class BlockGateway implements OnModuleInit {
       for (const transaction of transactions) {
         const rawFromAddress = transaction.rawFromAddress;
         const rawToAddress = transaction.rawToAddress;
+
         let fromAccount = mappedAccount.get(rawFromAddress);
         let toAccount = mappedAccount.get(rawToAddress);
 
@@ -237,10 +239,14 @@ export class BlockGateway implements OnModuleInit {
 
         fromAccount.addTransaction(transaction);
         toAccount.receiveTransaction(transaction);
+
+        if (transaction instanceof Transaction)
+          mintAccount.addFixedFeeFromMiningTx();
       }
 
       const { write: commitAccounts } = await Account.save(block.timestamp, [
         ...mappedAccount.values(),
+        mintAccount,
       ]);
 
       await Promise.all([commitBlock(), commitAccounts()]);

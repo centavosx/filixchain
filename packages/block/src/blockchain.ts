@@ -69,30 +69,28 @@ export class Blockchain {
     Blockchain._isOpen = true;
   }
 
-  static async findTransactionsById<T extends string | Array<string>>(
-    transactionId: T,
-  ) {
-    if (Array.isArray(transactionId)) {
-      const encodedTransactions = await Blockchain._txDb.getMany(transactionId);
+  static async findTransactionsById<
+    T extends string | Array<string>,
+    E extends boolean = false,
+  >(transactionId: T, isEncoded?: E) {
+    const isArray = Array.isArray(transactionId);
+    const encodedTransactions = isArray
+      ? await Blockchain._txDb.getMany(transactionId)
+      : [await Blockchain._txDb.get(transactionId)];
 
-      return encodedTransactions.map((value) => {
-        if (value.length === Minter.ENCODED_SIZE) {
-          return Minter.decode(value);
-        }
-        return Transaction.decode(value);
-      }) as T extends string ? MintOrTx : MintOrTx[];
-    }
-
-    const encodedTransaction = await Blockchain._txDb.get(transactionId);
-    if (encodedTransaction.length === Minter.ENCODED_SIZE) {
-      return Minter.decode(encodedTransaction) as T extends string
-        ? MintOrTx
+    const data = encodedTransactions.map((value) => {
+      if (value.length === Minter.ENCODED_SIZE) {
+        return isEncoded ? value : Minter.decode(value);
+      }
+      return isEncoded ? value : Transaction.decode(value);
+    });
+    return (isArray ? data : data?.[0]) as T extends string
+      ? E extends true
+        ? string
+        : MintOrTx
+      : E extends true
+        ? string[]
         : MintOrTx[];
-    }
-
-    return Transaction.decode(encodedTransaction) as T extends string
-      ? MintOrTx
-      : MintOrTx[];
   }
 
   static async getSupply() {
@@ -108,11 +106,12 @@ export class Blockchain {
   static async mapToBlock(rawBlockDb: RawBlockDb) {
     const transactions = await Blockchain.findTransactionsById(
       rawBlockDb.transactions,
+      true,
     );
     return new Block(
       Blockchain.version,
       +rawBlockDb.height,
-      transactions.map((tx) => tx.encode()),
+      transactions,
       rawBlockDb.targetHash,
       rawBlockDb.previousHash,
       +rawBlockDb.nonce,
@@ -160,7 +159,7 @@ export class Blockchain {
     return blocks;
   }
 
-  static async saveBlock(blocks: Block | Block[], mintToAddress?: string) {
+  static async saveBlock(blocks: Block | Block[]) {
     const blockHeightIndexBatch = Blockchain._blockHeightIndexDb.batch();
     const blockTimestampIndexBatch = Blockchain._blockTimestampIndexDb.batch();
     const blockBatch = Blockchain._blockDb.batch();
@@ -186,9 +185,9 @@ export class Blockchain {
         for (const transaction of decodedTransactions) {
           const { decoded, encoded } = transaction;
           const txId = decoded.transactionId;
-          // let txMetada = `${Crypto.decode32BytesStringtoBigInt()}`;
-          txBatch.put(txId, `${encoded}`);
+          txBatch.put(txId, encoded);
           transactions.push(decoded);
+
           if (decoded instanceof Minter) supply -= decoded.amount;
           txIds.push(txId);
         }

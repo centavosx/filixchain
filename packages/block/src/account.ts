@@ -46,16 +46,12 @@ export class Account {
     return this.pendingTxToSave;
   }
 
-  decreaseAmount(amountToDecrease: bigint) {
-    this._amount -= amountToDecrease;
-  }
-
-  increaseAmount(amountToIncrease: bigint) {
-    this._amount += amountToIncrease;
-  }
-
   incrementNonce() {
     this._nonce += BigInt(1);
+  }
+
+  addFixedFeeFromMiningTx() {
+    this._amount += Transaction.FIXED_FEE;
   }
 
   addTransaction(...transaction: (Transaction | Minter)[]) {
@@ -73,7 +69,9 @@ export class Account {
         throw new Error('This transaction is not for this account');
       }
 
-      if (tx instanceof Transaction) amount -= tx.amount;
+      if (tx instanceof Transaction) {
+        amount -= tx.amount + Transaction.FIXED_FEE;
+      }
       temporaryTx.push(tx);
       temporaryNonce++;
     }
@@ -156,17 +154,33 @@ export class Account {
     const txBatch = Account._txDb.batch();
     const batch = Account._db.batch();
     try {
+      const addressTxNum: Record<string, number> = {};
       for (const account of Array.isArray(accounts) ? accounts : [accounts]) {
         for (const tx of account.pendingTxs) {
           const currentTxId = tx.transactionId;
           const rawFromAddress = tx.rawFromAddress;
           const rawToAddress = tx.rawToAddress;
-          txBatch.put(`${rawFromAddress}-${blockTimestamp}`, currentTxId);
-          txBatch.put(`${rawToAddress}-${blockTimestamp}`, currentTxId);
+
+          const fromTxNum = addressTxNum[rawFromAddress] || 0;
+          const toTxNum = addressTxNum[rawToAddress] || 0;
+          const bothTxNum =
+            addressTxNum[`${rawFromAddress}-${rawToAddress}`] || 0;
+
           txBatch.put(
-            `${rawFromAddress}-${rawToAddress}-${blockTimestamp}`,
+            `${rawFromAddress}-${blockTimestamp}-${fromTxNum}`,
             currentTxId,
           );
+          txBatch.put(
+            `${rawToAddress}-${blockTimestamp}-${toTxNum}`,
+            currentTxId,
+          );
+          txBatch.put(
+            `${rawFromAddress}-${rawToAddress}-${blockTimestamp}-${bothTxNum}`,
+            currentTxId,
+          );
+          addressTxNum[rawFromAddress] = fromTxNum + 1;
+          addressTxNum[rawToAddress] = toTxNum + 1;
+          addressTxNum[`${rawFromAddress}-${rawToAddress}`] = bothTxNum + 1;
         }
         batch.put(account.address, this.toJsonData(account));
       }
@@ -184,7 +198,7 @@ export class Account {
   public static async getTx(
     account: Account,
     {
-      start = 0,
+      start = 1706026109489,
       end = Date.now(),
       limit,
       reverse,
@@ -192,7 +206,7 @@ export class Account {
       to,
     }: SearchListQuery = {},
   ) {
-    if (start < 0) throw new Error('Not valid start index');
+    if (start < 1706026109489) throw new Error('Not valid start index');
 
     let query = {
       gte: `${account.address}-${start}`,

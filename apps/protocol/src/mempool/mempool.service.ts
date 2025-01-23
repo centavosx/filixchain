@@ -11,11 +11,15 @@ export class MempoolService implements OnModuleInit {
   }
 
   public getMempool() {
-    return [...this.blockGateway.mempoolQueue.values()];
+    return [...this.blockGateway.mempoolQueue.values()].map((value) =>
+      value.serialize(),
+    );
   }
 
   public getMempoolFromAddress(address: string) {
-    return [...(this.blockGateway.mempoolMap.get(address)?.values() ?? [])];
+    return [...(this.blockGateway.mempoolMap.get(address)?.values() ?? [])].map(
+      (value) => value.serialize(),
+    );
   }
 
   public async postToMempool(encodedTransactions: string[]) {

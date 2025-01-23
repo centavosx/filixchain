@@ -62,17 +62,17 @@ export class Miner {
       },
     );
 
-    this.socket.on('error', (e) => {
-      if (e.statusCode === HttpStatus.BAD_REQUEST) {
-        console.log(
-          `\bSomething went wrong with your block. MESSAGE: ${e.data.message}`,
-        );
+    // this.socket.on('error', (e) => {
+    //   if (e.statusCode === HttpStatus.BAD_REQUEST) {
+    //     console.log(
+    //       `\rSomething went wrong with your block. MESSAGE: ${e.data.message}`,
+    //     );
 
-        return;
-      }
+    //     return;
+    //   }
 
-      console.log(`\n${e.data.message}`);
-    });
+    //   console.log(`\r${e.data.message}`);
+    // });
 
     this.socket.connect();
   }

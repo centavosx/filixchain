@@ -1,8 +1,4 @@
-import { Crypto } from '@ph-blockchain/hash';
 import { Miner } from './miner';
 
-const keyPairs = Crypto.generateKeyPairs();
-const address = Crypto.generateWalletAddress(keyPairs.publicKey);
-console.log('ADDRESS: ' + address);
-const miner = new Miner(address);
+const miner = new Miner('ph-b33edf6b1cdcf7c0cac809d3d142ccc74180234f');
 miner.connect();

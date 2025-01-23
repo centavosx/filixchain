@@ -16,6 +16,8 @@ export class Minter {
   public readonly nonce: bigint;
   public readonly version: bigint;
 
+  public blockHash: string;
+
   private _transactionId: string;
 
   constructor(data: {
@@ -39,6 +41,7 @@ export class Minter {
       amount: this.amount.toString(),
       nonce: this.nonce.toString(),
       version: this.version.toString(),
+      blockHash: this.blockHash,
     };
   }
 
@@ -94,11 +97,9 @@ export class Minter {
     );
 
     const version = Crypto.decode8BytesStringtoBigInt(slices[0]).toString();
-
     const nonce = Crypto.decode8BytesStringtoBigInt(slices[1]).toString();
     const amount = Crypto.decode8BytesStringtoBigInt(slices[2]);
     const from = Transform.addPrefix(slices[3], Transaction.prefix);
-
     const to = Transform.addPrefix(slices[4], Transaction.prefix);
 
     if (amount !== Minter.FIX_MINT) throw new Error('Not a valid mint');

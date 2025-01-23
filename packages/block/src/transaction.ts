@@ -11,6 +11,7 @@ export class Transaction {
   );
 
   public static readonly TX_CONVERSION_UNIT = BigInt(1_000_000_000);
+  public static readonly FIXED_FEE = Transaction.TX_CONVERSION_UNIT;
 
   public readonly from: string;
   public readonly to: string;
@@ -39,9 +40,10 @@ export class Transaction {
       from: this.from,
       to: this.to,
       amount: this.amount.toString(),
-      nonce: this.amount.toString(),
+      nonce: this.nonce.toString(),
       version: this.version.toString(),
       signature: this.signature.signedMessage,
+      fixedFee: Transaction.FIXED_FEE.toString(),
     };
   }
 
@@ -79,7 +81,7 @@ export class Transaction {
     return `${transaction.from}${transaction.to}${transaction.amount}${transaction.nonce}${transaction.version}${transaction.transactionId}`;
   }
 
-  static decode(encodedMessage: string) {
+  static decode(encodedMessage: string, isConfirmed?: boolean) {
     if (encodedMessage.length !== Transaction.ENCODED_SIZE) {
       throw new Error('Not a transaction');
     }
@@ -97,7 +99,6 @@ export class Transaction {
     );
 
     const version = Crypto.decode8BytesStringtoBigInt(slices[0]).toString();
-
     const nonce = Crypto.decode8BytesStringtoBigInt(slices[1]).toString();
     const amount = Crypto.decode8BytesStringtoBigInt(slices[2]).toString();
     const publicKey = Crypto.fromHexStringToBuffer(slices[3]);
