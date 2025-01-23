@@ -1,5 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { Block, Blockchain } from '@ph-blockchain/block';
+import { Block, Blockchain, Minter } from '@ph-blockchain/block';
 import { io } from 'socket.io-client';
 
 export class Miner {
@@ -22,9 +22,21 @@ export class Miner {
           activeBlockHash: string;
           targetHash: string;
           currentHeight: number;
+          mintNonce: number;
+          currentSupply: number;
         };
       }) => {
         const { details, isNewBlock } = data;
+
+        if (details.currentSupply >= Number(Minter.FIX_MINT)) {
+          details.transaction.push(
+            new Minter({
+              to: this.address,
+              version: 1,
+              nonce: details.mintNonce,
+            }).encode(),
+          );
+        }
 
         if (isNewBlock || !this.currentMiningBlock) {
           this.currentMiningBlock?.stopMining();

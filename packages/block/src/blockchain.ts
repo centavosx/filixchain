@@ -3,11 +3,13 @@ import { Block } from './block';
 import { BlockHeightQuery, RawBlockDb } from './types';
 import { Transaction } from './transaction';
 import { Minter } from './minter';
-import { Account } from './account';
+import { Crypto } from '@ph-blockchain/hash';
 
 export type MintOrTx = Minter | Transaction;
 
 export class Blockchain {
+  static SUPPLY_KEY = 'SUPPLY';
+  static MAX_SUPPLY = Transaction.TX_CONVERSION_UNIT ** BigInt(2);
   static version = '1';
   private static _isOpen = false;
   private static _db: Level<string, string>;
@@ -93,6 +95,16 @@ export class Blockchain {
       : MintOrTx[];
   }
 
+  static async getSupply() {
+    let supply = await Blockchain._db.get(Blockchain.SUPPLY_KEY);
+    if (!supply) {
+      supply = Crypto.encodeIntTo8BytesString(Blockchain.MAX_SUPPLY);
+      await Blockchain._db.put(Blockchain.SUPPLY_KEY, supply);
+    }
+
+    return Crypto.decode8BytesStringtoBigInt(supply);
+  }
+
   static async mapToBlock(rawBlockDb: RawBlockDb) {
     const transactions = await Blockchain.findTransactionsById(
       rawBlockDb.transactions,
@@ -100,9 +112,7 @@ export class Blockchain {
     return new Block(
       Blockchain.version,
       +rawBlockDb.height,
-      transactions
-        .filter((value) => value instanceof Transaction)
-        .map((tx) => tx.encode()),
+      transactions.map((tx) => tx.encode()),
       rawBlockDb.targetHash,
       rawBlockDb.previousHash,
       +rawBlockDb.nonce,
@@ -155,6 +165,7 @@ export class Blockchain {
     const blockTimestampIndexBatch = Blockchain._blockTimestampIndexDb.batch();
     const blockBatch = Blockchain._blockDb.batch();
     const txBatch = Blockchain._txDb.batch();
+    let supply = await Blockchain.getSupply();
 
     const transactions: (Transaction | Minter)[] = [];
 
@@ -167,20 +178,6 @@ export class Blockchain {
       ]);
     };
 
-    let minter: Minter;
-
-    if (mintToAddress) {
-      const mintAccount = await Account.findByAddress(Minter.rawFromAddress);
-      minter = new Minter({
-        amount: BigInt(10000000),
-        to: mintToAddress,
-        nonce: mintAccount.nonce,
-        version: '1',
-      });
-      transactions.push(minter);
-      txBatch.put(minter.transactionId, minter.encode());
-    }
-
     try {
       for (const block of Array.isArray(blocks) ? blocks : [blocks]) {
         const blockHash = block.blockHash;
@@ -189,13 +186,14 @@ export class Blockchain {
         for (const transaction of decodedTransactions) {
           const { decoded, encoded } = transaction;
           const txId = decoded.transactionId;
-          txBatch.put(txId, encoded);
+          // let txMetada = `${Crypto.decode32BytesStringtoBigInt()}`;
+          txBatch.put(txId, `${encoded}`);
           transactions.push(decoded);
+          if (decoded instanceof Minter) supply -= decoded.amount;
           txIds.push(txId);
         }
 
         blockBatch.put(blockHash, {
-          mintId: minter?.transactionId,
           version: block.version,
           nonce: BigInt(block.nonce).toString(),
           height: BigInt(block.height).toString(),
@@ -221,6 +219,10 @@ export class Blockchain {
           await Promise.all([
             txBatch.write(),
             blockBatch.write(),
+            Blockchain._db.put(
+              Blockchain.SUPPLY_KEY,
+              Crypto.encodeIntTo8BytesString(supply),
+            ),
             blockHeightIndexBatch.write(),
             blockTimestampIndexBatch.write(),
           ]);

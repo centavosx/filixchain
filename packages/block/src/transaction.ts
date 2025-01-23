@@ -4,15 +4,14 @@ import { RawTransaction, TransactionSignature } from './types';
 
 export class Transaction {
   static prefix = 'ph-';
+  static readonly BYTES_STRING_SIZES = [16, 16, 16, 64, 40, 40, 128] as const;
+  static readonly ENCODED_SIZE = Transaction.BYTES_STRING_SIZES.reduce(
+    (accumulator, value) => accumulator + value,
+    0,
+  );
 
-  static readonly ENCODED_SIZE = 64 + 64 + 64 + 64 + 40 + 40 + 128;
+  public static readonly TX_CONVERSION_UNIT = BigInt(1_000_000_000);
 
-  /**
-   * PESO is the main unit
-   * [PESO, CENTAVOS, CHAIN CENT]
-   * The lowest unit will be used for the blockchain transactions
-   */
-  public readonly CONVERSION_UNITS = [1, 100, 1_000_000];
   public readonly from: string;
   public readonly to: string;
   public readonly amount: bigint;
@@ -64,9 +63,9 @@ export class Transaction {
 
     const { publicKey, signedMessage } = signature;
 
-    const encodedVersion = Crypto.encodeIntTo32BytesString(version);
-    const encodedNonce = Crypto.encodeIntTo32BytesString(nonce);
-    const encodedAmount = Crypto.encodeIntTo32BytesString(amount);
+    const encodedVersion = Crypto.encodeIntTo8BytesString(version);
+    const encodedNonce = Crypto.encodeIntTo8BytesString(nonce);
+    const encodedAmount = Crypto.encodeIntTo8BytesString(amount);
     const encodedPublicKey = Crypto.toHexString(publicKey);
     const fromAddress = Transform.removePrefix(from, this.prefix);
     const toAddress = Transform.removePrefix(to, this.prefix);
@@ -85,29 +84,27 @@ export class Transaction {
       throw new Error('Not a transaction');
     }
 
-    const version = Crypto.decode32BytesStringtoBigInt(
-      encodedMessage.slice(0, 64),
-    ).toString();
-
-    const nonce = Crypto.decode32BytesStringtoBigInt(
-      encodedMessage.slice(64, 128),
-    ).toString();
-    const amount = Crypto.decode32BytesStringtoBigInt(
-      encodedMessage.slice(128, 192),
-    ).toString();
-    const publicKey = Crypto.fromHexStringToBuffer(
-      encodedMessage.slice(192, 256),
-    );
-    const fromAddress = Transform.addPrefix(
-      encodedMessage.slice(256, 296),
-      this.prefix,
-    );
-    const toAddress = Transform.addPrefix(
-      encodedMessage.slice(296, 336),
-      this.prefix,
+    const [_, slices] = Transaction.BYTES_STRING_SIZES.reduce(
+      (accumulator, value) => {
+        const start = accumulator[0];
+        const end = start + value;
+        const slicedString = encodedMessage.slice(start, end);
+        accumulator[0] = end;
+        accumulator[1].push(slicedString);
+        return accumulator;
+      },
+      [0, []] as [number, string[]],
     );
 
-    const signature = encodedMessage.slice(336, 464);
+    const version = Crypto.decode8BytesStringtoBigInt(slices[0]).toString();
+
+    const nonce = Crypto.decode8BytesStringtoBigInt(slices[1]).toString();
+    const amount = Crypto.decode8BytesStringtoBigInt(slices[2]).toString();
+    const publicKey = Crypto.fromHexStringToBuffer(slices[3]);
+    const fromAddress = Transform.addPrefix(slices[4], this.prefix);
+    const toAddress = Transform.addPrefix(slices[5], this.prefix);
+
+    const signature = slices[6];
 
     const currentPublicKeyWalletAddress =
       Crypto.generateWalletAddress(publicKey);

@@ -14,7 +14,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Transaction } from '@ph-blockchain/block';
+import { Minter, Transaction } from '@ph-blockchain/block';
 import { Account, Block, Blockchain } from '@ph-blockchain/block';
 import { Server, Socket } from 'socket.io';
 import { BlockGatewayFilter } from './block.filter';
@@ -39,6 +39,9 @@ export class BlockGateway implements OnModuleInit {
   public mempoolMap = new Map<string, Map<string, Transaction>>();
   public mempoolQueue = new Map<string, Transaction>();
   public currentEncodedTxToMine: string[] = [];
+  public mintNonce = 0;
+
+  public currentSupply = Blockchain.MAX_SUPPLY;
 
   private blockedClients = new Set<string>();
 
@@ -46,17 +49,26 @@ export class BlockGateway implements OnModuleInit {
     await Account.initialize();
     await Blockchain.initialize();
     const block = await Blockchain.getLatestBlock();
-    this.activeBlockHash = !block ? Blockchain.genesisHash : block.blockHash;
-    this.currentHeight = !block ? 0 : +block.height + 1;
-    await this.getTargetHashFromBlock(block, true);
-    this.handleReset();
+
+    this.handleReset(block, true);
   }
 
-  handleReset() {
+  async handleReset(block?: Block, isInit?: boolean) {
+    const supply = await Blockchain.getSupply();
+    const account = await Account.findByAddress(Minter.rawFromAddress);
+    const targetHash = await this.getTargetHashFromBlock(block, isInit);
     this.currentEncodedTxToMine = [...this.mempoolQueue.values()]
       .slice(0, Block.MAX_TX_SIZE)
       .map((value) => value.encode());
+
+    if (!!targetHash) {
+      this.targetHash = targetHash;
+    }
+    this.mintNonce = Number(account.nonce);
+    this.currentSupply = supply;
     this.isValidatingMiner = false;
+    this.activeBlockHash = !block ? Blockchain.genesisHash : block.blockHash;
+    this.currentHeight = !block ? 0 : +block.height + 1;
     this.blockedClients.clear();
     this.sendAvailabilityNotification(true);
   }
@@ -65,6 +77,8 @@ export class BlockGateway implements OnModuleInit {
     (socket ?? this.server.to(this.MINER_ROOM)).emit('new-block-info', {
       isNewBlock,
       details: {
+        mintNonce: this.mintNonce,
+        currentSupply: Number(this.currentSupply),
         transaction: this.currentEncodedTxToMine,
         activeBlockHash: this.activeBlockHash,
         targetHash: this.targetHash,
@@ -136,9 +150,7 @@ export class BlockGateway implements OnModuleInit {
 
       this.validateBlockState(block);
       await this.saveToDb(block, mintAddress);
-      this.activeBlockHash = block.blockHash;
-      this.currentHeight = block.height + 1;
-      this.handleReset();
+      await this.handleReset(block);
     } catch (e) {
       this.blockedClients.add(client.id);
       this.sendAvailabilityNotification(false);
@@ -170,19 +182,17 @@ export class BlockGateway implements OnModuleInit {
     const lastHeight = height - (height % Blockchain.RESET_NUMBER_OF_BLOCK);
 
     if (!block || (lastHeight <= 0 && isInit)) {
-      this.targetHash = Blockchain.calculateTargetHash([]);
-      return;
+      return Blockchain.calculateTargetHash([]);
     }
 
     if (
       !isInit &&
       (!block.height || block.height % Blockchain.RESET_NUMBER_OF_BLOCK !== 0)
     )
-      return;
+      return null;
 
     const blocks = await Blockchain.getBlocksFromLatest();
-
-    this.targetHash = Blockchain.calculateTargetHash(blocks);
+    return Blockchain.calculateTargetHash(blocks);
   }
 
   /**
@@ -233,11 +243,7 @@ export class BlockGateway implements OnModuleInit {
         ...mappedAccount.values(),
       ]);
 
-      await Promise.all([
-        commitBlock(),
-        commitAccounts(),
-        this.getTargetHashFromBlock(block),
-      ]);
+      await Promise.all([commitBlock(), commitAccounts()]);
       this.updateMempoolState(
         transactions.filter((value) => value instanceof Transaction),
       );

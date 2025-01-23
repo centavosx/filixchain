@@ -12,7 +12,6 @@ export type RawBlock = {
 };
 
 export type RawBlockDb = {
-  mintId?: string;
   version: string;
   height: string;
   timestamp: string;

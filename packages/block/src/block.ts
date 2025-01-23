@@ -2,6 +2,7 @@ import { AppHash, Crypto } from '@ph-blockchain/hash';
 import { Transaction } from './transaction';
 import { Blockchain } from './blockchain';
 import { RawBlock } from './types';
+import { Minter } from './minter';
 
 export class Block {
   static MAX_TX_SIZE = 2000;
@@ -75,7 +76,10 @@ export class Block {
   public decodeTransactions() {
     return Array.from(this.transactions.values()).map((value) => ({
       encoded: value,
-      decoded: Transaction.decode(value),
+      decoded:
+        value.length === Minter.ENCODED_SIZE
+          ? Minter.decode(value)
+          : Transaction.decode(value),
     }));
   }
 

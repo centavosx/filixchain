@@ -9,4 +9,9 @@ export class BlockController {
   public getBlock() {
     return this.blockService.getBlocks();
   }
+
+  @Get('supply')
+  public getSupply() {
+    return this.blockService.getSupply();
+  }
 }

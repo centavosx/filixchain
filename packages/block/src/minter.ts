@@ -3,11 +3,16 @@ import { Transform } from '@ph-blockchain/transformer';
 import { Transaction } from './transaction';
 
 export class Minter {
-  static readonly ENCODED_SIZE = 64 + 64 + 64 + 40 + 40;
+  static readonly BYTES_STRING_SIZES = [16, 16, 16, 40, 40] as const;
+  static readonly ENCODED_SIZE = Minter.BYTES_STRING_SIZES.reduce(
+    (accumulator, value) => accumulator + value,
+    0,
+  );
+  static readonly FIX_MINT = Transaction.TX_CONVERSION_UNIT * BigInt(10);
 
   public readonly from: string;
   public readonly to: string;
-  public readonly amount: bigint;
+  public readonly amount = Minter.FIX_MINT;
   public readonly nonce: bigint;
   public readonly version: bigint;
 
@@ -15,15 +20,13 @@ export class Minter {
 
   constructor(data: {
     to: string;
-    amount: string | number | bigint;
     nonce: string | number | bigint;
     version: string | number | bigint;
   }) {
-    const { to, amount, nonce, version } = data;
+    const { to, nonce, version } = data;
 
     this.from = Minter.address;
     this.to = to;
-    this.amount = BigInt(amount);
     this.nonce = BigInt(nonce);
     this.version = BigInt(version);
   }
@@ -58,9 +61,9 @@ export class Minter {
   static encode(transaction: Minter) {
     const { from, to, amount, nonce, version } = transaction;
 
-    const encodedVersion = Crypto.encodeIntTo32BytesString(version);
-    const encodedNonce = Crypto.encodeIntTo32BytesString(nonce);
-    const encodedAmount = Crypto.encodeIntTo32BytesString(amount);
+    const encodedVersion = Crypto.encodeIntTo8BytesString(version);
+    const encodedNonce = Crypto.encodeIntTo8BytesString(nonce);
+    const encodedAmount = Crypto.encodeIntTo8BytesString(amount);
     const fromAddress = Transform.removePrefix(from, Transaction.prefix);
     const toAddress = Transform.removePrefix(to, Transaction.prefix);
 
@@ -78,25 +81,27 @@ export class Minter {
       throw new Error('Not a minter');
     }
 
-    const version = Crypto.decode32BytesStringtoBigInt(
-      encodedMessage.slice(0, 64),
-    ).toString();
-
-    const nonce = Crypto.decode32BytesStringtoBigInt(
-      encodedMessage.slice(64, 128),
-    ).toString();
-    const amount = Crypto.decode32BytesStringtoBigInt(
-      encodedMessage.slice(128, 192),
-    ).toString();
-    const from = Transform.addPrefix(
-      encodedMessage.slice(192, 232),
-      Transaction.prefix,
+    const [_, slices] = Minter.BYTES_STRING_SIZES.reduce(
+      (accumulator, value) => {
+        const start = accumulator[0];
+        const end = start + value;
+        const slicedString = encodedMessage.slice(start, end);
+        accumulator[0] = end;
+        accumulator[1].push(slicedString);
+        return accumulator;
+      },
+      [0, []] as [number, string[]],
     );
 
-    const to = Transform.addPrefix(
-      encodedMessage.slice(232, 272),
-      Transaction.prefix,
-    );
+    const version = Crypto.decode8BytesStringtoBigInt(slices[0]).toString();
+
+    const nonce = Crypto.decode8BytesStringtoBigInt(slices[1]).toString();
+    const amount = Crypto.decode8BytesStringtoBigInt(slices[2]);
+    const from = Transform.addPrefix(slices[3], Transaction.prefix);
+
+    const to = Transform.addPrefix(slices[4], Transaction.prefix);
+
+    if (amount !== Minter.FIX_MINT) throw new Error('Not a valid mint');
 
     if (from !== Minter.address)
       throw new Error('Mint Transaction is not correct');
@@ -104,7 +109,6 @@ export class Minter {
     const mint = new Minter({
       version,
       to,
-      amount,
       nonce,
     });
 
@@ -113,9 +117,9 @@ export class Minter {
 
   get transactionId() {
     if (!this._transactionId) {
-      this._transactionId = `mint-${AppHash.createSha256Hash(
+      this._transactionId = AppHash.createSha256Hash(
         `${this.from}${this.to}${this.amount}${this.nonce}${this.version}`,
-      )}`;
+      );
     }
     return this._transactionId;
   }

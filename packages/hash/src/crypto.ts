@@ -2,21 +2,21 @@ import { AppHash } from './hash';
 import * as tweetnacl from 'tweetnacl';
 
 export class Crypto {
-  static zero32BytesString =
-    '0000000000000000000000000000000000000000000000000000000000000000';
+  static zero8BytesString = '0000000000000000';
 
-  static encodeIntTo32BytesString(data: string | number | bigint) {
+  static encodeIntTo8BytesString(data: string | number | bigint) {
     const bigInt = BigInt(data);
     if (bigInt < 0) throw new Error('Minimum value is zero');
-    const buffer = Buffer.alloc(32);
+    const buffer = Buffer.alloc(8);
 
-    buffer.writeBigInt64BE(bigInt, 24);
+    buffer.writeBigInt64BE(bigInt);
+
     return buffer.toString('hex');
   }
 
-  static decode32BytesStringtoBigInt = (data: string) => {
+  static decode8BytesStringtoBigInt = (data: string) => {
     if (!data.match(/^[0-9a-fA-F]+$/)) throw new Error('Not a hex string');
-    if (data.length !== 64) throw new Error('Should be a 32 byte hex string');
+    if (data.length !== 16) throw new Error('Should be a 8 byte hex string');
     const converted = +`0x${data}`;
 
     if (isNaN(converted)) throw new Error('Not a valid number hex string');

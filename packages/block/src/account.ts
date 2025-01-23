@@ -18,8 +18,8 @@ export class Account {
 
   constructor(address: string, amount: string, nonce: string) {
     this._address = address;
-    this._nonce = Crypto.decode32BytesStringtoBigInt(nonce);
-    this._amount = Crypto.decode32BytesStringtoBigInt(amount);
+    this._nonce = Crypto.decode8BytesStringtoBigInt(nonce);
+    this._amount = Crypto.decode8BytesStringtoBigInt(amount);
   }
 
   serialize() {
@@ -118,8 +118,8 @@ export class Account {
   }
 
   public static createAccount(address: string, data: RawAccountData) {
-    const rawAmount = data?.amount || Crypto.zero32BytesString;
-    const rawNonce = data?.nonce || Crypto.zero32BytesString;
+    const rawAmount = data?.amount || Crypto.zero8BytesString;
+    const rawNonce = data?.nonce || Crypto.zero8BytesString;
     return new Account(address, rawAmount, rawNonce);
   }
 
@@ -144,8 +144,8 @@ export class Account {
 
   public static toJsonData(account: Account): RawAccountData {
     return {
-      amount: Crypto.encodeIntTo32BytesString(account.amount),
-      nonce: Crypto.encodeIntTo32BytesString(account.nonce),
+      amount: Crypto.encodeIntTo8BytesString(account.amount),
+      nonce: Crypto.encodeIntTo8BytesString(account.nonce),
     };
   }
 

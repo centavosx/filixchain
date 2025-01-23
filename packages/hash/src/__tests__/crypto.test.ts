@@ -13,8 +13,8 @@ describe('Hash - Crypto', () => {
     expect(keyPair.secretKey).toHaveLength(64);
   };
 
-  describe('encodeIntTo32BytesString', () => {
-    it('should generate 32 bytes hex string from a number', () => {
+  describe('encodeIntTo8BytesString', () => {
+    it('should generate 8 bytes hex string from a number', () => {
       let min = 1;
       let max = 10000000000;
 
@@ -24,24 +24,24 @@ describe('Hash - Crypto', () => {
       );
 
       arrayOfNumber.forEach((value) => {
-        const hexString = Crypto.encodeIntTo32BytesString(value.toString());
+        const hexString = Crypto.encodeIntTo8BytesString(value.toString());
         expect(typeof hexString).toBe('string');
         expect(hexString).toMatch(/^[0-9a-fA-F]+$/);
-        expect(hexString).toHaveLength(64);
+        expect(hexString).toHaveLength(16);
         const buffer = Buffer.from(hexString, 'hex');
-        expect(buffer.readBigInt64BE(24).toString()).toBe(value.toString());
+        expect(buffer.readBigInt64BE().toString()).toBe(value.toString());
       });
     });
   });
 
-  describe('decode32BytesStringtoBigInt', () => {
+  describe('decode8BytesStringtoBigInt', () => {
     it('should throw an error with non hex strings', () => {
       const arrayOfStrings = Array.from({ length: 10 }, () =>
         randomstring.generate(),
       );
 
       arrayOfStrings.forEach((value) => {
-        expect(() => Crypto.decode32BytesStringtoBigInt(value)).toThrow();
+        expect(() => Crypto.decode8BytesStringtoBigInt(value)).toThrow();
       });
     });
   });
