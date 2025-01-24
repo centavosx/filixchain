@@ -159,7 +159,10 @@ export class Blockchain {
     return blocks;
   }
 
-  static async saveBlock(blocks: Block | Block[]) {
+  static async saveBlock(
+    blocks: Block | Block[],
+    onTx?: (decoded: Transaction | Minter, encoded: string) => Promise<void>,
+  ) {
     const blockHeightIndexBatch = Blockchain._blockHeightIndexDb.batch();
     const blockTimestampIndexBatch = Blockchain._blockTimestampIndexDb.batch();
     const blockBatch = Blockchain._blockDb.batch();
@@ -190,6 +193,7 @@ export class Blockchain {
 
           if (decoded instanceof Minter) supply -= decoded.amount;
           txIds.push(txId);
+          await onTx(decoded, encoded);
         }
 
         blockBatch.put(blockHash, {
@@ -234,7 +238,7 @@ export class Blockchain {
   }
 
   /**
-   *  Need to recalculate target hash to dynamically adjust the hash if it solving the problem becomes too slow or too fast.
+   *  Need to recalculate target hash to dynamically adjust the hash if solving the problem becomes too slow or too fast.
    */
   static calculateTargetHash = (block: Block[]) => {
     const lastBlocks = block

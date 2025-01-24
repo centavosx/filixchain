@@ -114,49 +114,54 @@ export class BlockGateway implements OnModuleInit {
 
     this.isValidatingMiner = true;
 
+    const {
+      version,
+      height,
+      transactions,
+      previousHash,
+      targetHash,
+      blockHash,
+      nonce,
+      merkleRoot,
+      transactionSize,
+      mintAddress,
+    } = rawBlock;
+
+    const block = new Block(
+      version,
+      height,
+      transactions,
+      targetHash,
+      previousHash,
+      nonce,
+      Date.now(),
+    );
+
     try {
-      const {
-        version,
-        height,
-        transactions,
-        previousHash,
-        targetHash,
-        blockHash,
-        nonce,
-        merkleRoot,
-        transactionSize,
-        mintAddress,
-      } = rawBlock;
-
-      const block = new Block(
-        version,
-        height,
-        transactions,
-        targetHash,
-        previousHash,
-        nonce,
-        Date.now(),
-      );
-
       // To make sure that the generated blockhash, merkleroot, or size matches the specified value
       if (
         block.blockHash !== blockHash ||
         block.merkleRoot !== merkleRoot ||
-        block.transactionSize !== transactionSize
+        block.transactionSize !== transactionSize ||
+        transactions.length !== transactionSize
       )
         throw new Error(
           `Invalid block, provided details didnt meet the blockhash`,
         );
 
       this.validateBlockState(block);
-      await this.saveToDb(block, mintAddress);
+
+      const {
+        totalMinerReward,
+        transactions: userTransactions,
+        blockHash: minedBlockHash,
+      } = await this.saveToDb(block, mintAddress);
       await this.handleReset(block);
+
+      this.updateMempoolState(userTransactions);
       client.emit('mine-success', {
-        hash: block.blockHash,
-        earned: (
-          BigInt(transactions.length - 1) * Transaction.FIXED_FEE +
-          Minter.FIX_MINT
-        ).toString(),
+        hash: minedBlockHash,
+        earned: totalMinerReward,
       });
     } catch (e) {
       this.blockedClients.add(client.id);
@@ -217,49 +222,76 @@ export class BlockGateway implements OnModuleInit {
   }
 
   async saveToDb(block: Block, mintAddress: string) {
+    const mintAccount = await Account.findByAddress(mintAddress);
+    const mappedAccount = new Map<string, Account>();
+    const txSet = new Set<string>();
+
+    let minerFee = BigInt(0);
+
+    let isRewardIncluded = false;
+
     const {
       transactions,
       write: commitBlock,
       close: rejectCommit,
-    } = await Blockchain.saveBlock(block);
-    const mintAccount = await Account.findByAddress(mintAddress);
+    } = await Blockchain.saveBlock(block, async (transaction, encoded) => {
+      const rawFromAddress = transaction.rawFromAddress;
+      const rawToAddress = transaction.rawToAddress;
 
-    try {
-      const mappedAccount = new Map<string, Account>();
+      let fromAccount = mappedAccount.get(rawFromAddress);
+      let toAccount = mappedAccount.get(rawToAddress);
 
-      for (const transaction of transactions) {
-        const rawFromAddress = transaction.rawFromAddress;
-        const rawToAddress = transaction.rawToAddress;
-
-        let fromAccount = mappedAccount.get(rawFromAddress);
-        let toAccount = mappedAccount.get(rawToAddress);
-
-        if (!fromAccount) {
-          fromAccount = await Account.findByAddress(rawFromAddress);
-          mappedAccount.set(rawFromAddress, fromAccount);
-        }
-
-        if (!toAccount) {
-          toAccount = await Account.findByAddress(rawToAddress);
-          mappedAccount.set(rawToAddress, toAccount);
-        }
-
-        fromAccount.addTransaction(transaction);
-        toAccount.receiveTransaction(transaction);
-
-        if (transaction instanceof Transaction)
-          mintAccount.addFixedFeeFromMiningTx();
+      if (!fromAccount) {
+        fromAccount = await Account.findByAddress(rawFromAddress);
+        mappedAccount.set(rawFromAddress, fromAccount);
       }
 
+      if (!toAccount) {
+        toAccount = await Account.findByAddress(rawToAddress);
+        mappedAccount.set(rawToAddress, toAccount);
+      }
+
+      fromAccount.addTransaction(transaction);
+      toAccount.receiveTransaction(transaction);
+      txSet.add(encoded);
+
+      if (transaction instanceof Transaction) {
+        fromAccount.reduceAmountWithFee(Transaction.FIXED_FEE);
+        minerFee += Transaction.FIXED_FEE;
+        return;
+      }
+
+      if (!(transaction instanceof Minter)) return;
+
+      if (isRewardIncluded)
+        throw new Error("You can't include multiple mint reward");
+
+      isRewardIncluded = true;
+    });
+
+    if (txSet.size !== block.transactionSize)
+      throw new Error("You can't include duplicate transactions");
+
+    mintAccount.addTotalFee(minerFee);
+
+    const totalMinerReward =
+      minerFee + (isRewardIncluded ? Minter.FIX_MINT : BigInt(0));
+
+    try {
       const { write: commitAccounts } = await Account.save(block.timestamp, [
         ...mappedAccount.values(),
         mintAccount,
       ]);
 
       await Promise.all([commitBlock(), commitAccounts()]);
-      this.updateMempoolState(
-        transactions.filter((value) => value instanceof Transaction),
-      );
+
+      return {
+        blockHash: block.blockHash,
+        totalMinerReward,
+        transactions: transactions.filter(
+          (value) => value instanceof Transaction,
+        ),
+      };
     } catch (e) {
       await rejectCommit();
       throw e;

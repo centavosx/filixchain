@@ -50,8 +50,18 @@ export class Account {
     this._nonce += BigInt(1);
   }
 
-  addFixedFeeFromMiningTx() {
-    this._amount += Transaction.FIXED_FEE;
+  addTotalFee(reward: bigint) {
+    this._amount += reward;
+  }
+
+  reduceAmountWithFee(fee: bigint) {
+    let amount = this._amount;
+
+    amount -= fee;
+
+    if (amount < 0) throw new Error('Not enough balance to pay for the fee');
+
+    this._amount = amount;
   }
 
   addTransaction(...transaction: (Transaction | Minter)[]) {
