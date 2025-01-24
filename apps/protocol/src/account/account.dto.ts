@@ -54,7 +54,7 @@ export class AccountTransactionSearchDto implements SearchListQuery {
   })
   @Length(40, 40, {
     each: true,
-    message: 'Transactions should be in 232 bytes',
+    message: 'Transactions should be in 80 bytes',
   })
   from?: string;
 
@@ -68,7 +68,7 @@ export class AccountTransactionSearchDto implements SearchListQuery {
   })
   @Length(40, 40, {
     each: true,
-    message: 'Transactions should be in 232 bytes',
+    message: 'Transactions should be in 80 bytes',
   })
   to?: string;
 }
