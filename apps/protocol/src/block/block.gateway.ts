@@ -127,17 +127,16 @@ export class BlockGateway implements OnModuleInit {
       mintAddress,
     } = rawBlock;
 
-    const block = new Block(
-      version,
-      height,
-      transactions,
-      targetHash,
-      previousHash,
-      nonce,
-      Date.now(),
-    );
-
     try {
+      const block = new Block(
+        version,
+        height,
+        transactions,
+        targetHash,
+        previousHash,
+        nonce,
+        Date.now(),
+      );
       // To make sure that the generated blockhash, merkleroot, or size matches the specified value
       if (
         block.blockHash !== blockHash ||
@@ -161,7 +160,7 @@ export class BlockGateway implements OnModuleInit {
       this.updateMempoolState(userTransactions);
       client.emit('mine-success', {
         hash: minedBlockHash,
-        earned: totalMinerReward,
+        earned: totalMinerReward.toString(),
       });
     } catch (e) {
       this.blockedClients.add(client.id);
