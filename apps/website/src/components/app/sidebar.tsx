@@ -1,4 +1,4 @@
-import { Home, BlocksIcon, Receipt, LogIn, User } from 'lucide-react';
+import { Home, BlocksIcon, Receipt } from 'lucide-react';
 
 import {
   Sidebar,
@@ -63,37 +63,6 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Account</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <LogIn />
-                  <Label>Connect</Label>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem className="group-data-[collapsible=icon]:hidden">
-                <SidebarMenuButton asChild disabled>
-                  <div>
-                    <User />
-                    <Label>wa</Label>
-                  </div>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              {/* {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))} */}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

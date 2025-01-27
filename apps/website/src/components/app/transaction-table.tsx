@@ -34,10 +34,10 @@ export const TransactionTable = () => {
       <TableHeader>
         <TableRow>
           <TableHead>Block</TableHead>
-          <TableHead>Hash</TableHead>
-          <TableHead>From</TableHead>
-          <TableHead>To</TableHead>
-          <TableHead>Amount</TableHead>
+          <TableHead className="min-w-[90px]">Hash</TableHead>
+          <TableHead className="min-w-[90px]">From</TableHead>
+          <TableHead className="min-w-[90px]">To</TableHead>
+          <TableHead className="text-center">Amount</TableHead>
           <TableHead>
             <TooltipProvider delayDuration={0}>
               <Tooltip>
@@ -58,10 +58,18 @@ export const TransactionTable = () => {
         {txs.map((tx) => (
           <TableRow key={tx.hash}>
             <TableCell className="font-medium">{tx.block}</TableCell>
-            <TableCell>{tx.hash}</TableCell>
-            <TableCell>{tx.from}</TableCell>
-            <TableCell>{tx.to}</TableCell>
-            <TableCell>{tx.amount}</TableCell>
+            <TableCell className="text-wrap break-all max-w-[230px]">
+              {tx.hash}
+            </TableCell>
+            <TableCell className="text-wrap break-all max-w-[150px]">
+              {tx.from}
+            </TableCell>
+            <TableCell className="text-wrap break-all max-w-[150px]">
+              {tx.to}
+            </TableCell>
+            <TableCell className="text-center">
+              {tx.amount}00000000000 ETH
+            </TableCell>
             <TableCell>
               <Button variant="ghost" size="icon">
                 <Eye />
@@ -70,12 +78,12 @@ export const TransactionTable = () => {
           </TableRow>
         ))}
       </TableBody>
-      <TableFooter>
+      {/* <TableFooter>
         <TableRow>
           <TableCell colSpan={3}>Total</TableCell>
           <TableCell className="text-right">$2,500.00</TableCell>
         </TableRow>
-      </TableFooter>
+      </TableFooter> */}
     </Table>
   );
 };
