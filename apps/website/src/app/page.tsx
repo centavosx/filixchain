@@ -28,17 +28,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
-
-const invoices = [
-  {
-    block: '23232',
-    hash: '0006cd4982f67f3f988bc01638873cf3d1b96615febbe6f2f7fd8569f0c9a632',
-    from: '3d1b96615febbe6f2f7fd8569f0c9a632adc2123',
-    to: '3d1b96615febbe6f2f7fd8569f0c9a632adc2123',
-    totalAmount: '$250.00',
-    paymentMethod: 'Credit Card',
-  },
-];
+import { TransactionTable } from '@/components/app/transaction-table';
 
 export default function Home() {
   return (
@@ -107,53 +97,7 @@ export default function Home() {
           <Label asChild>
             <Typography as="h4">Latest Transactions</Typography>
           </Label>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Block</TableHead>
-                <TableHead>Hash</TableHead>
-                <TableHead>From</TableHead>
-                <TableHead>To</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>
-                  <TooltipProvider delayDuration={0}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <HelpCircle />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <Typography>Added</Typography>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow key={invoice.hash}>
-                  <TableCell className="font-medium">{invoice.block}</TableCell>
-                  <TableCell>{invoice.hash}</TableCell>
-                  <TableCell>{invoice.from}</TableCell>
-                  <TableCell>{invoice.to}</TableCell>
-                  <TableCell>{invoice.totalAmount}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon">
-                      <Eye />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={3}>Total</TableCell>
-                <TableCell className="text-right">$2,500.00</TableCell>
-              </TableRow>
-            </TableFooter>
-          </Table>
+          <TransactionTable />
         </div>
       </section>
     </div>
