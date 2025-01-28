@@ -19,6 +19,7 @@
     "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.7",
+    "bip32": "4.0.0",
     "bip39": "^3.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -31,6 +32,7 @@
     "recharts": "^2.15.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "tiny-secp256k1": "^2.2.3",
     "zod": "^3.24.1",
     "zustand": "^5.0.3"
   },

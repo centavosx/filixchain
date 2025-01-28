@@ -8,7 +8,6 @@ import { Menubar, MenubarMenu, MenubarTrigger } from '../ui/menubar';
 import { SidebarTrigger } from '../ui/sidebar';
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -31,8 +30,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Textarea } from '../ui/textarea';
-import { useEffect, useRef, useState } from 'react';
-import { decryptWithPassword, encryptWithPassword } from '@/lib/encrypt';
+import { useEffect, useState } from 'react';
+import { useAuthStore } from '@/hooks/use-auth';
 
 const FormSchema = z
   .object({
@@ -69,8 +68,10 @@ const FormSchema = z
   });
 
 const AccountFormSheet = () => {
+  const { account, register } = useAuthStore();
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  console.log(account);
   const form = useForm<z.infer<typeof FormSchema>>({
     values: {
       password: '',
@@ -86,14 +87,14 @@ const AccountFormSheet = () => {
   };
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
-    const encrypted = encryptWithPassword(data.privateKey, data.password);
-    const decrypted = decryptWithPassword(encrypted, data.password);
-    console.log(encrypted, decrypted);
-    // await new Promise<void>((resolve) =>
-    //   setTimeout(() => {
-    //     resolve();
-    //   }, 3000),
-    // );
+    const { privateKey, password } = data;
+    const isPriv = /^[0-9a-fA-F]{64}$/.test(privateKey);
+    const isMnemonic = bip39.validateMnemonic(privateKey);
+
+    if (!isPriv && !isMnemonic)
+      throw new Error('Not a valid private key or mnemonic');
+
+    register(privateKey, password);
 
     setIsOpen(false);
   };
