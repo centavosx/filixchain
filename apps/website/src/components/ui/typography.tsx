@@ -8,7 +8,7 @@ const textClass = {
   ),
   h3: cn('scroll-m-20 text-2xl font-semibold tracking-tight'),
   h4: cn('scroll-m-20 text-xl font-semibold tracking-tight'),
-  p: cn('leading-7 [&:not(:first-child)]:mt-6'),
+  p: cn('leading-7'),
   code: cn(
     'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold',
   ),
