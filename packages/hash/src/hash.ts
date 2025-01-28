@@ -4,11 +4,11 @@ export class AppHash {
   static HASH_REGEX = /^[0-9a-fA-F]+$/g;
 
   static createSha256Hash(data: string | Buffer) {
-    return crypto.createHash('sha-256').update(data).digest('hex');
+    return crypto.createHash('sha256').update(data).digest('hex');
   }
 
   static createSha512Hash(data: string | Buffer) {
-    return crypto.createHash('sha-512').update(data).digest('hex');
+    return crypto.createHash('sha512').update(data).digest('hex');
   }
 
   static createRipemd160(hashString: string) {
