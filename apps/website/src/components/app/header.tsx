@@ -19,6 +19,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import * as bip39 from 'bip39';
 
 import {
   Form,
@@ -30,7 +31,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Textarea } from '../ui/textarea';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { decryptWithPassword, encryptWithPassword } from '@/lib/encrypt';
 
 const FormSchema = z
   .object({
@@ -44,7 +46,7 @@ const FormSchema = z
       .regex(/[0-9]/, 'Password must contain digits')
       .regex(/[^\w]/, 'Password must contain special characters'),
     confirmPassword: z.string(),
-    privateKey: z.string(),
+    privateKey: z.string().min(1, 'Required'),
   })
   .superRefine(({ confirmPassword, password, privateKey }, ctx) => {
     if (confirmPassword !== password) {
@@ -55,7 +57,9 @@ const FormSchema = z
       });
     }
 
-    if (!/^[0-9a-fA-F]{64}$/.test(privateKey)) {
+    const isMnemonic = bip39.validateMnemonic(privateKey);
+
+    if (!/^[0-9a-fA-F]{64}$/.test(privateKey) && !isMnemonic) {
       ctx.addIssue({
         code: 'custom',
         message: 'Not a valid private key or mnemonic',
@@ -65,6 +69,7 @@ const FormSchema = z
   });
 
 const AccountFormSheet = () => {
+  const [hasGenerated, setHasGenerated] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const form = useForm<z.infer<typeof FormSchema>>({
     values: {
@@ -75,7 +80,15 @@ const AccountFormSheet = () => {
     resolver: zodResolver(FormSchema),
   });
 
+  const handleGenerateMnemonic = () => {
+    form.setValue('privateKey', bip39.generateMnemonic());
+    setHasGenerated(true);
+  };
+
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    const encrypted = encryptWithPassword(data.privateKey, data.password);
+    const decrypted = decryptWithPassword(encrypted, data.password);
+    console.log(encrypted, decrypted);
     // await new Promise<void>((resolve) =>
     //   setTimeout(() => {
     //     resolve();
@@ -88,6 +101,7 @@ const AccountFormSheet = () => {
   useEffect(() => {
     if (isOpen) return;
     form.reset();
+    setHasGenerated(false);
   }, [isOpen, form]);
 
   return (
@@ -159,7 +173,13 @@ const AccountFormSheet = () => {
               />
             </div>
             <SheetFooter>
-              <Button variant="outline">Generate Mnemonic</Button>
+              <Button
+                variant="outline"
+                onClick={handleGenerateMnemonic}
+                disabled={hasGenerated}
+              >
+                Generate Mnemonic
+              </Button>
               <Button type="submit">Save changes</Button>
             </SheetFooter>
           </form>
