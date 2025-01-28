@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { SearchListQuery } from '@ph-blockchain/block/src/types/search';
+
 import { AppHash } from '@ph-blockchain/hash';
 import { Transform } from 'class-transformer';
 import {
@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 import { Transformer } from '../utils/transformer';
 
-export class AccountTransactionSearchDto implements SearchListQuery {
+export class AccountTransactionSearchDto {
   @ApiPropertyOptional({
     description: 'Start time of the transaction',
   })

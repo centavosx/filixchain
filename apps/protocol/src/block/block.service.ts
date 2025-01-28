@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
 import { BlockGateway } from '../block/block.gateway';
-import { Blockchain, Transaction } from '@ph-blockchain/block';
+import { Transaction } from '@ph-blockchain/block';
+import { Blockchain } from '../db/blockchain';
 
 @Injectable()
 export class BlockService {

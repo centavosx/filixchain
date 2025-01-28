@@ -1,10 +1,13 @@
 import { AppHash, Crypto } from '@ph-blockchain/hash';
 import { Transaction } from './transaction';
-import { Blockchain } from './blockchain';
+// import { Blockchain } from './blockchain';
 import { RawBlock } from './types';
 import { Minter } from './minter';
 
 export class Block {
+  static readonly genesisHash =
+    '0000000000000000000000000000000000000000000000000000000000000000';
+
   static MAX_TX_SIZE = 2000;
 
   readonly version: string;
@@ -34,7 +37,7 @@ export class Block {
     this.height = height;
     this.timestamp = timestamp;
     this.transactions = new Set(transactions);
-    this.previousHash = previousHash ?? Blockchain.genesisHash;
+    this.previousHash = previousHash ?? Block.genesisHash;
     this.targetHash = targetHash;
     this._nonce = nonce ?? 0;
   }

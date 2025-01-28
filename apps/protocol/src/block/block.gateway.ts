@@ -15,10 +15,12 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Minter, Transaction } from '@ph-blockchain/block';
-import { Account, Block, Blockchain } from '@ph-blockchain/block';
+import { Block } from '@ph-blockchain/block';
 import { Server, Socket } from 'socket.io';
 import { BlockGatewayFilter } from './block.filter';
 import { RawBlockDto } from './block.dto';
+import { Blockchain } from '../db/blockchain';
+import { Account } from '../db/account';
 
 @WebSocketGateway()
 @UseFilters(BlockGatewayFilter)

@@ -1,9 +1,8 @@
 import { Level } from 'level';
-import { Block } from './block';
-import { BlockHeightQuery, RawBlockDb } from './types';
-import { Transaction } from './transaction';
-import { Minter } from './minter';
+
 import { Crypto } from '@ph-blockchain/hash';
+import { Block, Minter, Transaction } from '@ph-blockchain/block';
+import { BlockHeightQuery, RawBlockDb } from '../dto/block';
 
 export type MintOrTx = Minter | Transaction;
 
@@ -26,8 +25,7 @@ export class Blockchain {
     '0x000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
   );
 
-  static readonly genesisHash =
-    '0000000000000000000000000000000000000000000000000000000000000000';
+  static readonly genesisHash = Block.genesisHash;
 
   // Block should reset in 200 height
   static readonly RESET_NUMBER_OF_BLOCK = 200;

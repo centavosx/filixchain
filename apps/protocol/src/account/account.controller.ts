@@ -2,7 +2,7 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Parameter } from '../utils/parameter';
 import { AccountService } from './account.service';
-import { AccountTransactionSearchDto } from './account.dto';
+import { AccountTransactionSearchDto } from '../dto/account-tx-search.dto';
 
 @ApiTags('Account')
 @Controller('account')

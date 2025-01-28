@@ -1580,7 +1580,6 @@ __metadata:
   resolution: "@ph-blockchain/block@workspace:packages/block"
   dependencies:
     "@ph-blockchain/hash": "npm:*"
-    level: "npm:^9.0.0"
   languageName: unknown
   linkType: soft
 
@@ -1617,6 +1616,7 @@ __metadata:
     "@types/express": "npm:^5.0.0"
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.14.1"
+    level: "npm:^9.0.0"
     reflect-metadata: "npm:^0.2.0"
     rxjs: "npm:^7.8.1"
   languageName: unknown

@@ -13,8 +13,7 @@
     "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build"
   },
   "dependencies": {
-    "@ph-blockchain/hash": "*",
-    "level": "^9.0.0"
+    "@ph-blockchain/hash": "*"
   },
   "jest": {
     "preset": "ts-jest",
