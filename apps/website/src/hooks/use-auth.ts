@@ -13,6 +13,7 @@ export type UseAuthStore = {
   };
   register: (data: string, password: string) => void;
   login: (password: string) => void;
+  logout: () => void;
 };
 
 export const useAuthStore = create<
@@ -36,6 +37,11 @@ export const useAuthStore = create<
         const data = decryptWithPassword(storedAccount.data, password);
         set({
           account: new Account(data),
+        });
+      },
+      logout: () => {
+        set({
+          account: undefined,
         });
       },
     }),

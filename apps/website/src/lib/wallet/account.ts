@@ -13,8 +13,9 @@ export class SignAccount {
   private _index: number;
 
   constructor(buffer: Buffer, derivationIndex: number) {
+    console.log(buffer, Crypto.generateKeyPairs().secretKey);
     this._index = derivationIndex;
-    this._keyPairs = Crypto.getKeyPairs(buffer);
+    this._keyPairs = Crypto.getKeyPairsFromSeed(buffer);
     this._walletAddress = Crypto.generateWalletAddress(
       this._keyPairs.publicKey,
     );
