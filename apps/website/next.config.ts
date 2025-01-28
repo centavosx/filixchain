@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  webpack(config, { isServer }) {
+  webpack(config) {
     // Enable WebAssembly for client-side and server-side (if needed)
     config.experiments = {
       layers: true,
