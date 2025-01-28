@@ -1,13 +1,19 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  webpack(config) {
-    // Enable WebAssembly for client-side and server-side (if needed)
+  webpack(config, { isServer }) {
     config.experiments = {
       layers: true,
-      asyncWebAssembly: true, // Enables async WebAssembly
-      syncWebAssembly: true, // Enables sync WebAssembly (for older compatibility)
+      asyncWebAssembly: true,
     };
+
+    // github.com/vercel/next.js/issues/64792)
+    if (!isServer) {
+      config.output.environment = {
+        ...config.output.environment,
+        asyncFunction: true,
+      };
+    }
 
     // If your WebAssembly file is not being handled by default rules, add it to the module rules
     config.module.rules.push({
