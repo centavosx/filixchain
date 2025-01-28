@@ -37,11 +37,12 @@ export const LoginSheetContent = () => {
     },
     resolver: zodResolver(LoginFormSchema),
   });
+  const isSubmitting = form.formState.isSubmitting;
 
   const handleLogin = async (data: z.infer<typeof LoginFormSchema>) => {
     const { password } = data;
     try {
-      login(password);
+      await login(password);
       setIsLoginError(false);
     } catch {
       setIsLoginError(true);
@@ -86,7 +87,9 @@ export const LoginSheetContent = () => {
             </Alert>
           )}
           <SheetFooter>
-            <Button type="submit">Login</Button>
+            <Button type="submit" isLoading={isSubmitting}>
+              Login
+            </Button>
           </SheetFooter>
         </form>
       </SheetContent>

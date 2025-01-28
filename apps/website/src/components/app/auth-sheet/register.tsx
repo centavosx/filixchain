@@ -79,6 +79,7 @@ export const RegisterSheetContent = ({
     },
     resolver: zodResolver(RegisterFormSchema),
   });
+  const isSubmitting = form.formState.isSubmitting;
 
   const handleRegister = async (data: z.infer<typeof RegisterFormSchema>) => {
     const { privateKey, password } = data;
@@ -88,7 +89,7 @@ export const RegisterSheetContent = ({
     if (!isPriv && !isMnemonic)
       throw new Error('Not a valid private key or mnemonic');
 
-    register(privateKey, password);
+    await register(privateKey, password);
   };
 
   const handleGenerateMnemonic = () => {
@@ -175,7 +176,9 @@ export const RegisterSheetContent = ({
             >
               Generate Mnemonic
             </Button>
-            <Button type="submit">Save changes</Button>
+            <Button type="submit" isLoading={isSubmitting}>
+              Save changes
+            </Button>
           </SheetFooter>
         </form>
       </SheetContent>

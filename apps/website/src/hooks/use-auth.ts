@@ -11,8 +11,8 @@ export type UseAuthStore = {
   storedAccount?: {
     data: string;
   };
-  register: (data: string, password: string) => void;
-  login: (password: string) => void;
+  register: (data: string, password: string) => Promise<void>;
+  login: (password: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -23,20 +23,25 @@ export const useAuthStore = create<
   persist(
     (set, get) => ({
       storedAccount: undefined,
-      register: (data, password) => {
+      register: async (data, password) => {
+        const encryptedData = await encryptWithPassword(data, password);
+        const account = new Account(data);
+        await account.init();
         set({
-          account: new Account(data),
+          account,
           storedAccount: {
-            data: encryptWithPassword(data, password),
+            data: encryptedData,
           },
         });
       },
-      login: (password) => {
+      login: async (password) => {
         const storedAccount = get().storedAccount;
         if (!storedAccount) throw new Error('No account added');
-        const data = decryptWithPassword(storedAccount.data, password);
+        const data = await decryptWithPassword(storedAccount.data, password);
+        const account = new Account(data);
+        await account.init();
         set({
-          account: new Account(data),
+          account,
         });
       },
       logout: () => {

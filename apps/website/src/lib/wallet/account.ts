@@ -13,7 +13,6 @@ export class SignAccount {
   private _index: number;
 
   constructor(buffer: Buffer, derivationIndex: number) {
-    console.log(buffer, Crypto.generateKeyPairs().secretKey);
     this._index = derivationIndex;
     this._keyPairs = Crypto.getKeyPairsFromSeed(buffer);
     this._walletAddress = Crypto.generateWalletAddress(
@@ -35,32 +34,38 @@ export class SignAccount {
 }
 
 export class Account {
-  private node: BIP32Interface;
+  private bip32: BIP32Interface | undefined;
 
-  constructor(data: string) {
-    const isMnemonic = bip39.validateMnemonic(data);
-    if (isMnemonic) {
-      const seed = bip39.mnemonicToSeedSync(data);
-      this.node = bip32.fromSeed(seed);
-      return;
-    } else {
-      this.node = bip32.fromSeed(Buffer.from(data, 'hex'));
-    }
-
-    if (!this.node) throw new Error('Not valid mnemonic or private key');
-  }
+  constructor(private readonly data: string) {}
 
   static getDerivationPath(index = 0) {
     return `m/44'/0'/0'/0/${index}`;
   }
 
+  async init() {
+    if (this.bip32) return;
+    const isMnemonic = bip39.validateMnemonic(this.data);
+    if (isMnemonic) {
+      const seed = await bip39.mnemonicToSeed(this.data);
+      this.bip32 = bip32.fromSeed(seed);
+      return;
+    } else {
+      this.bip32 = bip32.fromSeed(Buffer.from(this.data, 'hex'));
+    }
+
+    if (!this.bip32) throw new Error('Not valid mnemonic or private key');
+  }
+
   getSignedAccount(derivationIndex: number) {
-    const newNode = this.node.derivePath(
+    if (!this.bip32) {
+      throw new Error('Bip32 Not initialized');
+    }
+    const newBip = this.bip32.derivePath(
       Account.getDerivationPath(derivationIndex),
     );
 
-    if (!newNode?.privateKey) throw new Error('Invalid path');
+    if (!newBip?.privateKey) throw new Error('Invalid path');
 
-    return new SignAccount(newNode.privateKey, derivationIndex);
+    return new SignAccount(newBip.privateKey, derivationIndex);
   }
 }
