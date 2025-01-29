@@ -15,6 +15,7 @@ export class Minter {
   public readonly amount = Minter.FIX_MINT;
   public readonly nonce: bigint;
   public readonly version: bigint;
+  public readonly timestamp?: bigint;
 
   public blockHash: string;
 
@@ -24,13 +25,15 @@ export class Minter {
     to: string;
     nonce: string | number | bigint;
     version: string | number | bigint;
+    timestamp?: string | number | bigint;
   }) {
-    const { to, nonce, version } = data;
+    const { to, nonce, version, timestamp } = data;
 
     this.from = Minter.address;
     this.to = to;
     this.nonce = BigInt(nonce);
     this.version = BigInt(version);
+    this.timestamp = timestamp ? BigInt(timestamp) : undefined;
   }
 
   serialize() {
@@ -42,6 +45,7 @@ export class Minter {
       nonce: this.nonce.toString(),
       version: this.version.toString(),
       blockHash: this.blockHash,
+      timestamp: this.timestamp?.toString(),
     };
   }
 
@@ -79,7 +83,7 @@ export class Minter {
     return `${minter.from}${minter.to}${minter.amount}${minter.nonce}${minter.version}${minter.transactionId}`;
   }
 
-  static decode(encodedMessage: string) {
+  static decode(encodedMessage: string, timestamp?: bigint | number | string) {
     if (encodedMessage.length !== Minter.ENCODED_SIZE) {
       throw new Error('Not a minter');
     }
@@ -111,6 +115,7 @@ export class Minter {
       version,
       to,
       nonce,
+      timestamp,
     });
 
     return mint;

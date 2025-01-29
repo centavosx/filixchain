@@ -18,13 +18,14 @@ export class Transaction {
   public readonly amount: bigint;
   public readonly nonce: bigint;
   public readonly version: bigint;
+  public readonly timestamp: bigint | undefined;
 
   private _transactionId: string;
 
   public signature?: TransactionSignature;
 
   constructor(data: RawTransaction) {
-    const { from, to, amount, nonce, version, signature } = data;
+    const { from, to, amount, nonce, version, signature, timestamp } = data;
 
     this.from = from;
     this.to = to;
@@ -32,6 +33,7 @@ export class Transaction {
     this.nonce = BigInt(nonce);
     this.version = BigInt(version);
     this.signature = signature;
+    this.timestamp = timestamp ? BigInt(timestamp) : undefined;
   }
 
   serialize() {
@@ -44,6 +46,7 @@ export class Transaction {
       version: this.version.toString(),
       signature: this.signature.signedMessage,
       fixedFee: Transaction.FIXED_FEE.toString(),
+      timestamp: this.timestamp?.toString(),
     };
   }
 
@@ -81,7 +84,7 @@ export class Transaction {
     return `${transaction.from}${transaction.to}${transaction.amount}${transaction.nonce}${transaction.version}${transaction.transactionId}`;
   }
 
-  static decode(encodedMessage: string, isConfirmed?: boolean) {
+  static decode(encodedMessage: string, timestamp?: bigint | number | string) {
     if (encodedMessage.length !== Transaction.ENCODED_SIZE) {
       throw new Error('Not a transaction');
     }
@@ -123,6 +126,7 @@ export class Transaction {
         publicKey: new Uint8Array(publicKey),
         signedMessage: signature,
       },
+      timestamp,
     });
 
     const message = Transaction.buildMessage(transaction);

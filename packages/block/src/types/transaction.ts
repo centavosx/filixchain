@@ -13,4 +13,5 @@ export type RawTransaction = {
   nonce: bigint | string | number;
   version: bigint | string | number;
   signature?: TransactionSignature;
+  timestamp?: bigint | string | number;
 };
