@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
+    "@ph-blockchain/api": "*",
     "@ph-blockchain/block": "*",
     "@ph-blockchain/hash": "*",
     "@ph-blockchain/transformer": "*",

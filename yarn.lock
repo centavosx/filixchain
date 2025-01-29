@@ -1575,7 +1575,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ph-blockchain/api@workspace:packages/api":
+"@ph-blockchain/api@npm:*, @ph-blockchain/api@workspace:packages/api":
   version: 0.0.0-use.local
   resolution: "@ph-blockchain/api@workspace:packages/api"
   dependencies:
@@ -1652,6 +1652,7 @@ __metadata:
   dependencies:
     "@eslint/eslintrc": "npm:^3"
     "@hookform/resolvers": "npm:^3.10.0"
+    "@ph-blockchain/api": "npm:*"
     "@ph-blockchain/block": "npm:*"
     "@ph-blockchain/hash": "npm:*"
     "@ph-blockchain/transformer": "npm:*"
