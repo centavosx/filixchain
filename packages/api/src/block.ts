@@ -4,6 +4,7 @@ import {
   BlockHealthResult,
   BlockHeightQuery,
   BlockTransactionQuery,
+  BlockTransactionResult,
 } from './types/block';
 
 export class Block extends BaseApi {
@@ -18,7 +19,7 @@ export class Block extends BaseApi {
   }
 
   static getTransactions(params: BlockTransactionQuery) {
-    return super.get<BlockTransactionQuery, BlockHealthResult>(
+    return super.get<BlockTransactionQuery, BlockTransactionResult>(
       `${this.baseEndpoint}/transaction`,
       params,
     );

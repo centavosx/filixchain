@@ -1,3 +1,5 @@
+import { MintOrTxSerialize } from '@ph-blockchain/block';
+
 export type BlockHeightQuery = {
   start?: number;
   end?: number;
@@ -18,4 +20,10 @@ export type BlockHealthResult = {
   maxSupply: string;
   txSize: string;
   blocks: string;
+};
+
+export type BlockTransactionResult = {
+  transactions: MintOrTxSerialize[];
+  nextTxIndex: string;
+  lastHeight: string;
 };
