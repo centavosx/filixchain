@@ -9,8 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Typography } from '@/components/ui/typography';
 import { TransactionTable } from '@/components/app/transaction-table';
+import { Block } from '@ph-blockchain/api';
 
-export default function Home() {
+export default async function Home() {
+  const { data: health } = await Block.getHealth();
+  const { data: block } = await Block.getBlocks({ limit: 3, reverse: true });
+
   return (
     <div className="flex flex-col p-6 gap-8">
       <section>
@@ -19,19 +23,21 @@ export default function Home() {
             <div className="flex-1 flex flex-col gap-4 justify-center">
               <Typography as="h3">Supply</Typography>
               <Separator />
-              <Typography as="lead">12</Typography>
+              <Typography as="lead">
+                {health.totalSupply} / {health.maxSupply}
+              </Typography>
             </div>
             {/* <Separator className="h-20" orientation="vertical" /> */}
             <div className="flex-1 flex flex-col gap-4 justify-center">
               <Typography as="h3">Blocks</Typography>
               <Separator />
-              <Typography as="lead">12232</Typography>
+              <Typography as="lead">{health.blocks}</Typography>
             </div>
             {/* <Separator className="h-20" orientation="vertical" /> */}
             <div className="flex-1 flex flex-col gap-4 justify-center">
               <Typography as="h3">Transactions</Typography>
               <Separator />
-              <Typography as="lead">12232</Typography>
+              <Typography as="lead">{health.txSize}</Typography>
             </div>
           </CardContent>
         </Card>
@@ -41,34 +47,33 @@ export default function Home() {
           <Label asChild>
             <Typography as="h4">Latest Blocks</Typography>
           </Label>
-          {Array.from({ length: 3 }, (_, i) => (
-            <Card className="shadow-xl" key={i}>
+          {block.map((value) => (
+            <Card className="shadow-xl" key={value.blockHash}>
               <CardHeader className="gap-2">
-                <CardTitle>Block #121312</CardTitle>
+                <CardTitle>Block #{value.height}</CardTitle>
                 <CardDescription className="flex flex-col gap-2">
                   <Typography className="text-wrap break-all" as="muted">
                     Hash:
-                    0006cd4982f67f3f988bc01638873cf3d1b96615febbe6f2f7fd8569f0c9a632
+                    {value.blockHash}
                   </Typography>
                   <Typography as="small">
                     Created: January 25, 2025 10:00 PM
                   </Typography>
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col gap-1">
+              <CardContent className="flex flex-col gap-2">
                 <Typography className="text-wrap break-all" as="muted">
-                  Previous:
-                  00032de579c84d6e7a4763170dfc635823ab58ac055acc96e8da8165b6a5bc4b
+                  Previous: {value.previousHash}
                 </Typography>
                 <Typography className="text-wrap break-all" as="muted">
-                  Merkle:
-                  ce7911f8ccb7a31ec395db1e19785399cdf5acff0c9fa29c4e253e19998e3d5e
+                  Merkle: {value.merkleRoot}
                 </Typography>
                 <Typography className="text-wrap break-all" as="muted">
-                  Target:
-                  fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+                  Target: {value.targetHash}
                 </Typography>
-                <Typography as="large">Transactions: 1999999</Typography>
+                <Typography as="large">
+                  Transactions: {value.transactionSize}
+                </Typography>
               </CardContent>
             </Card>
           ))}

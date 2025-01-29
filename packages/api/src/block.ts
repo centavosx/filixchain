@@ -10,6 +10,7 @@ export class Block extends BaseApi {
   }
 
   static getHealth() {
+    console.log(`${this.baseEndpoint}/health`);
     return super.get<unknown, BlockHealthResult>(`${this.baseEndpoint}/health`);
   }
 }

@@ -9,6 +9,10 @@ import { AppSidebar } from '@/components/app/sidebar';
 import { Header } from '@/components/app/header';
 import { Toaster } from '@/components/ui/sonner';
 
+import { BaseApi } from '@ph-blockchain/api';
+
+BaseApi.init('http://localhost:3002/api');
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
