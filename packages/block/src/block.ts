@@ -81,8 +81,8 @@ export class Block {
       encoded: value,
       decoded:
         value.length === Minter.ENCODED_SIZE
-          ? Minter.decode(value, this.timestamp)
-          : Transaction.decode(value, this.timestamp),
+          ? Minter.decode(value, this)
+          : Transaction.decode(value, this),
     }));
   }
 
