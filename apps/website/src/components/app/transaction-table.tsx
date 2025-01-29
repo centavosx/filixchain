@@ -16,6 +16,7 @@ import {
 } from '../ui/tooltip';
 import { Button } from '../ui/button';
 import { Typography } from '../ui/typography';
+import { MintOrTxSerialize, Transaction } from '@ph-blockchain/block';
 
 const txs = [
   {
@@ -27,7 +28,10 @@ const txs = [
   },
 ];
 
-export const TransactionTable = () => {
+export type TransactionTableProps = {
+  data: MintOrTxSerialize[];
+};
+export const TransactionTable = ({ data }: TransactionTableProps) => {
   return (
     <Table>
       <TableHeader>
@@ -54,11 +58,11 @@ export const TransactionTable = () => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {txs.map((tx) => (
-          <TableRow key={tx.hash}>
-            <TableCell className="font-medium">{tx.block}</TableCell>
+        {data.map((tx) => (
+          <TableRow key={tx.transactionId}>
+            <TableCell className="font-medium">{tx.blockHeight}</TableCell>
             <TableCell className="text-wrap break-all max-w-[230px]">
-              {tx.hash}
+              {tx.transactionId}
             </TableCell>
             <TableCell className="text-wrap break-all max-w-[150px]">
               {tx.from}
@@ -67,7 +71,8 @@ export const TransactionTable = () => {
               {tx.to}
             </TableCell>
             <TableCell className="text-center">
-              {tx.amount}00000000000 ETH
+              {(BigInt(tx.amount) / Transaction.TX_CONVERSION_UNIT).toString()}{' '}
+              PESO
             </TableCell>
             <TableCell>
               <Button variant="ghost" size="icon">

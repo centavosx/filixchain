@@ -14,7 +14,11 @@ import { Block } from '@ph-blockchain/api';
 export default async function Home() {
   const { data: health } = await Block.getHealth();
   const { data: block } = await Block.getBlocks({ limit: 3, reverse: true });
-
+  const { data: result } = await Block.getTransactions({
+    limit: 50,
+    reverse: true,
+  });
+  const transactions = result.transactions;
   return (
     <div className="flex flex-col p-6 gap-8">
       <section>
@@ -82,7 +86,7 @@ export default async function Home() {
           <Label asChild>
             <Typography as="h4">Latest Transactions</Typography>
           </Label>
-          <TransactionTable />
+          <TransactionTable data={transactions} />
         </div>
       </section>
     </div>
