@@ -12,11 +12,12 @@
   "scripts": {
     "protocol": "yarn workspace @ph-blockchain/protocol",
     "website": "yarn workspace @ph-blockchain/website",
+    "api": "yarn workspace @ph-blockchain/api",
     "hash": "yarn workspace @ph-blockchain/hash",
     "block": "yarn workspace @ph-blockchain/block",
     "miner": "yarn workspace @ph-blockchain/miner",
     "transformer": "yarn workspace @ph-blockchain/transformer",
-    "build:package": "yarn transformer build && yarn hash build && yarn block build"
+    "build:package": "yarn transformer build && yarn hash build && yarn block build && yarn api build"
   },
   "devDependencies": {
     "@types/jest": "^29.5.2",
