@@ -8,5 +8,10 @@
   "packageManager": "yarn@4.5.3",
   "scripts": {
     "start": "npx ts-node src/index.ts"
+  },
+  "dependencies": {
+    "@ph-blockchain/block": "*",
+    "@ph-blockchain/hash": "*",
+    "@ph-blockchain/transformer": "*"
   }
 }
