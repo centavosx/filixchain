@@ -1,6 +1,10 @@
 import { RawBlock } from '@ph-blockchain/block';
 import { BaseApi } from './base';
-import { BlockHealthResult, BlockHeightQuery } from './types/block';
+import {
+  BlockHealthResult,
+  BlockHeightQuery,
+  BlockTransactionQuery,
+} from './types/block';
 
 export class Block extends BaseApi {
   private static baseEndpoint = '/block';
@@ -10,7 +14,13 @@ export class Block extends BaseApi {
   }
 
   static getHealth() {
-    console.log(`${this.baseEndpoint}/health`);
     return super.get<unknown, BlockHealthResult>(`${this.baseEndpoint}/health`);
+  }
+
+  static getTransactions(params: BlockTransactionQuery) {
+    return super.get<BlockTransactionQuery, BlockHealthResult>(
+      `${this.baseEndpoint}/transaction`,
+      params,
+    );
   }
 }

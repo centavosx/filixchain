@@ -6,6 +6,13 @@ export type BlockHeightQuery = {
   includeTx?: boolean;
 };
 
+export type BlockTransactionQuery = {
+  lastBlockHeight?: number;
+  nextTxIndex?: number;
+  reverse?: boolean;
+  limit?: number;
+};
+
 export type BlockHealthResult = {
   totalSupply: string;
   maxSupply: string;

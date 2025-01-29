@@ -16,7 +16,7 @@ export class BlockController {
     return this.blockService.getHealth();
   }
 
-  @Get('transactions')
+  @Get('transaction')
   public getTransactions(@Query() data: BlockTransactionQuery) {
     return this.blockService.getTransactions(data);
   }

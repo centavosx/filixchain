@@ -1,15 +1,20 @@
 import { Level } from 'level';
 
 import { Crypto } from '@ph-blockchain/hash';
-import { Block, Minter, RawBlock, Transaction } from '@ph-blockchain/block';
+import {
+  Block,
+  Minter,
+  MintOrTx,
+  MintOrTxSerialize,
+  RawBlock,
+  Transaction,
+} from '@ph-blockchain/block';
 import {
   BlockHeightQuery,
   BlockTransactionQuery,
   RawBlockDb,
 } from '../dto/block.dto';
 import { Account } from './account';
-
-export type MintOrTx = Minter | Transaction;
 
 export class Blockchain {
   static SUPPLY_KEY = 'SUPPLY';
@@ -184,7 +189,7 @@ export class Blockchain {
     lastBlockHeight,
     nextTxIndex = 0,
   }: BlockTransactionQuery) {
-    const transactions: ReturnType<MintOrTx['serialize']>[] = [];
+    const transactions: MintOrTxSerialize[] = [];
     let count = 0;
     let txIndex = nextTxIndex;
     let iteratorData: [string, string];
