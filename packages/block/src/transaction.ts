@@ -45,7 +45,8 @@ export class Transaction {
     this.version = BigInt(version);
     this.signature = signature;
     this.timestamp = timestamp ? BigInt(timestamp) : undefined;
-    this.blockHeight = blockHeight ? BigInt(blockHeight) : undefined;
+    this.blockHeight =
+      blockHeight !== undefined ? BigInt(blockHeight) : undefined;
   }
 
   serialize() {

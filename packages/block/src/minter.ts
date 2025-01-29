@@ -35,7 +35,8 @@ export class Minter {
     this.nonce = BigInt(nonce);
     this.version = BigInt(version);
     this.timestamp = timestamp ? BigInt(timestamp) : undefined;
-    this.blockHeight = blockHeight ? BigInt(blockHeight) : undefined;
+    this.blockHeight =
+      blockHeight !== undefined ? BigInt(blockHeight) : undefined;
   }
 
   serialize() {
