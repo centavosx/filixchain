@@ -1,17 +1,14 @@
 {
   "compilerOptions": {
-    "incremental": true,
     "target": "ES2016",
     "module": "CommonJS",
-    "declaration": true,
     "strict": false,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "rootDir": "./src",
-    "outDir": "./dist",
-    "composite": true
+    "outDir": "./dist"
   },
   "include": ["src/**/*"],
   "exclude": ["src/**/*.test.ts", "src/__tests__", "./dist"]

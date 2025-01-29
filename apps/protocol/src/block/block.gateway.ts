@@ -57,7 +57,6 @@ export class BlockGateway implements OnModuleInit {
 
   async handleReset(block?: Block, isInit?: boolean) {
     const supply = await Blockchain.getSupply();
-
     const account = await Account.findByAddress(Minter.rawFromAddress);
     const targetHash = await this.getTargetHashFromBlock(block, isInit);
     this.currentEncodedTxToMine = [...this.mempoolQueue.values()]

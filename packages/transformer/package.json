@@ -10,7 +10,7 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "build": "rm -rf dist tsconfig.tsbuildinfo && tsc --build"
+    "build": "tsc"
   },
   "dependencies": {
     "level": "^9.0.0"
