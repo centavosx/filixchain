@@ -19,8 +19,6 @@ export class Minter {
   public readonly timestamp?: bigint;
   public readonly blockHeight?: bigint;
 
-  public blockHash: string;
-
   private _transactionId: string;
 
   constructor(data: {
@@ -48,8 +46,8 @@ export class Minter {
       amount: this.amount.toString(),
       nonce: this.nonce.toString(),
       version: this.version.toString(),
-      blockHash: this.blockHash,
       timestamp: this.timestamp?.toString(),
+      blockHeight: this.blockHeight?.toString(),
     };
   }
 
