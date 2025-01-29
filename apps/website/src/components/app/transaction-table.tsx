@@ -18,16 +18,6 @@ import { Button } from '../ui/button';
 import { Typography } from '../ui/typography';
 import { MintOrTxSerialize, Transaction } from '@ph-blockchain/block';
 
-const txs = [
-  {
-    block: '23232',
-    hash: '0006cd4982f67f3f988bc01638873cf3d1b96615febbe6f2f7fd8569f0c9a632',
-    from: '3d1b96615febbe6f2f7fd8569f0c9a632adc2123',
-    to: '3d1b96615febbe6f2f7fd8569f0c9a632adc2123',
-    amount: '10',
-  },
-];
-
 export type TransactionTableProps = {
   data: MintOrTxSerialize[];
 };
