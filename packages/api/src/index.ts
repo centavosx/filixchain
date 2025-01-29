@@ -1,1 +1,1 @@
-export class BaseApi {}
+export * from './base';
