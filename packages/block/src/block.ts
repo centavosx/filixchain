@@ -115,12 +115,14 @@ export class Block {
     return this;
   }
 
-  public toJson(): RawBlock {
+  public toJson(includeTx?: boolean): RawBlock {
     return {
       version: this.version,
       height: this.height,
       timestamp: this.timestamp,
-      transactions: Array.from(this.transactions.values()),
+      transactions: includeTx
+        ? Array.from(this.transactions.values())
+        : undefined,
       previousHash: this.previousHash,
       targetHash: this.targetHash,
       blockHash: this.blockHash,
