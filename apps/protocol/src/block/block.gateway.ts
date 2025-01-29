@@ -57,6 +57,7 @@ export class BlockGateway implements OnModuleInit {
 
   async handleReset(block?: Block, isInit?: boolean) {
     const supply = await Blockchain.getSupply();
+
     const account = await Account.findByAddress(Minter.rawFromAddress);
     const targetHash = await this.getTargetHashFromBlock(block, isInit);
     this.currentEncodedTxToMine = [...this.mempoolQueue.values()]
@@ -223,79 +224,17 @@ export class BlockGateway implements OnModuleInit {
   }
 
   async saveToDb(block: Block, mintAddress: string) {
-    const mintAccount = await Account.findByAddress(mintAddress);
-    const mappedAccount = new Map<string, Account>();
-    const txSet = new Set<string>();
+    const { minerRewards, transactions } = await Blockchain.saveBlock(
+      block,
+      mintAddress,
+    );
 
-    let minerFee = BigInt(0);
-
-    let isRewardIncluded = false;
-
-    const {
-      transactions,
-      write: commitBlock,
-      close: rejectCommit,
-    } = await Blockchain.saveBlock(block, async (transaction, encoded) => {
-      const rawFromAddress = transaction.rawFromAddress;
-      const rawToAddress = transaction.rawToAddress;
-
-      let fromAccount = mappedAccount.get(rawFromAddress);
-      let toAccount = mappedAccount.get(rawToAddress);
-
-      if (!fromAccount) {
-        fromAccount = await Account.findByAddress(rawFromAddress);
-        mappedAccount.set(rawFromAddress, fromAccount);
-      }
-
-      if (!toAccount) {
-        toAccount = await Account.findByAddress(rawToAddress);
-        mappedAccount.set(rawToAddress, toAccount);
-      }
-
-      fromAccount.addTransaction(transaction);
-      toAccount.receiveTransaction(transaction);
-      txSet.add(encoded);
-
-      if (transaction instanceof Transaction) {
-        fromAccount.reduceAmountWithFee(Transaction.FIXED_FEE);
-        minerFee += Transaction.FIXED_FEE;
-        return;
-      }
-
-      if (!(transaction instanceof Minter)) return;
-
-      if (isRewardIncluded)
-        throw new Error("You can't include multiple mint reward");
-
-      isRewardIncluded = true;
-    });
-
-    if (txSet.size !== block.transactionSize)
-      throw new Error("You can't include duplicate transactions");
-
-    mintAccount.addTotalFee(minerFee);
-
-    const totalMinerReward =
-      minerFee + (isRewardIncluded ? Minter.FIX_MINT : BigInt(0));
-
-    try {
-      const { write: commitAccounts } = await Account.save(block.timestamp, [
-        ...mappedAccount.values(),
-        mintAccount,
-      ]);
-
-      await Promise.all([commitBlock(), commitAccounts()]);
-
-      return {
-        blockHash: block.blockHash,
-        totalMinerReward,
-        transactions: transactions.filter(
-          (value) => value instanceof Transaction,
-        ),
-      };
-    } catch (e) {
-      await rejectCommit();
-      throw e;
-    }
+    return {
+      blockHash: block.blockHash,
+      totalMinerReward: minerRewards,
+      transactions: transactions.filter(
+        (value) => value instanceof Transaction,
+      ),
+    };
   }
 }

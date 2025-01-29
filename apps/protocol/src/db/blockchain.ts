@@ -2,14 +2,16 @@ import { Level } from 'level';
 
 import { Crypto } from '@ph-blockchain/hash';
 import { Block, Minter, Transaction } from '@ph-blockchain/block';
-import { BlockHeightQuery, RawBlockDb } from '../dto/block';
+import { BlockHeightQuery, RawBlockDb } from '../dto/block.dto';
+import { Account } from './account';
 
 export type MintOrTx = Minter | Transaction;
 
 export class Blockchain {
   static SUPPLY_KEY = 'SUPPLY';
+  static SIZE_KEY = 'SIZE';
   static MAX_SUPPLY = Transaction.TX_CONVERSION_UNIT ** BigInt(2);
-  static version = '1';
+
   private static _isOpen = false;
   private static _db: Level<string, string>;
   private static _txDb: ReturnType<typeof this.intializeTx>;
@@ -93,6 +95,7 @@ export class Blockchain {
 
   static async getSupply() {
     let supply = await Blockchain._db.get(Blockchain.SUPPLY_KEY);
+
     if (!supply) {
       supply = Crypto.encodeIntTo8BytesString(Blockchain.MAX_SUPPLY);
       await Blockchain._db.put(Blockchain.SUPPLY_KEY, supply);
@@ -101,13 +104,23 @@ export class Blockchain {
     return Crypto.decode8BytesStringtoBigInt(supply);
   }
 
+  static async getTxSize() {
+    const size = await Blockchain._txDb.get(Blockchain.SIZE_KEY);
+
+    if (!size) {
+      return BigInt(0);
+    }
+
+    return Crypto.decode8BytesStringtoBigInt(size);
+  }
+
   static async mapToBlock(rawBlockDb: RawBlockDb) {
     const transactions = await Blockchain.findTransactionsById(
       rawBlockDb.transactions,
       true,
     );
     return new Block(
-      Blockchain.version,
+      Block.version,
       +rawBlockDb.height,
       transactions,
       rawBlockDb.targetHash,
@@ -157,24 +170,49 @@ export class Blockchain {
     return blocks;
   }
 
-  static async saveBlock(
-    blocks: Block | Block[],
-    onTx?: (decoded: Transaction | Minter, encoded: string) => Promise<void>,
-  ) {
+  static async saveBlock(blocks: Block | Block[], mintAddress: string) {
+    const mintAccount = await Account.findByAddress(mintAddress);
+
+    await mintAccount.initDb();
+    mintAccount.startBatch();
+
+    const mappedAccount = new Map<string, Account>([
+      [mintAccount.address, mintAccount],
+    ]);
+
+    let txSize = await Blockchain.getTxSize();
+    let supply = await Blockchain.getSupply();
+
+    const originalSupply = supply;
+    const originalTxSize = txSize;
     const blockHeightIndexBatch = Blockchain._blockHeightIndexDb.batch();
     const blockTimestampIndexBatch = Blockchain._blockTimestampIndexDb.batch();
     const blockBatch = Blockchain._blockDb.batch();
     const txBatch = Blockchain._txDb.batch();
-    let supply = await Blockchain.getSupply();
+
+    let isRewardIncluded = false;
 
     const transactions: (Transaction | Minter)[] = [];
+
+    const getAccounts = () => {
+      return [...mappedAccount.values()];
+    };
 
     const close = async () => {
       await Promise.all([
         txBatch.close(),
+        Blockchain._txDb.put(
+          Blockchain.SIZE_KEY,
+          Crypto.encodeIntTo8BytesString(originalTxSize),
+        ),
         blockBatch.close(),
+        Blockchain._db.put(
+          Blockchain.SUPPLY_KEY,
+          Crypto.encodeIntTo8BytesString(originalSupply),
+        ),
         blockHeightIndexBatch.close(),
         blockTimestampIndexBatch.close(),
+        ...getAccounts().map((value) => value.rejectAndClose()),
       ]);
     };
 
@@ -183,15 +221,54 @@ export class Blockchain {
         const blockHash = block.blockHash;
         const decodedTransactions = block.decodeTransactions();
         const txIds: string[] = [];
+
         for (const transaction of decodedTransactions) {
           const { decoded, encoded } = transaction;
           const txId = decoded.transactionId;
+
+          const rawFromAddress = decoded.rawFromAddress;
+          const rawToAddress = decoded.rawToAddress;
+
+          let fromAccount = mappedAccount.get(rawFromAddress);
+          let toAccount = mappedAccount.get(rawToAddress);
+
+          if (!fromAccount) {
+            fromAccount = await Account.findByAddress(rawFromAddress);
+            await fromAccount.initDb();
+            fromAccount.startBatch();
+            mappedAccount.set(rawFromAddress, fromAccount);
+          }
+
+          if (!toAccount) {
+            toAccount = await Account.findByAddress(rawToAddress);
+            await toAccount.initDb();
+            toAccount.startBatch();
+            mappedAccount.set(rawToAddress, toAccount);
+          }
+
+          fromAccount.addTransaction(decoded);
+          toAccount.receiveTransaction(decoded);
           txBatch.put(txId, encoded);
           transactions.push(decoded);
-
-          if (decoded instanceof Minter) supply -= decoded.amount;
           txIds.push(txId);
-          await onTx(decoded, encoded);
+          txSize++;
+
+          if (decoded instanceof Transaction) {
+            mintAccount.addTotalFee(Transaction.FIXED_FEE);
+            continue;
+          }
+
+          if (!(decoded instanceof Minter)) continue;
+
+          if (isRewardIncluded)
+            throw new Error("You can't include multiple mint reward");
+
+          if (supply === BigInt(0)) {
+            throw new Error("Can't mint, there's no supply left");
+          }
+
+          supply -= decoded.amount;
+          isRewardIncluded = true;
         }
 
         blockBatch.put(blockHash, {
@@ -213,22 +290,28 @@ export class Blockchain {
         );
       }
 
-      return {
-        transactions,
-        close,
-        write: async () => {
-          await Promise.all([
-            txBatch.write(),
-            blockBatch.write(),
-            Blockchain._db.put(
-              Blockchain.SUPPLY_KEY,
-              Crypto.encodeIntTo8BytesString(supply),
-            ),
-            blockHeightIndexBatch.write(),
-            blockTimestampIndexBatch.write(),
-          ]);
-        },
-      };
+      await Promise.all([
+        txBatch.write(),
+        Blockchain._txDb.put(
+          Blockchain.SIZE_KEY,
+          Crypto.encodeIntTo8BytesString(txSize),
+        ),
+        blockBatch.write(),
+        Blockchain._db.put(
+          Blockchain.SUPPLY_KEY,
+          Crypto.encodeIntTo8BytesString(supply),
+        ),
+        blockHeightIndexBatch.write(),
+        blockTimestampIndexBatch.write(),
+        ...getAccounts().map((value) => value.writeBatchAndSaveAccount()),
+      ]);
+
+      const totalTxFee = transactions.reduce((accumulator, value) => {
+        if (value instanceof Minter) return accumulator + Minter.FIX_MINT;
+        return accumulator + Transaction.FIXED_FEE;
+      }, BigInt(0));
+
+      return { minerRewards: totalTxFee, transactions };
     } catch (e) {
       await close();
       throw e;

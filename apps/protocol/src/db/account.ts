@@ -7,17 +7,154 @@ import { Crypto } from '@ph-blockchain/hash';
 import { Level } from 'level';
 import { AccountTransactionSearchDto } from '../dto/account-tx-search.dto';
 
-export type RawAccountData = {
-  amount: string;
-  nonce: string;
-};
+export type DefaultSubLevel = ReturnType<Level['sublevel']>;
+export type InnerSublevel = ReturnType<DefaultSubLevel['sublevel']>;
 
 export class Account extends BlockAccount {
+  private _isOpen = false;
   private static _isOpen = false;
-  private static _db: Level<string, RawAccountData>;
-  private static _txDb: ReturnType<typeof this.intializeTx>;
+  private static _db: Level<string, string>;
+
+  // Creating index to easily filter and fetch data.
+  private rowIndexSublevelInstance: DefaultSubLevel;
+  private timestampIndexSublevelInstance: DefaultSubLevel;
+  private receiveIndexSublevelInstance: DefaultSubLevel;
+  private sentIndexSublevelInstance: DefaultSubLevel;
+
+  private _batches: ReturnType<typeof this.createBatch>;
 
   private readonly pendingTxToSave: (Transaction | Minter)[] = [];
+
+  static createRowIndexKey(address: string) {
+    return `${address}-rowIndex`;
+  }
+
+  private async initRowIndexSubLevel() {
+    const instance = Account._db.sublevel(
+      Account.createRowIndexKey(this._address),
+      {},
+    );
+    await instance.open();
+    this.rowIndexSublevelInstance = instance;
+  }
+
+  static createTimestampIndexKey(address: string) {
+    return `${address}-timestampIndex`;
+  }
+
+  private async initTimestampIndexSubLevel() {
+    const instance = Account._db.sublevel<string, string>(
+      Account.createTimestampIndexKey(this._address),
+      {},
+    );
+    await instance.open();
+    this.timestampIndexSublevelInstance = instance;
+  }
+
+  static createReceiveIndexKey(address: string) {
+    return `${address}-receiveIndex`;
+  }
+
+  private async initReceiveIndexSubLevel() {
+    const instance = Account._db.sublevel<string, string>(
+      Account.createReceiveIndexKey(this._address),
+      {},
+    );
+    await instance.open();
+    this.receiveIndexSublevelInstance = instance;
+  }
+
+  static createSentIndexKey(address: string) {
+    return `${address}-sentIndex`;
+  }
+
+  private async initSentIndexSubLevel() {
+    const instance = Account._db.sublevel<string, string>(
+      Account.createSentIndexKey(this._address),
+      {},
+    );
+    await instance.open();
+    this.sentIndexSublevelInstance = instance;
+  }
+
+  public async initDb() {
+    if (this._isOpen) return;
+    await this.initRowIndexSubLevel();
+    await this.initTimestampIndexSubLevel();
+    await this.initReceiveIndexSubLevel();
+    await this.initSentIndexSubLevel();
+    this._isOpen = true;
+  }
+
+  private createBatch() {
+    const newBatches = {
+      receive: this.receiveIndexSublevelInstance.batch(),
+      timestamp: this.timestampIndexSublevelInstance.batch(),
+      rowIndex: this.rowIndexSublevelInstance.batch(),
+      sent: this.sentIndexSublevelInstance.batch(),
+    } as const;
+    return newBatches;
+  }
+
+  public get batches() {
+    return this._batches;
+  }
+
+  public startBatch() {
+    if (!this._batches) this._batches = this.createBatch();
+    return this._batches;
+  }
+
+  public async writeBatch() {
+    if (!this._batches) throw new Error('Batch is not open');
+
+    await Promise.all([
+      this._batches.receive.write(),
+      this._batches.sent.write(),
+      this._batches.rowIndex.write(),
+      this._batches.timestamp.write(),
+    ]);
+
+    this._batches = undefined;
+    return;
+  }
+
+  public async closeDb() {
+    await Promise.all([
+      this.rowIndexSublevelInstance.close(),
+      this.timestampIndexSublevelInstance.close(),
+      this.receiveIndexSublevelInstance.close(),
+      this.sentIndexSublevelInstance.close(),
+    ]);
+    this._isOpen = false;
+  }
+
+  public async writeBatchAndSaveAccount() {
+    await Promise.all([
+      this.writeBatch(),
+      Account._db.put(this.address, Account.toRawData(this)),
+    ]);
+    await this.closeDb();
+  }
+
+  public async rejectBatch() {
+    if (!this._batches) throw new Error('Batch is not open');
+
+    await Promise.all([
+      this._batches.receive.close(),
+      this._batches.sent.close(),
+      this._batches.rowIndex.close(),
+      this._batches.timestamp.close(),
+    ]);
+
+    this._batches = undefined;
+    return;
+  }
+
+  public async rejectAndClose() {
+    await this.rejectBatch();
+    await this.closeDb();
+  }
 
   serialize() {
     return {
@@ -39,20 +176,17 @@ export class Account extends BlockAccount {
     this._amount += reward;
   }
 
-  reduceAmountWithFee(fee: bigint) {
-    let amount = this._amount;
-
-    amount -= fee;
-
-    if (amount < 0) throw new Error('Not enough balance to pay for the fee');
-
-    this._amount = amount;
-  }
-
   addTransaction(...transaction: (Transaction | Minter)[]) {
     const temporaryTx: (Transaction | Minter)[] = [];
     let temporaryNonce = this._nonce;
     let amount = this._amount;
+    let temporarySize = this._size;
+    const batchesTemp: {
+      txId: string;
+      rowIndex: string;
+      sent: string;
+      timestamp?: string;
+    }[] = [];
 
     for (const tx of transaction) {
       // Transaction nonce are validated first before being added
@@ -67,19 +201,46 @@ export class Account extends BlockAccount {
       if (tx instanceof Transaction) {
         amount -= tx.amount + Transaction.FIXED_FEE;
       }
+
+      if (this._batches) {
+        batchesTemp.push({
+          txId: tx.transactionId,
+          sent: `${tx.to}-${temporaryNonce.toString()}`,
+          rowIndex: temporarySize.toString(),
+          timestamp: tx.timestamp
+            ? `${tx.timestamp.toString()}-${temporarySize.toString()}`
+            : undefined,
+        });
+      }
+
       temporaryTx.push(tx);
       temporaryNonce++;
+      temporarySize++;
     }
 
     if (amount < 0) throw new Error('Not enough balance for this transactions');
 
+    this._size = temporarySize;
     this._amount = amount;
     this.pendingTxToSave.push(...temporaryTx);
     this._nonce = temporaryNonce;
+    for (const batch of batchesTemp) {
+      const { txId, sent, rowIndex, timestamp } = batch;
+      this._batches.rowIndex.put(rowIndex, txId);
+      this._batches.sent.put(sent, txId);
+      if (timestamp) this._batches.timestamp.put(timestamp, txId);
+    }
   }
 
   receiveTransaction(...transaction: (Transaction | Minter)[]) {
     let amount = this._amount;
+    let temporarySize = this._size;
+    const batchesTemp: {
+      txId: string;
+      rowIndex: string;
+      receive: string;
+      timestamp?: string;
+    }[] = [];
 
     for (const tx of transaction) {
       // Transaction added should be sent to this address
@@ -87,10 +248,29 @@ export class Account extends BlockAccount {
         throw new Error(`Transaction is not sent to this account`);
       }
 
+      if (this._batches) {
+        batchesTemp.push({
+          txId: tx.transactionId,
+          receive: `${tx.from}-${tx.nonce.toString()}`,
+          rowIndex: temporarySize.toString(),
+          timestamp: tx.timestamp
+            ? `${tx.timestamp.toString()}-${temporarySize.toString()}`
+            : undefined,
+        });
+      }
+
+      temporarySize++;
       amount += tx.amount;
     }
 
     this._amount = amount;
+    this._size = temporarySize;
+    for (const batch of batchesTemp) {
+      const { txId, receive, rowIndex, timestamp } = batch;
+      this._batches.rowIndex.put(rowIndex, txId);
+      this._batches.receive.put(receive, txId);
+      if (timestamp) this._batches.timestamp.put(timestamp, txId);
+    }
   }
 
   public static get db() {
@@ -105,15 +285,14 @@ export class Account extends BlockAccount {
     if (Account._isOpen) return;
     Account._db = new Level('./database/accounts', { valueEncoding: 'json' });
     await Account._db.open();
-    Account._txDb = this.intializeTx();
-    await Account._txDb.open();
     Account._isOpen = true;
   }
 
-  public static createAccount(address: string, data: RawAccountData) {
-    const rawAmount = data?.amount || Crypto.zero8BytesString;
-    const rawNonce = data?.nonce || Crypto.zero8BytesString;
-    return new Account(address, rawAmount, rawNonce);
+  public static createAccount(address: string, data: string) {
+    const rawAmount = data?.substring(0, 16) || Crypto.zero8BytesString;
+    const rawNonce = data?.substring(16, 32) || Crypto.zero8BytesString;
+    const rawSize = data?.substring(32, 48) || Crypto.zero8BytesString;
+    return new Account(address, rawAmount, rawNonce, rawSize);
   }
 
   public static async findByAddress<T extends string | Array<string>>(
@@ -135,60 +314,57 @@ export class Account extends BlockAccount {
       : Account[];
   }
 
-  public static toJsonData(account: Account): RawAccountData {
-    return {
-      amount: Crypto.encodeIntTo8BytesString(account.amount),
-      nonce: Crypto.encodeIntTo8BytesString(account.nonce),
-    };
+  public static toRawData(account: Account) {
+    return `${Crypto.encodeIntTo8BytesString(account.amount)}${Crypto.encodeIntTo8BytesString(account.nonce)}${Crypto.encodeIntTo8BytesString(account.size)}`;
   }
 
-  public static async save(
-    blockTimestamp: number,
-    accounts: Account | Account[],
-  ) {
-    const txBatch = Account._txDb.batch();
-    const batch = Account._db.batch();
-    try {
-      const addressTxNum: Record<string, number> = {};
-      for (const account of Array.isArray(accounts) ? accounts : [accounts]) {
-        for (const tx of account.pendingTxs) {
-          const currentTxId = tx.transactionId;
-          const rawFromAddress = tx.rawFromAddress;
-          const rawToAddress = tx.rawToAddress;
+  // public static async save(
+  //   blockTimestamp: number,
+  //   accounts: Account | Account[],
+  // ) {
+  //   const txBatch = Account._txDb.batch();
+  //   const batch = Account._db.batch();
+  //   try {
+  //     const addressTxNum: Record<string, number> = {};
+  //     for (const account of Array.isArray(accounts) ? accounts : [accounts]) {
+  //       for (const tx of account.pendingTxs) {
+  //         const currentTxId = tx.transactionId;
+  //         const rawFromAddress = tx.rawFromAddress;
+  //         const rawToAddress = tx.rawToAddress;
 
-          const fromTxNum = addressTxNum[rawFromAddress] || 0;
-          const toTxNum = addressTxNum[rawToAddress] || 0;
-          const bothTxNum =
-            addressTxNum[`${rawFromAddress}-${rawToAddress}`] || 0;
+  //         const fromTxNum = addressTxNum[rawFromAddress] || 0;
+  //         const toTxNum = addressTxNum[rawToAddress] || 0;
+  //         const bothTxNum =
+  //           addressTxNum[`${rawFromAddress}-${rawToAddress}`] || 0;
 
-          txBatch.put(
-            `${rawFromAddress}-${blockTimestamp}-${fromTxNum}`,
-            currentTxId,
-          );
-          txBatch.put(
-            `${rawToAddress}-${blockTimestamp}-${toTxNum}`,
-            currentTxId,
-          );
-          txBatch.put(
-            `${rawFromAddress}-${rawToAddress}-${blockTimestamp}-${bothTxNum}`,
-            currentTxId,
-          );
-          addressTxNum[rawFromAddress] = fromTxNum + 1;
-          addressTxNum[rawToAddress] = toTxNum + 1;
-          addressTxNum[`${rawFromAddress}-${rawToAddress}`] = bothTxNum + 1;
-        }
-        batch.put(account.address, this.toJsonData(account));
-      }
-      return {
-        write: async () => {
-          await Promise.all([txBatch.write(), batch.write()]);
-        },
-      };
-    } catch (e) {
-      await Promise.all([txBatch.close(), batch.close()]);
-      throw e;
-    }
-  }
+  //         txBatch.put(
+  //           `${rawFromAddress}-${blockTimestamp}-${fromTxNum}`,
+  //           currentTxId,
+  //         );
+  //         txBatch.put(
+  //           `${rawToAddress}-${blockTimestamp}-${toTxNum}`,
+  //           currentTxId,
+  //         );
+  //         txBatch.put(
+  //           `${rawFromAddress}-${rawToAddress}-${blockTimestamp}-${bothTxNum}`,
+  //           currentTxId,
+  //         );
+  //         addressTxNum[rawFromAddress] = fromTxNum + 1;
+  //         addressTxNum[rawToAddress] = toTxNum + 1;
+  //         addressTxNum[`${rawFromAddress}-${rawToAddress}`] = bothTxNum + 1;
+  //       }
+  //       batch.put(account.address, this.toRawData(account));
+  //     }
+  //     return {
+  //       write: async () => {
+  //         await Promise.all([txBatch.write(), batch.write()]);
+  //       },
+  //     };
+  //   } catch (e) {
+  //     await Promise.all([txBatch.close(), batch.close()]);
+  //     throw e;
+  //   }
+  // }
 
   public static async getTx(
     account: Account,
@@ -201,28 +377,28 @@ export class Account extends BlockAccount {
       to,
     }: AccountTransactionSearchDto = {},
   ) {
-    if (start < 1706026109489) throw new Error('Not valid start index');
+    // if (start < 1706026109489) throw new Error('Not valid start index');
 
-    let query = {
-      gte: `${account.address}-${start}`,
-      lte: `${account.address}-${end}\xFF`,
-      ...(!!limit && {
-        limit,
-      }),
-      reverse,
-    };
+    // const query = {
+    //   gte: `${account.address}-${start}`,
+    //   lte: `${account.address}-${end}\xFF`,
+    //   ...(!!limit && {
+    //     limit,
+    //   }),
+    //   reverse,
+    // };
 
-    if (from || to) {
-      const fromAddress = !!to ? account._address : from;
-      const toAddress = !!from ? account._address : to;
+    // if (from || to) {
+    //   const fromAddress = !!to ? account._address : from;
+    //   const toAddress = !!from ? account._address : to;
 
-      const filter = `${fromAddress}-${toAddress}`;
-      query.gte = `${filter}-${start}`;
-      query.lte = `${filter}-${end}\xFF`;
-    }
+    //   const filter = `${fromAddress}-${toAddress}`;
+    //   query.gte = `${filter}-${start}`;
+    //   query.lte = `${filter}-${end}\xFF`;
+    // }
 
-    const data = await Account._txDb.values(query).all();
+    // const data = await Account._txDb.values(query).all();
 
-    return data;
+    return [];
   }
 }

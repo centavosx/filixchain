@@ -1,15 +1,20 @@
 import { HttpStatus } from '@nestjs/common';
-import { Block, Blockchain, Minter } from '@ph-blockchain/block';
+import { Block, Minter, Transaction } from '@ph-blockchain/block';
+import { Transform } from '@ph-blockchain/transformer';
 import { io } from 'socket.io-client';
 
 export class Miner {
-  private socket = io('ws://localhost:3000');
+  private socket = io('ws://localhost:3002');
   private currentMiningBlock: Block;
+  private readonly address;
 
-  constructor(private readonly address: string) {}
+  constructor(address: string) {
+    this.address = Transform.removePrefix(address, Transaction.prefix);
+  }
 
   connect() {
     this.socket.on('connect', () => {
+      console.log('CONNECTED');
       this.socket.emit('init-miner');
     });
 
@@ -41,7 +46,7 @@ export class Miner {
         if (isNewBlock || !this.currentMiningBlock) {
           this.currentMiningBlock?.stopMining();
           this.currentMiningBlock = new Block(
-            Blockchain.version,
+            Block.version,
             details.currentHeight,
             details.transaction,
             details.targetHash,
