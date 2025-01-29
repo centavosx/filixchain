@@ -1575,6 +1575,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ph-blockchain/api@workspace:packages/api":
+  version: 0.0.0-use.local
+  resolution: "@ph-blockchain/api@workspace:packages/api"
+  languageName: unknown
+  linkType: soft
+
 "@ph-blockchain/block@npm:*, @ph-blockchain/block@workspace:packages/block":
   version: 0.0.0-use.local
   resolution: "@ph-blockchain/block@workspace:packages/block"

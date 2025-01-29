@@ -12,7 +12,6 @@
     "test:watch": "jest --watch --verbose",
     "build": "tsc"
   },
-  "dependencies": {},
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
