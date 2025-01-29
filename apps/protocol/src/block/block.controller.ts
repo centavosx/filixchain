@@ -1,16 +1,17 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { BlockService } from './block.service';
+import { BlockHeightQuery } from '../dto/block.dto';
 
 @Controller('block')
 export class BlockController {
   constructor(private readonly blockService: BlockService) {}
 
   @Get()
-  public getBlock() {
-    return this.blockService.getBlocks();
+  public getBlock(@Query() data: BlockHeightQuery) {
+    return this.blockService.getBlocks(data);
   }
 
-  @Get('supply')
+  @Get('health')
   public getSupply() {
     return this.blockService.getSupply();
   }

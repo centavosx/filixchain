@@ -13,7 +13,7 @@ import { Transformer } from '../utils/transformer';
 
 export class AccountTransactionSearchDto {
   @ApiPropertyOptional({
-    description: 'Start time of the transaction',
+    description: 'Start row of the transaction',
   })
   @IsOptional()
   @Transform(Transformer.toNumber)
@@ -21,7 +21,7 @@ export class AccountTransactionSearchDto {
   start?: number;
 
   @ApiPropertyOptional({
-    description: 'End time of the transaction',
+    description: 'End row of the transaction',
   })
   @IsOptional()
   @Transform(Transformer.toNumber)
@@ -29,7 +29,7 @@ export class AccountTransactionSearchDto {
   end?: number;
 
   @ApiPropertyOptional({
-    description: 'Transaction limit',
+    description: 'Total number of rows to return',
   })
   @IsOptional()
   @Transform(Transformer.toNumber)

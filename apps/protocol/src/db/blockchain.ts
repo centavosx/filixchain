@@ -1,7 +1,7 @@
 import { Level } from 'level';
 
 import { Crypto } from '@ph-blockchain/hash';
-import { Block, Minter, Transaction } from '@ph-blockchain/block';
+import { Block, Minter, RawBlock, Transaction } from '@ph-blockchain/block';
 import { BlockHeightQuery, RawBlockDb } from '../dto/block.dto';
 import { Account } from './account';
 
@@ -139,7 +139,8 @@ export class Blockchain {
 
     for (const blockHash of data) {
       const rawBlock = await Blockchain._blockDb.get(blockHash);
-      blocks.push(await Blockchain.mapToBlock(rawBlock));
+      const block = await Blockchain.mapToBlock(rawBlock);
+      blocks.push(block);
     }
 
     return blocks;
@@ -151,20 +152,23 @@ export class Blockchain {
   }
 
   static async getBlocksByHeight({
-    from = 0,
-    to,
+    start = 0,
+    end,
     reverse,
     limit,
+    includeTx,
   }: BlockHeightQuery = {}) {
     const data = await Blockchain._blockHeightIndexDb
-      .values({ gte: from.toString(), lte: to?.toString(), reverse, limit })
+      .values({ gte: start.toString(), lte: end?.toString(), reverse, limit })
       .all();
 
-    const blocks: Block[] = [];
+    const blocks: RawBlock[] = [];
 
     for (const blockHash of data) {
       const rawBlock = await Blockchain._blockDb.get(blockHash);
-      blocks.push(await Blockchain.mapToBlock(rawBlock));
+      const block = await Blockchain.mapToBlock(rawBlock);
+
+      blocks.push(block.toJson(includeTx));
     }
 
     return blocks;
