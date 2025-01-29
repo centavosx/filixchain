@@ -1,10 +1,10 @@
 import { AppHash, Crypto } from '@ph-blockchain/hash';
 import { Transaction } from './transaction';
-// import { Blockchain } from './blockchain';
 import { RawBlock } from './types';
 import { Minter } from './minter';
 
 export class Block {
+  static version = '1';
   static readonly genesisHash =
     '0000000000000000000000000000000000000000000000000000000000000000';
 
