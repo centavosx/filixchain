@@ -205,7 +205,7 @@ export class Account extends BlockAccount {
       if (this._batches) {
         batchesTemp.push({
           txId: tx.transactionId,
-          sent: `${tx.to}-${temporaryNonce.toString()}`,
+          sent: `${tx.rawToAddress}-${temporaryNonce.toString()}`,
           rowIndex: temporarySize.toString(),
           timestamp: tx.timestamp
             ? `${tx.timestamp.toString()}-${temporarySize.toString()}`
@@ -251,7 +251,7 @@ export class Account extends BlockAccount {
       if (this._batches) {
         batchesTemp.push({
           txId: tx.transactionId,
-          receive: `${tx.from}-${tx.nonce.toString()}`,
+          receive: `${tx.rawFromAddress}-${tx.nonce.toString()}`,
           rowIndex: temporarySize.toString(),
           timestamp: tx.timestamp
             ? `${tx.timestamp.toString()}-${temporarySize.toString()}`
@@ -369,8 +369,8 @@ export class Account extends BlockAccount {
   public static async getTx(
     account: Account,
     {
-      start = 1706026109489,
-      end = Date.now(),
+      start = 0,
+      end,
       limit,
       reverse,
       from,
@@ -378,27 +378,38 @@ export class Account extends BlockAccount {
     }: AccountTransactionSearchDto = {},
   ) {
     // if (start < 1706026109489) throw new Error('Not valid start index');
+    const query = {
+      gte: `${start}`,
+      lte: end ? `${end}` : undefined,
+      ...(!!limit && {
+        limit,
+      }),
+      reverse,
+    };
 
-    // const query = {
-    //   gte: `${account.address}-${start}`,
-    //   lte: `${account.address}-${end}\xFF`,
-    //   ...(!!limit && {
-    //     limit,
-    //   }),
-    //   reverse,
-    // };
+    let index = this.createRowIndexKey(account._address);
 
-    // if (from || to) {
-    //   const fromAddress = !!to ? account._address : from;
-    //   const toAddress = !!from ? account._address : to;
+    if (from && to) {
+      throw new Error('Can only select between from or to');
+    }
 
-    //   const filter = `${fromAddress}-${toAddress}`;
-    //   query.gte = `${filter}-${start}`;
-    //   query.lte = `${filter}-${end}\xFF`;
-    // }
+    if (from) {
+      index = this.createReceiveIndexKey(account._address);
+      query.gte = `${from}`;
+      query.lte = `${from}\xFF`;
+    }
 
-    // const data = await Account._txDb.values(query).all();
+    if (to) {
+      index = this.createSentIndexKey(account._address);
+      query.gte = `${to}`;
+      query.lte = `${to}\xFF`;
+    }
 
-    return [];
+    const sublevel = Account._db.sublevel<string, string>(index, {});
+    await sublevel.open();
+    const data = await sublevel.values(query).all();
+    await sublevel.close();
+
+    return data;
   }
 }
