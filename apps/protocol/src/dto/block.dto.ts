@@ -1,6 +1,13 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { AppHash } from '@ph-blockchain/hash';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  Length,
+  Matches,
+} from 'class-validator';
 import { Transformer } from 'src/utils/transformer';
 
 export type RawBlock = {
@@ -71,4 +78,38 @@ export class BlockHeightQuery {
   @Transform(Transformer.toBoolean)
   @IsBoolean()
   includeTx?: boolean;
+}
+
+export class BlockTransactionQuery {
+  @ApiPropertyOptional({
+    description: 'Last block height query',
+  })
+  @IsOptional()
+  @Transform(Transformer.toNumber)
+  @IsNumber()
+  lastBlockHeight?: number;
+
+  @ApiPropertyOptional({
+    description: 'Last txIndex query',
+  })
+  @IsOptional()
+  @Transform(Transformer.toNumber)
+  @IsNumber()
+  nextTxIndex?: number;
+
+  @ApiPropertyOptional({
+    description: 'Set to true if you want to retrieve from latest to oldest',
+  })
+  @IsOptional()
+  @Transform(Transformer.toBoolean)
+  @IsBoolean()
+  reverse?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Total number of rows to. (Defaults to 20)',
+  })
+  @IsOptional()
+  @Transform(Transformer.toNumber)
+  @IsNumber()
+  limit?: number;
 }

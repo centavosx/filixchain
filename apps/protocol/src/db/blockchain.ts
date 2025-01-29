@@ -2,7 +2,11 @@ import { Level } from 'level';
 
 import { Crypto } from '@ph-blockchain/hash';
 import { Block, Minter, RawBlock, Transaction } from '@ph-blockchain/block';
-import { BlockHeightQuery, RawBlockDb } from '../dto/block.dto';
+import {
+  BlockHeightQuery,
+  BlockTransactionQuery,
+  RawBlockDb,
+} from '../dto/block.dto';
 import { Account } from './account';
 
 export type MintOrTx = Minter | Transaction;
@@ -172,6 +176,50 @@ export class Blockchain {
     }
 
     return blocks;
+  }
+
+  static async getTransactions({
+    reverse,
+    limit = 20,
+    lastBlockHeight,
+    nextTxIndex = 0,
+  }: BlockTransactionQuery) {
+    const transactions: ReturnType<MintOrTx['serialize']>[] = [];
+    let count = 0;
+    let txIndex = nextTxIndex;
+    let iteratorData: [string, string];
+
+    for await (iteratorData of Blockchain._blockHeightIndexDb.iterator({
+      reverse,
+      ...(reverse
+        ? { lte: lastBlockHeight?.toString() }
+        : { gte: lastBlockHeight?.toString() }),
+    })) {
+      const [_, blockHash] = iteratorData;
+      const rawBlock = await Blockchain._blockDb.get(blockHash);
+      const block = await Blockchain.mapToBlock(rawBlock);
+      const txs = block.decodeTransactions().slice(txIndex);
+
+      for (const tx of txs) {
+        if (count === limit) break;
+        const { decoded } = tx;
+        transactions.push(decoded.serialize());
+        count++;
+        txIndex++;
+      }
+
+      if (count === limit) break;
+
+      txIndex = 0;
+    }
+
+    return {
+      transactions,
+      ...(transactions.length && {
+        nextTxIndex: txIndex.toString(),
+        lastHeight: iteratorData?.[0],
+      }),
+    };
   }
 
   static async saveBlock(blocks: Block | Block[], mintAddress: string) {

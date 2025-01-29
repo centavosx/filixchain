@@ -14,4 +14,5 @@ export type RawTransaction = {
   version: bigint | string | number;
   signature?: TransactionSignature;
   timestamp?: bigint | string | number;
+  blockHeight?: bigint | string | number;
 };

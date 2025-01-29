@@ -1,6 +1,7 @@
 import { AppHash, Crypto } from '@ph-blockchain/hash';
 import { Transform } from '@ph-blockchain/transformer';
 import { Transaction } from './transaction';
+import { Block } from './block';
 
 export class Minter {
   static readonly BYTES_STRING_SIZES = [16, 16, 16, 40, 40] as const;
@@ -16,6 +17,7 @@ export class Minter {
   public readonly nonce: bigint;
   public readonly version: bigint;
   public readonly timestamp?: bigint;
+  public readonly blockHeight?: bigint;
 
   public blockHash: string;
 
@@ -26,14 +28,16 @@ export class Minter {
     nonce: string | number | bigint;
     version: string | number | bigint;
     timestamp?: string | number | bigint;
+    blockHeight?: string | number | bigint;
   }) {
-    const { to, nonce, version, timestamp } = data;
+    const { to, nonce, version, timestamp, blockHeight } = data;
 
     this.from = Minter.address;
     this.to = to;
     this.nonce = BigInt(nonce);
     this.version = BigInt(version);
     this.timestamp = timestamp ? BigInt(timestamp) : undefined;
+    this.blockHeight = blockHeight ? BigInt(blockHeight) : undefined;
   }
 
   serialize() {
@@ -83,7 +87,7 @@ export class Minter {
     return `${minter.from}${minter.to}${minter.amount}${minter.nonce}${minter.version}${minter.transactionId}`;
   }
 
-  static decode(encodedMessage: string, timestamp?: bigint | number | string) {
+  static decode(encodedMessage: string, block?: Block) {
     if (encodedMessage.length !== Minter.ENCODED_SIZE) {
       throw new Error('Not a minter');
     }
@@ -115,7 +119,8 @@ export class Minter {
       version,
       to,
       nonce,
-      timestamp,
+      timestamp: block?.timestamp,
+      blockHeight: block?.height,
     });
 
     return mint;

@@ -1,6 +1,7 @@
 import { AppHash, Crypto } from '@ph-blockchain/hash';
 import { Transform } from '@ph-blockchain/transformer';
 import { RawTransaction, TransactionSignature } from './types';
+import { Block } from './block';
 
 export class Transaction {
   static prefix = 'ph-';
@@ -18,14 +19,24 @@ export class Transaction {
   public readonly amount: bigint;
   public readonly nonce: bigint;
   public readonly version: bigint;
-  public readonly timestamp: bigint | undefined;
+  public readonly timestamp?: bigint;
+  public readonly blockHeight?: bigint;
 
   private _transactionId: string;
 
   public signature?: TransactionSignature;
 
   constructor(data: RawTransaction) {
-    const { from, to, amount, nonce, version, signature, timestamp } = data;
+    const {
+      from,
+      to,
+      amount,
+      nonce,
+      version,
+      signature,
+      timestamp,
+      blockHeight,
+    } = data;
 
     this.from = from;
     this.to = to;
@@ -34,6 +45,7 @@ export class Transaction {
     this.version = BigInt(version);
     this.signature = signature;
     this.timestamp = timestamp ? BigInt(timestamp) : undefined;
+    this.blockHeight = blockHeight ? BigInt(blockHeight) : undefined;
   }
 
   serialize() {
@@ -47,6 +59,7 @@ export class Transaction {
       signature: this.signature.signedMessage,
       fixedFee: Transaction.FIXED_FEE.toString(),
       timestamp: this.timestamp?.toString(),
+      blockHeight: this.blockHeight?.toString(),
     };
   }
 
@@ -84,7 +97,7 @@ export class Transaction {
     return `${transaction.from}${transaction.to}${transaction.amount}${transaction.nonce}${transaction.version}${transaction.transactionId}`;
   }
 
-  static decode(encodedMessage: string, timestamp?: bigint | number | string) {
+  static decode(encodedMessage: string, block?: Block) {
     if (encodedMessage.length !== Transaction.ENCODED_SIZE) {
       throw new Error('Not a transaction');
     }
@@ -126,7 +139,8 @@ export class Transaction {
         publicKey: new Uint8Array(publicKey),
         signedMessage: signature,
       },
-      timestamp,
+      timestamp: block?.timestamp,
+      blockHeight: block?.height,
     });
 
     const message = Transaction.buildMessage(transaction);

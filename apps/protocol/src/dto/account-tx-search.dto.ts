@@ -49,12 +49,10 @@ export class AccountTransactionSearchDto {
   })
   @IsOptional()
   @Matches(AppHash.HASH_REGEX, {
-    each: true,
-    message: 'Not a valid signed message',
+    message: 'Not a valid from address',
   })
   @Length(40, 40, {
-    each: true,
-    message: 'Transactions should be in 80 bytes',
+    message: 'From address should be in 20 bytes',
   })
   from?: string;
 
@@ -63,12 +61,10 @@ export class AccountTransactionSearchDto {
   })
   @IsOptional()
   @Matches(AppHash.HASH_REGEX, {
-    each: true,
-    message: 'Not a valid signed message',
+    message: 'Not a valid to address',
   })
   @Length(40, 40, {
-    each: true,
-    message: 'Transactions should be in 80 bytes',
+    message: 'To address should be in 20 bytes',
   })
   to?: string;
 }

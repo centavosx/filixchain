@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { BlockGateway } from '../block/block.gateway';
 import { Transaction } from '@ph-blockchain/block';
 import { Blockchain } from '../db/blockchain';
-import { BlockHeightQuery } from '../dto/block.dto';
+import { BlockHeightQuery, BlockTransactionQuery } from '../dto/block.dto';
 
 @Injectable()
 export class BlockService {
@@ -33,5 +33,18 @@ export class BlockService {
       txSize: txSize.toString(),
       blocks: this.blockGateway.currentHeight.toString(),
     };
+  }
+
+  async getTransactions({
+    reverse,
+    lastBlockHeight,
+    ...rest
+  }: BlockTransactionQuery) {
+    return Blockchain.getTransactions({
+      ...rest,
+      lastBlockHeight:
+        lastBlockHeight ?? (reverse ? this.blockGateway.currentHeight : 0),
+      reverse,
+    });
   }
 }
