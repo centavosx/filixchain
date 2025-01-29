@@ -19,7 +19,7 @@ export class BlockService {
     return blocks;
   }
 
-  async getSupply() {
+  async getHealth() {
     const txSize = await Blockchain.getTxSize();
     const currentSupply = this.blockGateway.currentSupply;
     return {

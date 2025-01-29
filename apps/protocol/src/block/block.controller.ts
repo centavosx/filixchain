@@ -12,7 +12,7 @@ export class BlockController {
   }
 
   @Get('health')
-  public getSupply() {
-    return this.blockService.getSupply();
+  public getHealth() {
+    return this.blockService.getHealth();
   }
 }
