@@ -7,7 +7,7 @@ export class BlockController {
   constructor(private readonly blockService: BlockService) {}
 
   @Get()
-  public getBlock(@Query() data: BlockHeightQuery) {
+  public getBlocks(@Query() data: BlockHeightQuery) {
     return this.blockService.getBlocks(data);
   }
 
