@@ -61,13 +61,13 @@ export const TransactionTable = ({ data }: TransactionTableProps) => {
         {data.map((tx) => (
           <TableRow key={tx.transactionId}>
             <TableCell className="font-medium">{tx.blockHeight}</TableCell>
-            <TableCell className="text-wrap break-all max-w-[230px]">
+            <TableCell className="text-wrap break-all max-w-[250px]">
               {tx.transactionId}
             </TableCell>
-            <TableCell className="text-wrap break-all max-w-[150px]">
+            <TableCell className="text-wrap break-all max-w-[200px]">
               {tx.from}
             </TableCell>
-            <TableCell className="text-wrap break-all max-w-[150px]">
+            <TableCell className="text-wrap break-all max-w-[200px]">
               {tx.to}
             </TableCell>
             <TableCell className="text-center">
