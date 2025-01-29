@@ -1,0 +1,20 @@
+{
+  "name": "@ph-blockchain/api",
+  "version": "0.0.1",
+  "description": "",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "test": "jest --verbose",
+    "test:watch": "jest --watch --verbose",
+    "build": "tsc"
+  },
+  "dependencies": {},
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}
