@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Typography } from '@/components/ui/typography';
 import { TransactionTable } from '@/components/app/transaction-table';
 import { Block } from '@ph-blockchain/api';
+import { Transform } from '@ph-blockchain/transformer';
 
 export default async function Home() {
   const { data: health } = await Block.getHealth();
@@ -60,9 +61,12 @@ export default async function Home() {
                     Hash:
                     {value.blockHash}
                   </Typography>
-                  <Typography as="small">
-                    Created: January 25, 2025 10:00 PM
-                  </Typography>
+                  {!!value.timestamp && (
+                    <Typography as="small">
+                      Created:{' '}
+                      {Transform.date.formatToReadable(value.timestamp)}
+                    </Typography>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
