@@ -16,7 +16,7 @@ export default async function Home() {
   const { data: health } = await Block.getHealth();
   const { data: block } = await Block.getBlocks({ limit: 3, reverse: true });
   const { data: result } = await Block.getTransactions({
-    limit: 50,
+    limit: 20,
     reverse: true,
   });
   const transactions = result.transactions;

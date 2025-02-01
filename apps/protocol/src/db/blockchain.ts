@@ -16,6 +16,8 @@ import {
 } from '../dto/block.dto';
 import { Account } from './account';
 
+// TODO: Create module for this.
+
 export class Blockchain {
   static SUPPLY_KEY = 'SUPPLY';
   static SIZE_KEY = 'SIZE';
@@ -223,7 +225,12 @@ export class Blockchain {
     includeTx = false,
   }: BlockHeightQuery = {}) {
     const data = await Blockchain._blockHeightIndexDb
-      .values({ gte: start.toString(), lte: end?.toString(), reverse, limit })
+      .values({
+        gte: Crypto.encodeIntTo8BytesString(start),
+        lte: end ? Crypto.encodeIntTo8BytesString(end) : undefined,
+        reverse,
+        limit,
+      })
       .all();
 
     const blocks: RawBlock[] = [];
@@ -249,11 +256,15 @@ export class Blockchain {
     let txIndex = nextTxIndex;
     let iteratorData: [string, string];
 
+    const lastBlockHeightInHex = lastBlockHeight
+      ? Crypto.encodeIntTo8BytesString(lastBlockHeight)
+      : undefined;
+
     for await (iteratorData of Blockchain._blockHeightIndexDb.iterator({
       reverse,
       ...(reverse
-        ? { lte: lastBlockHeight?.toString() }
-        : { gte: lastBlockHeight?.toString() }),
+        ? { lte: lastBlockHeightInHex }
+        : { gte: lastBlockHeightInHex }),
     })) {
       const [_, blockHash] = iteratorData;
       const rawBlock = await Blockchain._blockDb.get(blockHash);
@@ -277,7 +288,9 @@ export class Blockchain {
       transactions,
       ...(transactions.length && {
         nextTxIndex: txIndex.toString(),
-        lastHeight: iteratorData?.[0],
+        lastHeight: iteratorData
+          ? Crypto.decode8BytesStringtoBigInt(iteratorData[0]).toString()
+          : undefined,
       }),
     };
   }
@@ -404,9 +417,12 @@ export class Blockchain {
           blockHash: block.blockHash,
           merkleRoot: block.merkleRoot,
         });
-        blockHeightIndexBatch.put(BigInt(block.height).toString(), blockHash);
+        blockHeightIndexBatch.put(
+          Crypto.encodeIntTo8BytesString(block.height),
+          blockHash,
+        );
         blockTimestampIndexBatch.put(
-          BigInt(block.timestamp).toString(),
+          Crypto.encodeIntTo8BytesString(block.timestamp),
           blockHash,
         );
       }

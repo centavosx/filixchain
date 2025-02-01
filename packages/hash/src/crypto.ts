@@ -4,14 +4,18 @@ import * as tweetnacl from 'tweetnacl';
 export class Crypto {
   static zero8BytesString = '0000000000000000';
 
-  static encodeIntTo8BytesString(data: string | number | bigint) {
+  static encodeIntToBuffer(data: string | number | bigint) {
     const bigInt = BigInt(data);
     if (bigInt < 0) throw new Error('Minimum value is zero');
     const buffer = Buffer.alloc(8);
 
     buffer.writeBigInt64BE(bigInt);
 
-    return buffer.toString('hex');
+    return buffer;
+  }
+
+  static encodeIntTo8BytesString(data: string | number | bigint) {
+    return Crypto.encodeIntToBuffer(data).toString('hex');
   }
 
   static decode8BytesStringtoBigInt = (data: string) => {

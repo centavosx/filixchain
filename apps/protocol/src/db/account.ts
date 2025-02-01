@@ -10,6 +10,7 @@ import { AccountTransactionSearchDto } from '../dto/account-tx-search.dto';
 export type DefaultSubLevel = ReturnType<Level['sublevel']>;
 export type InnerSublevel = ReturnType<DefaultSubLevel['sublevel']>;
 
+// TODO: Create module for this
 export class Account extends BlockAccount {
   private _isOpen = false;
   private static _isOpen = false;
@@ -207,9 +208,9 @@ export class Account extends BlockAccount {
         batchesTemp.push({
           txId: tx.transactionId,
           sent: `${tx.rawToAddress}-${temporaryNonce.toString()}`,
-          rowIndex: temporarySize.toString(),
+          rowIndex: Crypto.encodeIntTo8BytesString(temporarySize),
           timestamp: tx.timestamp
-            ? `${tx.timestamp.toString()}-${temporarySize.toString()}`
+            ? `${Crypto.encodeIntTo8BytesString(tx.timestamp)}-${temporarySize.toString()}`
             : undefined,
         });
       }
@@ -253,9 +254,9 @@ export class Account extends BlockAccount {
         batchesTemp.push({
           txId: tx.transactionId,
           receive: `${tx.rawFromAddress}-${tx.nonce.toString()}`,
-          rowIndex: temporarySize.toString(),
+          rowIndex: Crypto.encodeIntTo8BytesString(temporarySize),
           timestamp: tx.timestamp
-            ? `${tx.timestamp.toString()}-${temporarySize.toString()}`
+            ? `${Crypto.encodeIntTo8BytesString(tx.timestamp)}-${temporarySize.toString()}`
             : undefined,
         });
       }
@@ -380,8 +381,8 @@ export class Account extends BlockAccount {
   ) {
     // if (start < 1706026109489) throw new Error('Not valid start index');
     const query = {
-      gte: `${start}`,
-      lte: end ? `${end}` : undefined,
+      gte: Crypto.encodeIntTo8BytesString(start),
+      lte: end ? Crypto.encodeIntTo8BytesString(end) : undefined,
       ...(!!limit && {
         limit,
       }),
