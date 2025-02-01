@@ -29,7 +29,8 @@ export default async function Home() {
               <Typography as="h3">Supply</Typography>
               <Separator />
               <Typography as="lead">
-                {health.totalSupply} / {health.maxSupply}
+                {Transform.toHighestUnit(health.totalSupply)} /{' '}
+                {Transform.toHighestUnit(health.maxSupply)}
               </Typography>
             </div>
             {/* <Separator className="h-20" orientation="vertical" /> */}

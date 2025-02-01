@@ -1,3 +1,4 @@
+import { Transaction } from '@ph-blockchain/block';
 import { DateTransformer } from './date';
 
 export class Transform {
@@ -11,5 +12,9 @@ export class Transform {
 
   static get date() {
     return DateTransformer;
+  }
+
+  static toHighestUnit(value: string | bigint | number) {
+    return (BigInt(value) / Transaction.TX_CONVERSION_UNIT).toString();
   }
 }
