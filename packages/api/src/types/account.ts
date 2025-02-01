@@ -4,3 +4,12 @@ export type GetAccountResult = {
   amount: string;
   size: string;
 };
+
+export type AccountTransactionSearchDto = {
+  start?: number;
+  end?: number;
+  limit?: number;
+  reverse?: boolean;
+  from?: string;
+  to?: string;
+};
