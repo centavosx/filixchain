@@ -20,6 +20,7 @@ export default async function Home() {
     reverse: true,
   });
   const transactions = result.transactions;
+
   return (
     <div className="flex flex-col p-6 gap-8">
       <section>
