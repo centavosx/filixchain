@@ -24,4 +24,10 @@ export class Block extends BaseApi {
       params,
     );
   }
+
+  static getTransactionById(id: string) {
+    return super.get<unknown, BlockTransactionResult['transactions'][number]>(
+      `${this.baseEndpoint}/transaction/${id}`,
+    );
+  }
 }
