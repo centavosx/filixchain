@@ -23,13 +23,8 @@ export class BlockService {
     const txSize = await Blockchain.getTxSize();
     const currentSupply = this.blockGateway.currentSupply;
     return {
-      totalSupply: (
-        (Blockchain.MAX_SUPPLY - currentSupply) /
-        Transaction.TX_CONVERSION_UNIT
-      ).toString(),
-      maxSupply: (
-        Blockchain.MAX_SUPPLY / Transaction.TX_CONVERSION_UNIT
-      ).toString(),
+      totalSupply: (Blockchain.MAX_SUPPLY - currentSupply).toString(),
+      maxSupply: Blockchain.MAX_SUPPLY.toString(),
       txSize: txSize.toString(),
       blocks: this.blockGateway.currentHeight.toString(),
     };
