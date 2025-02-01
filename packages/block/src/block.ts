@@ -115,7 +115,7 @@ export class Block {
     return this;
   }
 
-  public toJson(includeTx?: boolean): RawBlock {
+  public toJson(includeTx = true): RawBlock {
     return {
       version: this.version,
       height: this.height,

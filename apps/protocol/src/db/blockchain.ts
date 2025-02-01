@@ -78,21 +78,92 @@ export class Blockchain {
     Blockchain._isOpen = true;
   }
 
+  static async mapToBlock(rawBlockDb: RawBlockDb) {
+    const transactions = await Blockchain.findTransactionsById(
+      rawBlockDb.transactions,
+      true,
+    );
+    return new Block(
+      Block.version,
+      +rawBlockDb.height,
+      transactions,
+      rawBlockDb.targetHash,
+      rawBlockDb.previousHash,
+      +rawBlockDb.nonce,
+      +rawBlockDb.timestamp,
+    );
+  }
+
+  static async findTransactionBlock<T extends string | Array<string>>(
+    transactionId: T,
+  ) {
+    const isArray = Array.isArray(transactionId);
+    const txBlock = Blockchain._txDb.sublevel('blockIndex');
+    await txBlock.open();
+
+    const blockHashes = isArray
+      ? await txBlock.getMany(transactionId)
+      : [await txBlock.get(transactionId)];
+
+    return (isArray ? blockHashes : blockHashes?.[0]) as T extends string
+      ? string
+      : string[];
+  }
+
+  static async findBlockByHash<T extends string | Array<string>>(hash: T) {
+    const isArray = Array.isArray(hash);
+    const rawBlocks = isArray
+      ? await Blockchain._blockDb.getMany(hash)
+      : [await Blockchain._blockDb.get(hash)];
+    const blocks: Block[] = [];
+    for (const rawBlock of rawBlocks) {
+      blocks.push(await Blockchain.mapToBlock(rawBlock));
+    }
+
+    return (isArray ? blocks : blocks?.[0]) as T extends string
+      ? Block
+      : Block[];
+  }
+
   static async findTransactionsById<
     T extends string | Array<string>,
     E extends boolean = false,
-  >(transactionId: T, isEncoded?: E) {
+  >(transactionId: T, isEncoded?: E, includeBlock?: boolean) {
     const isArray = Array.isArray(transactionId);
-    const encodedTransactions = isArray
-      ? await Blockchain._txDb.getMany(transactionId)
-      : [await Blockchain._txDb.get(transactionId)];
+    const transactionIds: Array<string> = isArray
+      ? transactionId
+      : [transactionId];
+    const encodedTransactions = await Blockchain._txDb.getMany(transactionIds);
+    const blockMap: Record<string, Block> = {};
+    const txBlockMap: Record<string, Block> = {};
+    const data: (string | Transaction | Minter)[] = [];
 
-    const data = encodedTransactions.map((value) => {
-      if (value.length === Minter.ENCODED_SIZE) {
-        return isEncoded ? value : Minter.decode(value);
+    if (!isEncoded && includeBlock) {
+      for (const txId of transactionIds) {
+        const blockHash = await Blockchain.findTransactionBlock(txId);
+        let block = blockMap[blockHash];
+        if (!block) {
+          block = await Blockchain.findBlockByHash(blockHash);
+          blockMap[blockHash] = block;
+        }
+        txBlockMap[txId] = block;
       }
-      return isEncoded ? value : Transaction.decode(value);
-    });
+    }
+
+    for (const encoded of encodedTransactions) {
+      if (!isEncoded) {
+        let value: string | Transaction | Minter;
+        const mintOrTx =
+          encoded.length === Minter.ENCODED_SIZE
+            ? Minter.decode(encoded)
+            : Transaction.decode(encoded);
+        data.push(mintOrTx);
+        continue;
+      }
+
+      data.push(encoded);
+    }
+
     return (isArray ? data : data?.[0]) as T extends string
       ? E extends true
         ? string
@@ -123,22 +194,6 @@ export class Blockchain {
     return Crypto.decode8BytesStringtoBigInt(size);
   }
 
-  static async mapToBlock(rawBlockDb: RawBlockDb) {
-    const transactions = await Blockchain.findTransactionsById(
-      rawBlockDb.transactions,
-      true,
-    );
-    return new Block(
-      Block.version,
-      +rawBlockDb.height,
-      transactions,
-      rawBlockDb.targetHash,
-      rawBlockDb.previousHash,
-      +rawBlockDb.nonce,
-      +rawBlockDb.timestamp,
-    );
-  }
-
   static async getBlocksFromLatest(limit = Blockchain.RESET_NUMBER_OF_BLOCK) {
     const data = await Blockchain._blockTimestampIndexDb
       .values({ lte: `${Date.now()}`, reverse: true, limit: limit })
@@ -165,7 +220,7 @@ export class Blockchain {
     end,
     reverse,
     limit,
-    includeTx,
+    includeTx = false,
   }: BlockHeightQuery = {}) {
     const data = await Blockchain._blockHeightIndexDb
       .values({ gte: start.toString(), lte: end?.toString(), reverse, limit })
@@ -246,6 +301,9 @@ export class Blockchain {
     const blockTimestampIndexBatch = Blockchain._blockTimestampIndexDb.batch();
     const blockBatch = Blockchain._blockDb.batch();
     const txBatch = Blockchain._txDb.batch();
+    const txBlock = Blockchain._txDb.sublevel('blockIndex');
+    await txBlock.open();
+    const txBlockBatch = txBlock.batch();
 
     let isRewardIncluded = false;
 
@@ -256,8 +314,13 @@ export class Blockchain {
     };
 
     const close = async () => {
+      const indexClose = async () => {
+        await txBlockBatch.close();
+        await txBlock.close();
+      };
       await Promise.all([
         txBatch.close(),
+        indexClose(),
         Blockchain._txDb.put(
           Blockchain.SIZE_KEY,
           Crypto.encodeIntTo8BytesString(originalTxSize),
@@ -306,6 +369,7 @@ export class Blockchain {
           fromAccount.addTransaction(decoded);
           toAccount.receiveTransaction(decoded);
           txBatch.put(txId, encoded);
+          txBlockBatch.put(txId, blockHash);
           transactions.push(decoded);
           txIds.push(txId);
           txSize++;
@@ -347,8 +411,14 @@ export class Blockchain {
         );
       }
 
+      const indexWriteAndClose = async () => {
+        await txBlockBatch.write();
+        await txBlock.close();
+      };
+
       await Promise.all([
         txBatch.write(),
+        indexWriteAndClose(),
         Blockchain._txDb.put(
           Blockchain.SIZE_KEY,
           Crypto.encodeIntTo8BytesString(txSize),

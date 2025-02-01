@@ -1,6 +1,7 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { BlockService } from './block.service';
 import { BlockHeightQuery, BlockTransactionQuery } from '../dto/block.dto';
+import { Parameter } from '../utils/parameter';
 
 @Controller('block')
 export class BlockController {
@@ -19,5 +20,10 @@ export class BlockController {
   @Get('transaction')
   public getTransactions(@Query() data: BlockTransactionQuery) {
     return this.blockService.getTransactions(data);
+  }
+
+  @Get(`transaction/${Parameter.hash.path}`)
+  public getTransactionsDetail(@Param(Parameter.hash.key) hash: string) {
+    return this.blockService.getTransactionDetail(hash);
   }
 }

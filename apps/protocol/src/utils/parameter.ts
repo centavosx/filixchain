@@ -5,4 +5,11 @@ export class Parameter {
       path: ':address([0-9a-fA-F]{40})',
     };
   }
+
+  static get hash() {
+    return {
+      key: 'hashId',
+      path: ':hashId([0-9a-fA-F]{64})',
+    };
+  }
 }
