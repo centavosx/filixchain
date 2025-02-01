@@ -20,13 +20,17 @@ import { MintOrTxSerialize, Transaction } from '@ph-blockchain/block';
 
 export type TransactionTableProps = {
   data: MintOrTxSerialize[];
+  shouldExcludeBlock?: boolean;
 };
-export const TransactionTable = ({ data }: TransactionTableProps) => {
+export const TransactionTable = ({
+  data,
+  shouldExcludeBlock,
+}: TransactionTableProps) => {
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Block</TableHead>
+          {!shouldExcludeBlock && <TableHead>Block</TableHead>}
           <TableHead className="min-w-[90px]">Hash</TableHead>
           <TableHead className="min-w-[90px]">From</TableHead>
           <TableHead className="min-w-[90px]">To</TableHead>
@@ -50,7 +54,9 @@ export const TransactionTable = ({ data }: TransactionTableProps) => {
       <TableBody>
         {data.map((tx) => (
           <TableRow key={tx.transactionId}>
-            <TableCell className="font-medium">{tx.blockHeight}</TableCell>
+            {!shouldExcludeBlock && (
+              <TableCell className="font-medium">{tx.blockHeight}</TableCell>
+            )}
             <TableCell className="text-wrap break-all max-w-[250px]">
               {tx.transactionId}
             </TableCell>
