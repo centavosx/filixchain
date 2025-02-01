@@ -9,6 +9,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Typography } from '@/components/ui/typography';
 import { Account } from '@ph-blockchain/api';
+import { Transaction } from '@ph-blockchain/block';
 import { Transform } from '@ph-blockchain/transformer';
 
 export type AccountProps = {
@@ -24,7 +25,10 @@ export default async function AccountPage({ params }: AccountProps) {
         <Card>
           <CardHeader>
             <CardTitle>
-              <Typography>Account Address: {accountData.address}</Typography>
+              <Typography>
+                Account Address:{' '}
+                {Transform.addPrefix(accountData.address, Transaction.prefix)}
+              </Typography>
             </CardTitle>
             <CardDescription>
               <Typography>Nonce: {accountData.nonce}</Typography>
