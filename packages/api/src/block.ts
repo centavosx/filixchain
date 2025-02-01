@@ -14,6 +14,12 @@ export class Block extends BaseApi {
     return super.get<BlockHeightQuery, RawBlock[]>(this.baseEndpoint, params);
   }
 
+  static getBlockByHeight(height: string | number) {
+    return super.get<unknown, RawBlock>(
+      `${this.baseEndpoint}/height/${height}`,
+    );
+  }
+
   static getHealth() {
     return super.get<unknown, BlockHealthResult>(`${this.baseEndpoint}/health`);
   }
