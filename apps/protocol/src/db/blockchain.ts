@@ -256,9 +256,10 @@ export class Blockchain {
     let txIndex = nextTxIndex;
     let iteratorData: [string, string];
 
-    const lastBlockHeightInHex = lastBlockHeight
-      ? Crypto.encodeIntTo8BytesString(lastBlockHeight)
-      : undefined;
+    const lastBlockHeightInHex =
+      lastBlockHeight !== undefined
+        ? Crypto.encodeIntTo8BytesString(lastBlockHeight)
+        : undefined;
 
     for await (iteratorData of Blockchain._blockHeightIndexDb.iterator({
       reverse,
