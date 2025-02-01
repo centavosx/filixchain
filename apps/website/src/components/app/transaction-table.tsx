@@ -71,10 +71,12 @@ export const TransactionTable = ({
               PESO
             </TableCell>
             <TableCell>
-              <Button variant="ghost" size="icon" asChild>
-                <a href={`/transaction/${tx.transactionId}`}>
-                  <Eye />
-                </a>
+              <Button
+                variant="ghost"
+                size="icon"
+                href={`/transaction/${tx.transactionId}`}
+              >
+                <Eye />
               </Button>
             </TableCell>
           </TableRow>

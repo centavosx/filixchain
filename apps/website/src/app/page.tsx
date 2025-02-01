@@ -11,6 +11,7 @@ import { Typography } from '@/components/ui/typography';
 import { TransactionTable } from '@/components/app/transaction-table';
 import { Block } from '@ph-blockchain/api';
 import { Transform } from '@ph-blockchain/transformer';
+import { Button } from '@/components/ui/button';
 
 export default async function Home() {
   const { data: health } = await Block.getHealth();
@@ -84,6 +85,12 @@ export default async function Home() {
                 <Typography as="large">
                   Transactions: {value.transactionSize}
                 </Typography>
+                <Button
+                  className="max-w-32 mt-4"
+                  href={`/block/${value.height}`}
+                >
+                  View
+                </Button>
               </CardContent>
             </Card>
           ))}
