@@ -154,11 +154,18 @@ export class Blockchain {
 
     for (const encoded of encodedTransactions) {
       if (!isEncoded) {
-        let value: string | Transaction | Minter;
         const mintOrTx =
           encoded.length === Minter.ENCODED_SIZE
             ? Minter.decode(encoded)
             : Transaction.decode(encoded);
+
+        if (includeBlock) {
+          const block = txBlockMap[mintOrTx.transactionId];
+          if (!block) continue;
+
+          mintOrTx.addBlock(block);
+        }
+
         data.push(mintOrTx);
         continue;
       }

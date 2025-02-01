@@ -16,8 +16,8 @@ export class Minter {
   public readonly amount = Minter.FIX_MINT;
   public readonly nonce: bigint;
   public readonly version: bigint;
-  public readonly timestamp?: bigint;
-  public readonly blockHeight?: bigint;
+  private _timestamp?: bigint;
+  private _blockHeight?: bigint;
 
   private _transactionId: string;
 
@@ -34,9 +34,22 @@ export class Minter {
     this.to = to;
     this.nonce = BigInt(nonce);
     this.version = BigInt(version);
-    this.timestamp = timestamp ? BigInt(timestamp) : undefined;
-    this.blockHeight =
+    this._timestamp = timestamp ? BigInt(timestamp) : undefined;
+    this._blockHeight =
       blockHeight !== undefined ? BigInt(blockHeight) : undefined;
+  }
+
+  public get timestamp() {
+    return this._timestamp;
+  }
+
+  public get blockHeight() {
+    return this._blockHeight;
+  }
+
+  addBlock(block: Block) {
+    this._timestamp = BigInt(block.timestamp);
+    this._blockHeight = BigInt(block.height);
   }
 
   serialize() {
@@ -47,8 +60,8 @@ export class Minter {
       amount: this.amount.toString(),
       nonce: this.nonce.toString(),
       version: this.version.toString(),
-      timestamp: this.timestamp?.toString(),
-      blockHeight: this.blockHeight?.toString(),
+      timestamp: this._timestamp?.toString(),
+      blockHeight: this._blockHeight?.toString(),
     };
   }
 

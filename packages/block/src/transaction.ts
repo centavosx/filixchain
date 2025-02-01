@@ -19,8 +19,8 @@ export class Transaction {
   public readonly amount: bigint;
   public readonly nonce: bigint;
   public readonly version: bigint;
-  public readonly timestamp?: bigint;
-  public readonly blockHeight?: bigint;
+  private _timestamp?: bigint;
+  private _blockHeight?: bigint;
 
   private _transactionId: string;
 
@@ -44,9 +44,14 @@ export class Transaction {
     this.nonce = BigInt(nonce);
     this.version = BigInt(version);
     this.signature = signature;
-    this.timestamp = timestamp ? BigInt(timestamp) : undefined;
-    this.blockHeight =
+    this._timestamp = timestamp ? BigInt(timestamp) : undefined;
+    this._blockHeight =
       blockHeight !== undefined ? BigInt(blockHeight) : undefined;
+  }
+
+  addBlock(block: Block) {
+    this._timestamp = BigInt(block.timestamp);
+    this._blockHeight = BigInt(block.height);
   }
 
   serialize() {
@@ -59,9 +64,17 @@ export class Transaction {
       version: this.version.toString(),
       signature: this.signature.signedMessage,
       fixedFee: Transaction.FIXED_FEE.toString(),
-      timestamp: this.timestamp?.toString(),
-      blockHeight: this.blockHeight?.toString(),
+      timestamp: this._timestamp?.toString(),
+      blockHeight: this._blockHeight?.toString(),
     };
+  }
+
+  public get timestamp() {
+    return this._timestamp;
+  }
+
+  public get blockHeight() {
+    return this._blockHeight;
   }
 
   public get rawFromAddress() {

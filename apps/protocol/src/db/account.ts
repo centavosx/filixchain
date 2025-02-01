@@ -320,54 +320,6 @@ export class Account extends BlockAccount {
     return `${Crypto.encodeIntTo8BytesString(account.amount)}${Crypto.encodeIntTo8BytesString(account.nonce)}${Crypto.encodeIntTo8BytesString(account.size)}`;
   }
 
-  // public static async save(
-  //   blockTimestamp: number,
-  //   accounts: Account | Account[],
-  // ) {
-  //   const txBatch = Account._txDb.batch();
-  //   const batch = Account._db.batch();
-  //   try {
-  //     const addressTxNum: Record<string, number> = {};
-  //     for (const account of Array.isArray(accounts) ? accounts : [accounts]) {
-  //       for (const tx of account.pendingTxs) {
-  //         const currentTxId = tx.transactionId;
-  //         const rawFromAddress = tx.rawFromAddress;
-  //         const rawToAddress = tx.rawToAddress;
-
-  //         const fromTxNum = addressTxNum[rawFromAddress] || 0;
-  //         const toTxNum = addressTxNum[rawToAddress] || 0;
-  //         const bothTxNum =
-  //           addressTxNum[`${rawFromAddress}-${rawToAddress}`] || 0;
-
-  //         txBatch.put(
-  //           `${rawFromAddress}-${blockTimestamp}-${fromTxNum}`,
-  //           currentTxId,
-  //         );
-  //         txBatch.put(
-  //           `${rawToAddress}-${blockTimestamp}-${toTxNum}`,
-  //           currentTxId,
-  //         );
-  //         txBatch.put(
-  //           `${rawFromAddress}-${rawToAddress}-${blockTimestamp}-${bothTxNum}`,
-  //           currentTxId,
-  //         );
-  //         addressTxNum[rawFromAddress] = fromTxNum + 1;
-  //         addressTxNum[rawToAddress] = toTxNum + 1;
-  //         addressTxNum[`${rawFromAddress}-${rawToAddress}`] = bothTxNum + 1;
-  //       }
-  //       batch.put(account.address, this.toRawData(account));
-  //     }
-  //     return {
-  //       write: async () => {
-  //         await Promise.all([txBatch.write(), batch.write()]);
-  //       },
-  //     };
-  //   } catch (e) {
-  //     await Promise.all([txBatch.close(), batch.close()]);
-  //     throw e;
-  //   }
-  // }
-
   public static async getTx(
     account: Account,
     {

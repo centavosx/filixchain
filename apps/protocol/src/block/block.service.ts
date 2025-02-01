@@ -49,9 +49,7 @@ export class BlockService {
   }
 
   async getTransactionDetail(hash: string) {
-    // const blockHash = await Blockchain.findTransactionBlock(hash);
-    // const block = await Blockchain.findBlockByHash(blockHash);
-    // const txDetail = await Blockchain.findTransactionsById(hash, false, block);
-    // return txDetail.serialize();
+    const txDetail = await Blockchain.findTransactionsById(hash, false, true);
+    return txDetail.serialize();
   }
 }
