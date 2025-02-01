@@ -1,3 +1,4 @@
+import { Transaction } from '@ph-blockchain/block';
 import { BaseApi } from './base';
 import { AccountTransactionSearchDto, GetAccountResult } from './types/account';
 
@@ -14,9 +15,9 @@ export class Account extends BaseApi {
     address: string,
     query?: AccountTransactionSearchDto,
   ) {
-    return super.get<AccountTransactionSearchDto, GetAccountResult>(
-      `${this.baseEndpoint}/${address}`,
-      query,
-    );
+    return super.get<
+      AccountTransactionSearchDto,
+      ReturnType<Transaction['serialize']>[]
+    >(`${this.baseEndpoint}/${address}/transaction`, query);
   }
 }

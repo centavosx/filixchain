@@ -18,6 +18,13 @@ export type AccountProps = {
 export default async function AccountPage({ params }: AccountProps) {
   const accountId = (await params).id;
   const accountData = (await Account.getAccount(accountId)).data;
+  const accountTx = (
+    await Account.getAccountTransaction(accountId, {
+      reverse: true,
+    })
+  ).data;
+
+  console.log(accountTx);
 
   return (
     <div className="flex flex-col p-6 gap-8">
@@ -40,9 +47,9 @@ export default async function AccountPage({ params }: AccountProps) {
             </CardDescription>
           </CardHeader>
           <Separator className="mb-6" />
-          <CardContent className="flex flex-row gap-8">
-            <TransactionTable data={[]} />
-          </CardContent>
+          {/* <CardContent className="flex flex-row gap-8">
+            <TransactionTable data={accountTx} />
+          </CardContent> */}
         </Card>
       </section>
     </div>
