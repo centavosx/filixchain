@@ -22,8 +22,8 @@ export class AccountService implements OnModuleInit {
   ) {
     const account = await Account.findByAddress(address);
     const data = await Account.getTx(account, query);
-    return (await Blockchain.findTransactionsById(data)).map((value) =>
-      value.serialize(),
+    return (await Blockchain.findTransactionsById(data, false, true)).map(
+      (value) => value.serialize(),
     );
   }
 }

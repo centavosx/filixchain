@@ -21,10 +21,9 @@ export default async function AccountPage({ params }: AccountProps) {
   const accountTx = (
     await Account.getAccountTransaction(accountId, {
       reverse: true,
+      limit: 20,
     })
   ).data;
-
-  console.log(accountTx);
 
   return (
     <div className="flex flex-col p-6 gap-8">
@@ -47,9 +46,9 @@ export default async function AccountPage({ params }: AccountProps) {
             </CardDescription>
           </CardHeader>
           <Separator className="mb-6" />
-          {/* <CardContent className="flex flex-row gap-8">
+          <CardContent className="flex flex-row gap-8">
             <TransactionTable data={accountTx} />
-          </CardContent> */}
+          </CardContent>
         </Card>
       </section>
     </div>
