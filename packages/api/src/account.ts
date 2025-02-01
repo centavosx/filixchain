@@ -18,6 +18,6 @@ export class Account extends BaseApi {
     return super.get<
       AccountTransactionSearchDto,
       ReturnType<Transaction['serialize']>[]
-    >(`${this.baseEndpoint}/${address}/transaction`, query);
+    >(`${this.baseEndpoint}/${address}/transactions`, query);
   }
 }
