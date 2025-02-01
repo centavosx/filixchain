@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { BlockGateway } from '../block/block.gateway';
-import { Transaction } from '@ph-blockchain/block';
 import { Blockchain } from '../db/blockchain';
 import { BlockHeightQuery, BlockTransactionQuery } from '../dto/block.dto';
 
@@ -46,5 +45,10 @@ export class BlockService {
   async getTransactionDetail(hash: string) {
     const txDetail = await Blockchain.findTransactionsById(hash, false, true);
     return txDetail.serialize();
+  }
+
+  async getBlockByHeight(height: number) {
+    const data = await Blockchain.getBlockByHeight(height);
+    return data.toJson(true);
   }
 }

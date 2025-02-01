@@ -122,6 +122,8 @@ export class Blockchain {
       blocks.push(await Blockchain.mapToBlock(rawBlock));
     }
 
+    if (!blocks.length) throw new Error('Block hash not found');
+
     return (isArray ? blocks : blocks?.[0]) as T extends string
       ? Block
       : Block[];
@@ -222,6 +224,18 @@ export class Blockchain {
   static async getLatestBlock() {
     const blocks = await this.getBlocksFromLatest(1);
     return blocks?.[0];
+  }
+
+  static async getBlockByHeight(height: number) {
+    const blockHash = await Blockchain._blockHeightIndexDb.get(
+      Crypto.encodeIntTo8BytesString(height),
+    );
+
+    if (!blockHash) throw new Error('Block height not found');
+
+    const block = await Blockchain.findBlockByHash(blockHash);
+
+    return block;
   }
 
   static async getBlocksByHeight({

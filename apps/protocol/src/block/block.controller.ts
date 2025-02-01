@@ -17,6 +17,11 @@ export class BlockController {
     return this.blockService.getHealth();
   }
 
+  @Get(`height/${Parameter.height.path}`)
+  public getBlockByHeight(@Param(Parameter.height.key) height: string) {
+    return this.blockService.getBlockByHeight(+height);
+  }
+
   @Get('transaction')
   public getTransactions(@Query() data: BlockTransactionQuery) {
     return this.blockService.getTransactions(data);

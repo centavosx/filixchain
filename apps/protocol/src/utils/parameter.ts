@@ -12,4 +12,11 @@ export class Parameter {
       path: ':hashId([0-9a-fA-F]{64})',
     };
   }
+
+  static get height() {
+    return {
+      key: 'height',
+      path: ':height(\\d+)',
+    };
+  }
 }
