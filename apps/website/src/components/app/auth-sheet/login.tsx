@@ -30,7 +30,7 @@ const LoginFormSchema = z.object({
 
 export const LoginSheetContent = () => {
   const [isLoginError, setIsLoginError] = useState(false);
-  const { login } = useAuthStore();
+  const { login, reset } = useAuthStore();
   const form = useForm<z.infer<typeof LoginFormSchema>>({
     values: {
       password: '',
@@ -87,6 +87,9 @@ export const LoginSheetContent = () => {
             </Alert>
           )}
           <SheetFooter>
+            <Button variant="outline" onClick={reset}>
+              Reset
+            </Button>
             <Button type="submit" isLoading={isSubmitting}>
               Login
             </Button>

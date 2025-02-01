@@ -14,6 +14,7 @@ export type UseAuthStore = {
   register: (data: string, password: string) => Promise<void>;
   login: (password: string) => Promise<void>;
   logout: () => void;
+  reset: () => void;
 };
 
 export const useAuthStore = create<
@@ -47,6 +48,12 @@ export const useAuthStore = create<
       logout: () => {
         set({
           account: undefined,
+        });
+      },
+      reset: () => {
+        set({
+          account: undefined,
+          storedAccount: undefined,
         });
       },
     }),
