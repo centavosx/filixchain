@@ -12,16 +12,34 @@ import { Account } from '@ph-blockchain/api';
 import { Transaction } from '@ph-blockchain/block';
 import { Transform } from '@ph-blockchain/transformer';
 
+const MAX_LIMIT = 20;
+
 export type AccountProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ page: string | string[] }>;
 };
-export default async function AccountPage({ params }: AccountProps) {
+export default async function AccountPage({
+  params,
+  searchParams,
+}: AccountProps) {
   const accountId = (await params).id;
+  const rawPage = (await searchParams)?.page;
+
   const accountData = (await Account.getAccount(accountId)).data;
+
+  const currentPageString =
+    (Array.isArray(rawPage)
+      ? rawPage.find((value) => /\d+/.test(value))
+      : rawPage) || '';
+  const currentPage = +(currentPageString.match(/\d+/g)?.[0] || '1') || 1;
+  const txSize = +accountData.size;
+  const numberOfPages = Math.ceil(txSize / MAX_LIMIT);
+
   const accountTx = (
     await Account.getAccountTransaction(accountId, {
+      end: txSize - (currentPage - 1) * MAX_LIMIT,
       reverse: true,
-      limit: 20,
+      limit: MAX_LIMIT,
     })
   ).data;
 
@@ -47,7 +65,13 @@ export default async function AccountPage({ params }: AccountProps) {
           </CardHeader>
           <Separator className="mb-6" />
           <CardContent className="flex flex-row gap-8">
-            <TransactionTable data={accountTx} />
+            <TransactionTable
+              data={accountTx}
+              pagination={{
+                maxPage: numberOfPages,
+                currentPage: currentPage,
+              }}
+            />
           </CardContent>
         </Card>
       </section>
