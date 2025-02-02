@@ -51,7 +51,7 @@ export const TransactionTable = ({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <Typography>Added</Typography>
+                    <Typography>View Transaction</Typography>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
