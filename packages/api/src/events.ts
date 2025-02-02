@@ -27,36 +27,64 @@ export class Events {
   }
 
   static createConnectionListener(cb: () => void) {
-    return this.socket.on('connect', cb);
+    const evt = 'connect';
+    this.socket.on(evt, cb);
+    return () => {
+      this.socket.off(evt, cb);
+    };
   }
 
   static createErrorListener(cb: (data: WsError) => void) {
-    return this.socket.on('error', cb);
+    const evt = 'error';
+    this.socket.on(evt, cb);
+    return () => {
+      this.socket.off(evt, cb);
+    };
   }
 
   static createNewBlockInfoListener(cb: (data: WsNewBlockInfo) => void) {
-    return this.socket.on('new-block-info', cb);
+    const evt = 'new-block-info';
+    this.socket.on(evt, cb);
+    return () => {
+      this.socket.off(evt, cb);
+    };
   }
 
   static createMineSuccessfulListener(cb: (data: WsMineSuccessful) => void) {
-    return this.socket.on('mine-success', cb);
+    const evt = 'mine-success';
+    this.socket.on(evt, cb);
+    return () => {
+      this.socket.off(evt, cb);
+    };
   }
 
   static createTransactionListener(
     cb: (data: ReturnType<Transaction['serialize']>) => void,
   ) {
-    return this.socket.on('transaction', cb);
+    const evt = 'transaction';
+    this.socket.on(evt, cb);
+    return () => {
+      this.socket.off(evt, cb);
+    };
   }
 
   static createAccountInfoListener(
     cb: (data: ReturnType<Account['serialize']>) => void,
   ) {
-    return this.socket.on('accountInfo', cb);
+    const evt = 'accountInfo';
+    this.socket.on(evt, cb);
+    return () => {
+      this.socket.off(evt, cb);
+    };
   }
 
   static createConfirmedBlockListener(
     cb: (data: ReturnType<Block['toJson']>) => void,
   ) {
-    return this.socket.on('block', cb);
+    const evt = 'block';
+    this.socket.on(evt, cb);
+    return () => {
+      this.socket.off(evt, cb);
+    };
   }
 }
