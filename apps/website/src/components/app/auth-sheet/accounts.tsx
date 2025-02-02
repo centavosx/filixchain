@@ -12,6 +12,7 @@ import { Typography } from '@/components/ui/typography';
 import { useAuthStore } from '@/hooks/use-auth';
 import { SignAccount } from '@/lib/wallet/account';
 import { useEffect, useState } from 'react';
+import { TransactionDialog } from '../transaction-dialog';
 
 export const Accounts = () => {
   const [signedAccount, setSignedAccount] = useState<SignAccount>();
@@ -37,6 +38,7 @@ export const Accounts = () => {
       </div>
 
       <SheetFooter>
+        <TransactionDialog />
         <Button onClick={logout}>Logout</Button>
       </SheetFooter>
     </SheetContent>
