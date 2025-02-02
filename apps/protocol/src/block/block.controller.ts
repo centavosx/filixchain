@@ -22,6 +22,11 @@ export class BlockController {
     return this.blockService.getBlockByHeight(+height);
   }
 
+  @Get(`hash/${Parameter.hash.path}`)
+  public getBlockByHash(@Param(Parameter.hash.key) hash: string) {
+    return this.blockService.getBlockByHash(hash);
+  }
+
   @Get('transaction')
   public getTransactions(@Query() data: BlockTransactionQuery) {
     return this.blockService.getTransactions(data);
