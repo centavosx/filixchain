@@ -1,6 +1,6 @@
 'use client';
 
-import { Moon, Sun } from 'lucide-react';
+import { Loader2, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -10,8 +10,10 @@ import { AuthSheet } from './auth-sheet';
 import { Transform } from '@ph-blockchain/transformer';
 import { Transaction } from '@ph-blockchain/block';
 import { redirectToPage } from '@/lib/redirectToPage';
+import { useState } from 'react';
 
 export const Header = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const { setTheme } = useTheme();
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -22,7 +24,12 @@ export const Header = () => {
       Transaction.prefix,
     ).trim();
 
-    redirectToPage(normalizedValue);
+    setIsLoading(true);
+    try {
+      await redirectToPage(normalizedValue);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -43,11 +50,20 @@ export const Header = () => {
             <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           </Button>
-          <Input
-            className="max-w-[450px] flex flex-1"
-            placeholder="Search Address..."
-            onKeyDown={handleKeyDown}
-          />
+          <div className="max-w-[450px] flex flex-1 relative">
+            <Input
+              className="flex-1"
+              placeholder="Search Address..."
+              onKeyDown={handleKeyDown}
+              disabled={isLoading}
+            />
+            {isLoading && (
+              <Loader2
+                className="absolute animate-spin right-3 top-2"
+                size={16}
+              />
+            )}
+          </div>
           <AuthSheet />
         </div>
       </MenubarMenu>
