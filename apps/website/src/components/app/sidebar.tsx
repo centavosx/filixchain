@@ -13,22 +13,23 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { Label } from '../ui/label';
+import { Typography } from '../ui/typography';
 
 // Menu items.
 const items = [
   {
     title: 'Home',
-    url: '#',
+    url: '/',
     icon: Home,
   },
   {
     title: 'Blocks',
-    url: '#',
+    url: '/block',
     icon: BlocksIcon,
   },
   {
     title: 'Transactions',
-    url: '#',
+    url: '/transaction',
     icon: Receipt,
   },
 ];
@@ -41,8 +42,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link href="/">
-                <Home />
-                <span>daw</span>
+                <Typography as="large">PESO IN BLOCKCHAIN</Typography>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
