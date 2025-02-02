@@ -54,6 +54,6 @@ export class BlockService {
 
   async getBlockByHash(hash: string) {
     const data = await Blockchain.findBlockByHash(hash);
-    return data.toJson(true);
+    return data.toJson(false);
   }
 }
