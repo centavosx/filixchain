@@ -157,15 +157,6 @@ export class Account extends BlockAccount {
     await this.closeDb();
   }
 
-  serialize() {
-    return {
-      address: this._address,
-      nonce: this._nonce.toString(),
-      amount: this._amount.toString(),
-      size: this._size.toString(),
-    };
-  }
-
   get pendingTxs() {
     return this.pendingTxToSave;
   }

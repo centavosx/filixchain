@@ -28,4 +28,13 @@ export class Account {
   get size() {
     return this._size;
   }
+
+  serialize() {
+    return {
+      address: this._address,
+      nonce: this._nonce.toString(),
+      amount: this._amount.toString(),
+      size: this._size.toString(),
+    };
+  }
 }
