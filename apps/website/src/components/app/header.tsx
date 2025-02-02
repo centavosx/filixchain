@@ -7,16 +7,14 @@ import { Input } from '../ui/input';
 import { Menubar, MenubarMenu, MenubarTrigger } from '../ui/menubar';
 import { SidebarTrigger } from '../ui/sidebar';
 import { AuthSheet } from './auth-sheet';
-import { useRouter } from 'next/navigation';
 import { Transform } from '@ph-blockchain/transformer';
 import { Transaction } from '@ph-blockchain/block';
-import { AppHash } from '@ph-blockchain/hash';
+import { redirectToPage } from '@/lib/redirectToPage';
 
 export const Header = () => {
   const { setTheme } = useTheme();
-  const { push } = useRouter();
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.nativeEvent.key !== 'Enter') return;
     const value = (e.target as HTMLInputElement).value;
     const normalizedValue = Transform.removePrefix(
@@ -24,21 +22,7 @@ export const Header = () => {
       Transaction.prefix,
     ).trim();
 
-    if (AppHash.HASH_REGEX.test(normalizedValue)) {
-      if (normalizedValue.length === 40) {
-        push(`/account/${normalizedValue}`);
-        return;
-      }
-      if (normalizedValue.length === 64) {
-        push(`/transaction/${normalizedValue}`);
-        return;
-      }
-    }
-
-    if (/^\d+$/.test(normalizedValue)) {
-      push(`/block/${normalizedValue}`);
-      return;
-    }
+    redirectToPage(normalizedValue);
   };
 
   return (
