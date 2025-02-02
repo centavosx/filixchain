@@ -1607,6 +1607,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@ph-blockchain/miner@workspace:apps/miner"
   dependencies:
+    "@ph-blockchain/api": "npm:*"
     "@ph-blockchain/block": "npm:*"
     "@ph-blockchain/hash": "npm:*"
     "@ph-blockchain/transformer": "npm:*"

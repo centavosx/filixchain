@@ -10,9 +10,9 @@
     "start": "npx ts-node src/index.ts"
   },
   "dependencies": {
+    "@ph-blockchain/api": "*",
     "@ph-blockchain/block": "*",
     "@ph-blockchain/hash": "*",
-    "@ph-blockchain/transformer": "*",
-    "@ph-blockchain/api": "*"
+    "@ph-blockchain/transformer": "*"
   }
 }
