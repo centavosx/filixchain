@@ -24,6 +24,10 @@ export class Events {
     this.socket.emit('submit-block', block);
   }
 
+  static createConnectionListener(cb: () => void) {
+    return this.socket.on('connect', cb);
+  }
+
   static createErrorListener(cb: (data: WsError) => void) {
     return this.socket.on('error', cb);
   }
