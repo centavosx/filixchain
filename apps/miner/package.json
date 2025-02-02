@@ -12,6 +12,7 @@
   "dependencies": {
     "@ph-blockchain/block": "*",
     "@ph-blockchain/hash": "*",
-    "@ph-blockchain/transformer": "*"
+    "@ph-blockchain/transformer": "*",
+    "@ph-blockchain/api": "*"
   }
 }
