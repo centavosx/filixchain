@@ -10,10 +10,10 @@ import { AuthSheet } from './auth-sheet';
 import { Transform } from '@ph-blockchain/transformer';
 import { Transaction } from '@ph-blockchain/block';
 import { redirectToPage } from '@/lib/redirectToPage';
-import { useState } from 'react';
+import { useApi } from '@/hooks/use-api';
 
 export const Header = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const { executeApi, isLoading } = useApi(redirectToPage);
   const { setTheme } = useTheme();
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -23,13 +23,7 @@ export const Header = () => {
       value.trim(),
       Transaction.prefix,
     ).trim();
-
-    setIsLoading(true);
-    try {
-      await redirectToPage(normalizedValue);
-    } finally {
-      setIsLoading(false);
-    }
+    executeApi(normalizedValue);
   };
 
   return (
