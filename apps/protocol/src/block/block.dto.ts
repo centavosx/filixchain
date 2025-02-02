@@ -1,10 +1,13 @@
-import { RawBlock } from '@ph-blockchain/block';
+import { RawBlock, Transaction } from '@ph-blockchain/block';
+import { AppHash } from '@ph-blockchain/hash';
 import {
   IsNumber,
   IsString,
   IsArray,
   IsNotEmpty,
   IsOptional,
+  Matches,
+  Length,
 } from 'class-validator';
 
 export class RawBlockDto implements RawBlock {
@@ -48,4 +51,16 @@ export class RawBlockDto implements RawBlock {
   @IsNotEmpty()
   @IsNumber()
   transactionSize: number;
+}
+
+export class InitAccountDto {
+  @IsNotEmpty()
+  @IsString()
+  @Matches(AppHash.HASH_REGEX, {
+    message: 'Not a valid address',
+  })
+  @Length(40, 40, {
+    message: 'Address should be in 20 bytes',
+  })
+  address: string;
 }

@@ -18,7 +18,7 @@ import { Minter, Transaction } from '@ph-blockchain/block';
 import { Block } from '@ph-blockchain/block';
 import { Server, Socket } from 'socket.io';
 import { BlockGatewayFilter } from './block.filter';
-import { RawBlockDto } from './block.dto';
+import { InitAccountDto, RawBlockDto } from './block.dto';
 import { Blockchain } from '../db/blockchain';
 import { Account } from '../db/account';
 
@@ -30,6 +30,7 @@ export class BlockGateway implements OnModuleInit {
   server: Server;
 
   private MINER_ROOM = 'miner';
+  private ACCOUNT_ROOM_PREFIX = 'account-';
   private NODE_ROOM = 'node';
 
   public activeBlockHash: string;
@@ -97,6 +98,15 @@ export class BlockGateway implements OnModuleInit {
     this.sendAvailabilityNotification(false, client);
   }
 
+  @SubscribeMessage('init-account')
+  handleInitAccount(
+    @ConnectedSocket() client: Socket,
+    @Body() dto: InitAccountDto,
+  ) {
+    client.join(`${this.ACCOUNT_ROOM_PREFIX}${dto.address.toLowerCase()}`);
+    this.sendAvailabilityNotification(false, client);
+  }
+
   @SubscribeMessage('submit-block')
   async addBlockInChain(
     @Body() rawBlock: RawBlockDto,
@@ -129,6 +139,8 @@ export class BlockGateway implements OnModuleInit {
       mintAddress,
     } = rawBlock;
 
+    let accountAddresses: string[] | undefined;
+
     try {
       const block = new Block(
         version,
@@ -159,31 +171,69 @@ export class BlockGateway implements OnModuleInit {
       } = await this.saveToDb(block, mintAddress);
       await this.handleReset(block);
 
-      this.updateMempoolState(userTransactions);
+      accountAddresses = this.updateMempoolState(
+        mintAddress,
+        block,
+        userTransactions,
+      );
       client.emit('mine-success', {
         hash: minedBlockHash,
         earned: totalMinerReward.toString(),
       });
+
+      this.server.emit('block', block.toJson(true));
     } catch (e) {
       this.blockedClients.add(client.id);
       this.sendAvailabilityNotification(false);
       this.isValidatingMiner = false;
       throw new BadRequestException(e.message);
     }
+
+    if (accountAddresses) {
+      const accounts = await Account.findByAddress(accountAddresses);
+      for (const account of accounts) {
+        this.sendTo('accountInfo', account.address, account.serialize());
+      }
+    }
+  }
+
+  public sendTo(key: string, address: string, data: unknown) {
+    this.server
+      .to(`${this.ACCOUNT_ROOM_PREFIX}${address.toLowerCase()}`)
+      .emit(key, data);
   }
 
   /**
    * Block necessary methods below
    */
 
-  updateMempoolState(trasactions: Transaction[]) {
+  updateMempoolState(
+    mintAddress: string,
+    block: Block,
+    trasactions: Transaction[],
+  ) {
+    let addresses = new Set<string>([mintAddress]);
     for (const transaction of trasactions) {
+      transaction.addBlock(block);
+
       const transactionId = transaction.transactionId;
       const rawFromAddress = transaction.rawFromAddress;
+      const rawToAddress = transaction.rawToAddress;
       const addressMempool = this.mempoolMap.get(rawFromAddress);
+
+      addresses.add(rawFromAddress);
+      addresses.add(rawToAddress);
+
+      this.sendTo('transaction', rawFromAddress, transaction.serialize());
+
+      if (rawFromAddress !== rawToAddress) {
+        this.sendTo('transaction', rawToAddress, transaction.serialize());
+      }
+
       addressMempool?.delete(transactionId);
       this.mempoolQueue?.delete(transactionId);
     }
+    return [...addresses.values()];
   }
 
   async getLatestBlock() {
