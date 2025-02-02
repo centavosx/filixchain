@@ -206,7 +206,6 @@ export class BlockGateway implements OnModuleInit {
   /**
    * Block necessary methods below
    */
-
   updateMempoolState(
     mintAddress: string,
     block: Block,
