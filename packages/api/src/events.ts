@@ -6,6 +6,8 @@ export class Events {
   private static socket: Socket;
 
   static connect(url: string) {
+    if (this.socket) return;
+
     this.socket = io(url, {
       autoConnect: true,
       reconnection: true,
