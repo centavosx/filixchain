@@ -9,7 +9,7 @@ export const useApi = <P extends Array<unknown>, R>(
 ) => {
   const isLoadingRef = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [data, setData] = useState<R>();
+  const [data, setData] = useState<Awaited<R>>();
   const [error, setError] = useState<unknown>();
 
   isLoadingRef.current = isLoading;
