@@ -20,6 +20,10 @@ export class Block extends BaseApi {
     );
   }
 
+  static getBlockByHash(hash: string) {
+    return super.get<unknown, RawBlock>(`${this.baseEndpoint}/hash/${hash}`);
+  }
+
   static getHealth() {
     return super.get<unknown, BlockHealthResult>(`${this.baseEndpoint}/health`);
   }
