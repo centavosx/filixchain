@@ -104,7 +104,14 @@ export class BlockGateway implements OnModuleInit {
     @Body() dto: InitAccountDto,
   ) {
     client.join(`${this.ACCOUNT_ROOM_PREFIX}${dto.address.toLowerCase()}`);
-    this.sendAvailabilityNotification(false, client);
+  }
+
+  @SubscribeMessage('leave-account')
+  handleLeaveAccount(
+    @ConnectedSocket() client: Socket,
+    @Body() dto: InitAccountDto,
+  ) {
+    client.leave(`${this.ACCOUNT_ROOM_PREFIX}${dto.address.toLowerCase()}`);
   }
 
   @SubscribeMessage('submit-block')
