@@ -16,7 +16,7 @@ export class Block extends BaseApi {
 
   static getBlockByHeight(height: string | number) {
     return super.get<unknown, RawBlock>(
-      `${this.baseEndpoint}/height/${height}`,
+      `${Block.baseEndpoint}/height/${height}`,
     );
   }
 
@@ -30,14 +30,14 @@ export class Block extends BaseApi {
 
   static getTransactions(params: BlockTransactionQuery) {
     return super.get<BlockTransactionQuery, BlockTransactionResult>(
-      `${this.baseEndpoint}/transaction`,
+      `${Block.baseEndpoint}/transaction`,
       params,
     );
   }
 
   static getTransactionById(id: string) {
     return super.get<unknown, BlockTransactionResult['transactions'][number]>(
-      `${this.baseEndpoint}/transaction/${id}`,
+      `${Block.baseEndpoint}/transaction/${id}`,
     );
   }
 }

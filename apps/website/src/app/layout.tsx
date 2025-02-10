@@ -10,6 +10,7 @@ import { Header } from '@/components/app/header';
 import { Toaster } from '@/components/ui/sonner';
 
 import { BaseApi } from '@ph-blockchain/api';
+import { Listeners } from '@/components/app/listeners';
 
 BaseApi.init('http://localhost:3002/api');
 
@@ -51,6 +52,7 @@ export default function RootLayout({
               {children}
             </main>
           </SidebarProvider>
+          <Listeners />
           <Toaster />
         </ThemeProvider>
       </body>

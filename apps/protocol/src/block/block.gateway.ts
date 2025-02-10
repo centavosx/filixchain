@@ -14,7 +14,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Minter, Transaction } from '@ph-blockchain/block';
+import { Minter, MintOrTx, Transaction } from '@ph-blockchain/block';
 import { Block } from '@ph-blockchain/block';
 import { Server, Socket } from 'socket.io';
 import { BlockGatewayFilter } from './block.filter';
@@ -173,16 +173,12 @@ export class BlockGateway implements OnModuleInit {
 
       const {
         totalMinerReward,
-        transactions: userTransactions,
+        transactions: allTx,
         blockHash: minedBlockHash,
       } = await this.saveToDb(block, mintAddress);
       await this.handleReset(block);
 
-      accountAddresses = this.updateMempoolState(
-        mintAddress,
-        block,
-        userTransactions,
-      );
+      accountAddresses = this.updateMempoolState(mintAddress, block, allTx);
       client.emit('mine-success', {
         hash: minedBlockHash,
         earned: totalMinerReward.toString(),
@@ -216,7 +212,7 @@ export class BlockGateway implements OnModuleInit {
   updateMempoolState(
     mintAddress: string,
     block: Block,
-    trasactions: Transaction[],
+    trasactions: MintOrTx[],
   ) {
     let addresses = new Set<string>([mintAddress]);
     for (const transaction of trasactions) {
@@ -229,7 +225,6 @@ export class BlockGateway implements OnModuleInit {
 
       addresses.add(rawFromAddress);
       addresses.add(rawToAddress);
-
       this.sendTo('transaction', rawFromAddress, transaction.serialize());
 
       if (rawFromAddress !== rawToAddress) {
@@ -287,9 +282,7 @@ export class BlockGateway implements OnModuleInit {
     return {
       blockHash: block.blockHash,
       totalMinerReward: minerRewards,
-      transactions: transactions.filter(
-        (value) => value instanceof Transaction,
-      ),
+      transactions: transactions,
     };
   }
 }

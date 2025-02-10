@@ -1,21 +1,14 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Typography } from '@/components/ui/typography';
-import { TransactionTable } from '@/components/app/transaction-table';
 import { Block } from '@ph-blockchain/api';
 import { Transform } from '@ph-blockchain/transformer';
-import { Button } from '@/components/ui/button';
+import { BlockSection } from './_sections/block';
+import { TransactionsSection } from './_sections/transactions';
 
 export default async function Home() {
   const { data: health } = await Block.getHealth();
-  const { data: block } = await Block.getBlocks({ limit: 3, reverse: true });
+  const { data: blocks } = await Block.getBlocks({ limit: 3, reverse: true });
   const { data: result } = await Block.getTransactions({
     limit: 20,
     reverse: true,
@@ -51,56 +44,8 @@ export default async function Home() {
         </Card>
       </section>
       <section className="flex flex-1 gap-8 flex-col xl:flex-row">
-        <div className="flex flex-col gap-4">
-          <Label asChild>
-            <Typography as="h4">Latest Blocks</Typography>
-          </Label>
-          {block.map((value) => (
-            <Card className="shadow-xl" key={value.blockHash}>
-              <CardHeader className="gap-2">
-                <CardTitle>Block #{value.height}</CardTitle>
-                <CardDescription className="flex flex-col gap-2">
-                  <Typography className="text-wrap break-all" as="muted">
-                    Hash:
-                    {value.blockHash}
-                  </Typography>
-                  {!!value.timestamp && (
-                    <Typography as="small">
-                      Created:{' '}
-                      {Transform.date.formatToReadable(value.timestamp)}
-                    </Typography>
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-2">
-                <Typography className="text-wrap break-all" as="muted">
-                  Previous: {value.previousHash}
-                </Typography>
-                <Typography className="text-wrap break-all" as="muted">
-                  Merkle: {value.merkleRoot}
-                </Typography>
-                <Typography className="text-wrap break-all" as="muted">
-                  Target: {value.targetHash}
-                </Typography>
-                <Typography as="large">
-                  Transactions: {value.transactionSize}
-                </Typography>
-                <Button
-                  className="max-w-32 mt-4"
-                  href={`/block/${value.height}`}
-                >
-                  View
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <div className="flex flex-col gap-4 w-full">
-          <Label asChild>
-            <Typography as="h4">Latest Transactions</Typography>
-          </Label>
-          <TransactionTable data={transactions} />
-        </div>
+        <BlockSection blocks={blocks} />
+        <TransactionsSection txs={transactions} />
       </section>
     </div>
   );

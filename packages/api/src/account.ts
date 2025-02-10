@@ -7,7 +7,7 @@ export class Account extends BaseApi {
 
   static getAccount(address: string) {
     return super.get<unknown, GetAccountResult>(
-      `${this.baseEndpoint}/${address}`,
+      `${Account.baseEndpoint}/${address}`,
     );
   }
 
@@ -18,6 +18,6 @@ export class Account extends BaseApi {
     return super.get<
       AccountTransactionSearchDto,
       ReturnType<Transaction['serialize']>[]
-    >(`${this.baseEndpoint}/${address}/transactions`, query);
+    >(`${Account.baseEndpoint}/${address}/transactions`, query);
   }
 }

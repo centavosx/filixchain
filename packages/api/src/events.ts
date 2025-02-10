@@ -11,6 +11,7 @@ export class Events {
     this.socket = io(url, {
       autoConnect: true,
       reconnection: true,
+      transports: ['websocket'],
     });
   }
 
@@ -20,6 +21,9 @@ export class Events {
 
   static initAccount(account: string) {
     this.socket.emit('init-account', { address: account });
+    return () => {
+      this.socket.emit('leave-account', { address: account });
+    };
   }
 
   static submitBlock(block: RawBlock & { mintAddress: string }) {
