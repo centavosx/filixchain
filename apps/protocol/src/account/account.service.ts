@@ -1,18 +1,13 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { Account } from '../db/account';
-import { Blockchain } from '../db/blockchain';
 import { AccountTransactionSearchDto } from '../dto/account-tx-search.dto';
+import { DbService } from '../db/db.service';
 
 @Injectable()
-export class AccountService implements OnModuleInit {
-  constructor() {}
-
-  async onModuleInit() {
-    await Promise.all([Account.initialize(), Blockchain.initialize()]);
-  }
+export class AccountService {
+  constructor(private readonly dbService: DbService) {}
 
   public async getAccountFromAddress(address: string) {
-    const data = await Account.findByAddress(address);
+    const data = await this.dbService.account.findByAddress(address);
     return data.serialize();
   }
 
@@ -20,10 +15,10 @@ export class AccountService implements OnModuleInit {
     address: string,
     query: AccountTransactionSearchDto,
   ) {
-    const account = await Account.findByAddress(address);
-    const data = await Account.getTx(account, query);
-    return (await Blockchain.findTransactionsById(data, false, true)).map(
-      (value) => value.serialize(),
-    );
+    const account = await this.dbService.account.findByAddress(address);
+    const data = await this.dbService.account.getTx(account, query);
+    return (
+      await this.dbService.blockchain.findTransactionsById(data, false, true)
+    ).map((value) => value.serialize());
   }
 }

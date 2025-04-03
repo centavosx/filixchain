@@ -5,12 +5,11 @@ import {
 } from '@ph-blockchain/block';
 import { Crypto } from '@ph-blockchain/hash';
 import { Level } from 'level';
-import { AccountTransactionSearchDto } from '../dto/account-tx-search.dto';
+import { AccountTransactionSearchDto } from '../../dto/account-tx-search.dto';
 
 export type DefaultSubLevel = ReturnType<Level['sublevel']>;
 export type InnerSublevel = ReturnType<DefaultSubLevel['sublevel']>;
 
-// TODO: Create module for this
 export class Account extends BlockAccount {
   private _isOpen = false;
   private static _isOpen = false;

@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common';
 
 import { BlockGateway } from '../block/block.gateway';
-import { Blockchain } from '../db/blockchain';
 import { BlockHeightQuery, BlockTransactionQuery } from '../dto/block.dto';
+import { DbService } from '../db/db.service';
 
 @Injectable()
 export class BlockService {
-  constructor(private readonly blockGateway: BlockGateway) {}
+  constructor(
+    private readonly blockGateway: BlockGateway,
+    private readonly dbService: DbService,
+  ) {}
 
   async getBlocks({ start = 0, end, limit = 20, ...rest }: BlockHeightQuery) {
-    const blocks = await Blockchain.getBlocksByHeight({
+    const blocks = await this.dbService.blockchain.getBlocksByHeight({
       start,
       end: end ?? this.blockGateway.currentHeight,
       limit,
@@ -19,11 +22,13 @@ export class BlockService {
   }
 
   async getHealth() {
-    const txSize = await Blockchain.getTxSize();
+    const txSize = await this.dbService.blockchain.getTxSize();
     const currentSupply = this.blockGateway.currentSupply;
     return {
-      totalSupply: (Blockchain.MAX_SUPPLY - currentSupply).toString(),
-      maxSupply: Blockchain.MAX_SUPPLY.toString(),
+      totalSupply: (
+        this.dbService.blockchain.MAX_SUPPLY - currentSupply
+      ).toString(),
+      maxSupply: this.dbService.blockchain.MAX_SUPPLY.toString(),
       txSize: txSize.toString(),
       blocks: this.blockGateway.currentHeight.toString(),
     };
@@ -34,7 +39,7 @@ export class BlockService {
     lastBlockHeight,
     ...rest
   }: BlockTransactionQuery) {
-    return Blockchain.getTransactions({
+    return this.dbService.blockchain.getTransactions({
       ...rest,
       lastBlockHeight:
         lastBlockHeight ?? (reverse ? this.blockGateway.currentHeight : 0),
@@ -43,17 +48,21 @@ export class BlockService {
   }
 
   async getTransactionDetail(hash: string) {
-    const txDetail = await Blockchain.findTransactionsById(hash, false, true);
+    const txDetail = await this.dbService.blockchain.findTransactionsById(
+      hash,
+      false,
+      true,
+    );
     return txDetail.serialize();
   }
 
   async getBlockByHeight(height: number) {
-    const data = await Blockchain.getBlockByHeight(height);
+    const data = await this.dbService.blockchain.getBlockByHeight(height);
     return data.toJson(true);
   }
 
   async getBlockByHash(hash: string) {
-    const data = await Blockchain.findBlockByHash(hash);
+    const data = await this.dbService.blockchain.findBlockByHash(hash);
     return data.toJson(false);
   }
 }

@@ -1,3 +1,4 @@
+import { DbModule } from './db/db.module';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -6,7 +7,7 @@ import { AccountModule } from './account/account.module';
 import { BlockModule } from './block/block.module';
 
 @Module({
-  imports: [MempoolModule, AccountModule, BlockModule],
+  imports: [DbModule, MempoolModule, AccountModule, BlockModule],
   controllers: [AppController],
   providers: [AppService],
 })

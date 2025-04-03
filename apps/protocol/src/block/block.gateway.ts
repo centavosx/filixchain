@@ -19,8 +19,7 @@ import { Block } from '@ph-blockchain/block';
 import { Server, Socket } from 'socket.io';
 import { BlockGatewayFilter } from './block.filter';
 import { InitAccountDto, RawBlockDto } from './block.dto';
-import { Blockchain } from '../db/blockchain';
-import { Account } from '../db/account';
+import { DbService } from '../db/db.service';
 
 @WebSocketGateway()
 @UseFilters(BlockGatewayFilter)
@@ -28,6 +27,12 @@ import { Account } from '../db/account';
 export class BlockGateway implements OnModuleInit {
   @WebSocketServer()
   server: Server;
+
+  public currentSupply: bigint;
+
+  constructor(private readonly dbService: DbService) {
+    this.currentSupply = dbService.blockchain.MAX_SUPPLY;
+  }
 
   private MINER_ROOM = 'miner';
   private ACCOUNT_ROOM_PREFIX = 'account-';
@@ -44,21 +49,20 @@ export class BlockGateway implements OnModuleInit {
   public currentEncodedTxToMine: string[] = [];
   public mintNonce = 0;
 
-  public currentSupply = Blockchain.MAX_SUPPLY;
-
   private blockedClients = new Set<string>();
 
-  async onModuleInit() {
-    await Account.initialize();
-    await Blockchain.initialize();
-    const block = await Blockchain.getLatestBlock();
-
-    this.handleReset(block, true);
+  onModuleInit() {
+    this.dbService.waitForIntialization().then(async () => {
+      const block = await this.dbService.blockchain.getLatestBlock();
+      this.handleReset(block, true);
+    });
   }
 
   async handleReset(block?: Block, isInit?: boolean) {
-    const supply = await Blockchain.getSupply();
-    const account = await Account.findByAddress(Minter.rawFromAddress);
+    const supply = await this.dbService.blockchain.getSupply();
+    const account = await this.dbService.account.findByAddress(
+      Minter.rawFromAddress,
+    );
     const targetHash = await this.getTargetHashFromBlock(block, isInit);
     this.currentEncodedTxToMine = [...this.mempoolQueue.values()]
       .slice(0, Block.MAX_TX_SIZE)
@@ -70,7 +74,9 @@ export class BlockGateway implements OnModuleInit {
     this.mintNonce = Number(account.nonce);
     this.currentSupply = supply;
     this.isValidatingMiner = false;
-    this.activeBlockHash = !block ? Blockchain.genesisHash : block.blockHash;
+    this.activeBlockHash = !block
+      ? this.dbService.blockchain.genesisHash
+      : block.blockHash;
     this.currentHeight = !block ? 0 : +block.height + 1;
     this.blockedClients.clear();
     this.sendAvailabilityNotification(true);
@@ -195,7 +201,8 @@ export class BlockGateway implements OnModuleInit {
     }
 
     if (accountAddresses) {
-      const accounts = await Account.findByAddress(accountAddresses);
+      const accounts =
+        await this.dbService.account.findByAddress(accountAddresses);
       for (const account of accounts) {
         this.sendTo('accountInfo', account.address, account.serialize());
       }
@@ -240,25 +247,27 @@ export class BlockGateway implements OnModuleInit {
   }
 
   async getLatestBlock() {
-    return Blockchain.getLatestBlock();
+    return this.dbService.blockchain.getLatestBlock();
   }
 
   async getTargetHashFromBlock(block?: Block, isInit?: boolean) {
     const height = block?.height || 0;
-    const lastHeight = height - (height % Blockchain.RESET_NUMBER_OF_BLOCK);
+    const lastHeight =
+      height - (height % this.dbService.blockchain.RESET_NUMBER_OF_BLOCK);
 
     if (!block || (lastHeight <= 0 && isInit)) {
-      return Blockchain.calculateTargetHash([]);
+      return this.dbService.blockchain.calculateTargetHash([]);
     }
 
     if (
       !isInit &&
-      (!block.height || block.height % Blockchain.RESET_NUMBER_OF_BLOCK !== 0)
+      (!block.height ||
+        block.height % this.dbService.blockchain.RESET_NUMBER_OF_BLOCK !== 0)
     )
       return null;
 
-    const blocks = await Blockchain.getBlocksFromLatest();
-    return Blockchain.calculateTargetHash(blocks);
+    const blocks = await this.dbService.blockchain.getBlocksFromLatest();
+    return this.dbService.blockchain.calculateTargetHash(blocks);
   }
 
   /**
@@ -276,10 +285,8 @@ export class BlockGateway implements OnModuleInit {
   }
 
   async saveToDb(block: Block, mintAddress: string) {
-    const { minerRewards, transactions } = await Blockchain.saveBlock(
-      block,
-      mintAddress,
-    );
+    const { minerRewards, transactions } =
+      await this.dbService.blockchain.saveBlock(block, mintAddress);
 
     return {
       blockHash: block.blockHash,

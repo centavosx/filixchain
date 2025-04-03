@@ -13,10 +13,8 @@ import {
   BlockHeightQuery,
   BlockTransactionQuery,
   RawBlockDb,
-} from '../dto/block.dto';
+} from '../../dto/block.dto';
 import { Account } from './account';
-
-// TODO: Create module for this.
 
 export class Blockchain {
   static SUPPLY_KEY = 'SUPPLY';
