@@ -11,7 +11,7 @@ import {
 import { Typography } from '@/components/ui/typography';
 import { useAuthStore } from '@/hooks/use-auth';
 import { SignAccount } from '@/lib/wallet/account';
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TransactionDialog } from '../transaction-dialog';
 import { useUserAccountStore } from '@/hooks/use-user-account';
 import { Transform } from '@ph-blockchain/transformer';

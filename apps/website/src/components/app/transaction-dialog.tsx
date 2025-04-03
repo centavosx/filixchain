@@ -9,9 +9,15 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useApi } from '@/hooks/use-api';
+import { useAuthStore } from '@/hooks/use-auth';
 import { useUserAccountStore } from '@/hooks/use-user-account';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Mempool } from '@ph-blockchain/api';
+import { Block, Transaction } from '@ph-blockchain/block';
+import { Transform } from '@ph-blockchain/transformer';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 import {
   Form,
@@ -21,6 +27,7 @@ import {
   FormLabel,
   FormMessage,
 } from '../ui/form';
+import { useEffect } from 'react';
 
 const CreateTransactionSchema = z.object({
   to: z.string().regex(/^ph-[0-9a-fA-F]{40}/, 'Not a valid address'),
@@ -28,6 +35,8 @@ const CreateTransactionSchema = z.object({
 });
 
 export const TransactionDialog = () => {
+  const { executeApi, isLoading, error } = useApi(Mempool.subscribe);
+  const { account: authAccount } = useAuthStore();
   const { account } = useUserAccountStore();
   const form = useForm<z.infer<typeof CreateTransactionSchema>>({
     values: {
@@ -39,7 +48,38 @@ export const TransactionDialog = () => {
 
   const handleSubmit = async (
     data: z.infer<typeof CreateTransactionSchema>,
-  ) => {};
+  ) => {
+    if (!account) return;
+
+    const signedAccount = authAccount?.getSignedAccount();
+    if (!signedAccount) return;
+
+    const transaction = new Transaction({
+      from: Transform.addPrefix(account.address, Transaction.prefix),
+      to: data.to,
+      amount: Transform.toLowestUnit(data.amount),
+      nonce: account.nonce,
+      version: Block.version,
+    });
+
+    const signedTransaction = transaction.sign(
+      signedAccount.keyPairs.secretKey,
+    );
+
+    const encodedTransaction = signedTransaction.encode();
+
+    await executeApi([encodedTransaction]);
+
+    toast(`You have successfully submitted this transaction to the mempool.`);
+  };
+
+  useEffect(() => {
+    if (!error) return;
+
+    toast.error(
+      error.response?.data?.message ?? error.message ?? 'An error has occured',
+    );
+  }, [error]);
 
   return (
     <Form {...form}>
@@ -93,7 +133,9 @@ export const TransactionDialog = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit">Save changes</Button>
+              <Button type="submit" isLoading={isLoading}>
+                Send
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

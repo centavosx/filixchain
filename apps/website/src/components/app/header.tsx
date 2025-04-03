@@ -16,7 +16,7 @@ export const Header = () => {
   const { executeApi, isLoading } = useApi(redirectToPage);
   const { setTheme } = useTheme();
 
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.nativeEvent.key !== 'Enter') return;
     const value = (e.target as HTMLInputElement).value;
     const normalizedValue = Transform.removePrefix(

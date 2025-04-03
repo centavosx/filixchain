@@ -21,7 +21,7 @@ export class SignAccount {
   }
 
   get keyPairs() {
-    return this._walletAddress;
+    return this._keyPairs;
   }
 
   get walletAddress() {
@@ -56,7 +56,7 @@ export class Account {
     if (!this.bip32) throw new Error('Not valid mnemonic or private key');
   }
 
-  getSignedAccount(derivationIndex: number) {
+  getSignedAccount(derivationIndex = 0) {
     if (!this.bip32) {
       throw new Error('Bip32 Not initialized');
     }

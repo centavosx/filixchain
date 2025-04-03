@@ -176,9 +176,11 @@ export class BlockGateway implements OnModuleInit {
         transactions: allTx,
         blockHash: minedBlockHash,
       } = await this.saveToDb(block, mintAddress);
-      await this.handleReset(block);
 
       accountAddresses = this.updateMempoolState(mintAddress, block, allTx);
+
+      await this.handleReset(block);
+
       client.emit('mine-success', {
         hash: minedBlockHash,
         earned: totalMinerReward.toString(),

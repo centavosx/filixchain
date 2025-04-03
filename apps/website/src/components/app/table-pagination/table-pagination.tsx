@@ -7,7 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { ReactNode } from 'react';
+import { ReactNode, useMemo } from 'react';
 
 export type TablePaginationProps = {
   currentPage: number;
@@ -17,31 +17,35 @@ export const TablePagination = ({
   currentPage,
   maxPage,
 }: TablePaginationProps) => {
-  let start = currentPage - 1;
+  const pages = useMemo(() => {
+    let start = currentPage - 1;
 
-  if (currentPage === maxPage) {
-    start = currentPage - 2;
-  }
+    if (currentPage === maxPage) {
+      start = currentPage - 2;
+    }
 
-  if (start < 1) {
-    start = 1;
-  }
+    if (start < 1) {
+      start = 1;
+    }
 
-  const pages: ReactNode[] = [];
+    const pages: ReactNode[] = [];
 
-  while (pages.length < 3 && start <= maxPage) {
-    pages.push(
-      <PaginationItem key={start}>
-        <PaginationLink
-          href={`?page=${start}`}
-          isActive={start === currentPage}
-        >
-          {start}
-        </PaginationLink>
-      </PaginationItem>,
-    );
-    start++;
-  }
+    while (pages.length < 3 && start <= maxPage) {
+      pages.push(
+        <PaginationItem key={start}>
+          <PaginationLink
+            href={`?page=${start}`}
+            isActive={start === currentPage}
+          >
+            {start}
+          </PaginationLink>
+        </PaginationItem>,
+      );
+      start++;
+    }
+
+    return pages;
+  }, [currentPage, maxPage]);
 
   return (
     <Pagination className="p-4 justify-end">

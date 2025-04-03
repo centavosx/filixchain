@@ -1,4 +1,4 @@
 import { Miner } from './miner';
 
-const miner = new Miner('ph-f1c5d58feff8f7fe95cb6661867e5399a65e32aa');
+const miner = new Miner('ph-865c612863a9682d8352083f025530134bc7f721');
 miner.connect();

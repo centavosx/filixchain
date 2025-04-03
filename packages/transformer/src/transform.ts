@@ -17,4 +17,8 @@ export class Transform {
   static toHighestUnit(value: string | bigint | number) {
     return (BigInt(value) / Transaction.TX_CONVERSION_UNIT).toString();
   }
+
+  static toLowestUnit(value: string | bigint | number) {
+    return (BigInt(value) * Transaction.TX_CONVERSION_UNIT).toString();
+  }
 }

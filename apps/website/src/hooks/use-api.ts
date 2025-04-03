@@ -1,6 +1,6 @@
 import { BaseApi } from '@ph-blockchain/api';
 import { useCallback, useRef, useState } from 'react';
-
+import { AxiosError } from 'axios';
 BaseApi.init('http://localhost:3002/api');
 
 // NOTE: Make sure callback is memoized
@@ -10,7 +10,8 @@ export const useApi = <P extends Array<unknown>, R>(
   const isLoadingRef = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState<Awaited<R>>();
-  const [error, setError] = useState<unknown>();
+  const [error, setError] =
+    useState<AxiosError<{ message: string }, { message: string }>>();
 
   isLoadingRef.current = isLoading;
 
@@ -23,7 +24,7 @@ export const useApi = <P extends Array<unknown>, R>(
         const data = await callback(...params);
         setData(data);
       } catch (e) {
-        setError(e);
+        setError(e as AxiosError<{ message: string }, { message: string }>);
       } finally {
         setIsLoading(false);
       }

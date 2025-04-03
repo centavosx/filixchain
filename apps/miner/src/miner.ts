@@ -5,7 +5,7 @@ import { Transform } from '@ph-blockchain/transformer';
 
 export class Miner {
   private currentMiningBlock: Block;
-  private readonly address;
+  private readonly address: string;
 
   constructor(address: string) {
     this.address = Transform.removePrefix(address, Transaction.prefix);

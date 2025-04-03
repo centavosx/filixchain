@@ -86,3 +86,9 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide spin buttons in Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

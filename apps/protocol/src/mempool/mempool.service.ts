@@ -31,12 +31,14 @@ export class MempoolService implements OnModuleInit {
       // The purpose of this is just to check transactions validity
       for (const encodedTransaction of encodedTransactions) {
         const transaction = Transaction.decode(encodedTransaction);
+
         const rawFromAddress = transaction.rawFromAddress;
 
         let account = accountTemp.get(rawFromAddress);
 
         if (!account) {
           account = await Account.findByAddress(rawFromAddress);
+
           let userExistingTxs = this.blockGateway.mempoolMap.get(
             account.address,
           );
