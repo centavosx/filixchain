@@ -6,13 +6,13 @@ export class Csrf {
     this._encodedKey = new TextEncoder().encode(key);
   }
 
-  generateToken() {
+  generateToken(exp = '5min') {
     return new SignJWT({
       date: Date.now(),
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
-      .setExpirationTime('5min')
+      .setExpirationTime(exp)
       .sign(this._encodedKey);
   }
 

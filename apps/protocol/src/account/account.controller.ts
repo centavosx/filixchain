@@ -1,9 +1,10 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Parameter } from '../utils/parameter';
 import { AccountService } from './account.service';
 import { AccountTransactionSearchDto } from '../dto/account-tx-search.dto';
 
+@ApiBearerAuth('csrf-token')
 @ApiTags('Account')
 @Controller('account')
 export class AccountController {

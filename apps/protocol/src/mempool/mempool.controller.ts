@@ -1,10 +1,11 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Parameter } from '../utils/parameter';
 import { MempoolDto } from './mempool.dto';
 import { MempoolService } from './mempool.service';
 
 @ApiTags('Mempool')
+@ApiBearerAuth('csrf-token')
 @Controller('mempool')
 export class MempoolController {
   constructor(private readonly mempoolService: MempoolService) {}

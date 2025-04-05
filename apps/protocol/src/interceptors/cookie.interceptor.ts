@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { switchMap, tap } from 'rxjs/operators';
 import { Csrf } from '@ph-blockchain/csrf';
 import { ConfigService } from '../config/config.service';
 
@@ -20,15 +20,19 @@ export class CookieInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-      tap(async () => {
+      switchMap(async (data) => {
         const res = context.switchToHttp().getResponse<Response>();
+
         const newToken = await this.csrf.generateToken();
+
         res.cookie('session', newToken, {
           maxAge: 5000,
           sameSite: 'strict',
           httpOnly: true,
           secure: this.configService.get('NODE_ENV') === 'production',
         });
+
+        return data;
       }),
     );
   }

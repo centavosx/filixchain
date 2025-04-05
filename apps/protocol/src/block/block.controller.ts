@@ -2,7 +2,9 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { BlockService } from './block.service';
 import { BlockHeightQuery, BlockTransactionQuery } from '../dto/block.dto';
 import { Parameter } from '../utils/parameter';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('csrf-token')
 @Controller('block')
 export class BlockController {
   constructor(private readonly blockService: BlockService) {}

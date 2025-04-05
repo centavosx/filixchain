@@ -24,7 +24,14 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Peso In Blockchain')
     .setDescription('This blockchain api for peso')
-    .addCookieAuth()
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'x-csrf-token',
+        in: 'header',
+      },
+      'csrf-token',
+    )
     .build();
 
   const documentFactory = SwaggerModule.createDocument(app, config);

@@ -9,6 +9,11 @@ export class AuthGuard implements CanActivate {
   private csrf: Csrf;
   constructor(configService: ConfigService) {
     this.csrf = new Csrf(configService.get('CSRF_SECRET_KEY'));
+    if (configService.get('NODE_ENV') === 'development') {
+      this.csrf
+        .generateToken('1yr')
+        .then((token) => console.log('YOUR TEST TOKEN:', token));
+    }
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
