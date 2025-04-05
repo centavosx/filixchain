@@ -19,8 +19,15 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const csrfToken = request.headers['x-csrf-token'];
+    const userAgent = request.headers['user-agent'];
 
-    if (!csrfToken) return false;
+    if (
+      !csrfToken ||
+      !/Mozilla\/5.0\s\((Macintosh|Windows|Linux|iPhone|Android).*\)/.test(
+        userAgent,
+      )
+    )
+      return false;
 
     const isValid = await this.csrf.isValidToken(String(csrfToken));
 
