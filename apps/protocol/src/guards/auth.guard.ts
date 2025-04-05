@@ -1,36 +1,64 @@
+import { Reflector } from '@nestjs/core';
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 import { Csrf } from '@ph-blockchain/csrf';
 import { ConfigService } from '../config/config.service';
 
-// Global guard.
 @Injectable()
 export class AuthGuard implements CanActivate {
   private csrf: Csrf;
-  constructor(configService: ConfigService) {
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly configService: ConfigService,
+  ) {
     this.csrf = new Csrf(configService.get('CSRF_SECRET_KEY'));
     if (configService.get('NODE_ENV') === 'development') {
       this.csrf
-        .generateToken('1yr')
+        .generateTokenAndNonce('1yr')
         .then((token) => console.log('YOUR TEST TOKEN:', token));
     }
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
-    const csrfToken = request.headers['x-csrf-token'];
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { csrf: { token: string; nonce: string } }>();
+    const rawCsrfToken = request.headers['x-csrf-token'];
+    const rawCsrfNonce = request.headers['x-csrf-nonce'];
     const userAgent = request.headers['user-agent'];
 
     if (
-      !csrfToken ||
+      !rawCsrfToken ||
       !/Mozilla\/5.0\s\((Macintosh|Windows|Linux|iPhone|Android).*\)/.test(
         userAgent,
       )
     )
       return false;
 
-    const isValid = await this.csrf.isValidToken(String(csrfToken));
+    const isCsrfRefresh = this.reflector.get<boolean>(
+      'csrf-refresh',
+      context.getHandler(),
+    );
 
-    return isValid;
+    const csrfToken = String(rawCsrfToken);
+
+    if (!isCsrfRefresh) {
+      const isValid = await this.csrf.isValidToken(String(csrfToken));
+      return isValid;
+    }
+
+    if (!rawCsrfNonce) return false;
+
+    const csrfNonce = String(rawCsrfNonce);
+    const isValid = await this.csrf.isValidTokenAndNonce(csrfToken, csrfNonce);
+
+    if (!isValid) return false;
+
+    request.csrf = {
+      token: csrfToken,
+      nonce: csrfNonce,
+    };
+
+    return true;
   }
 }

@@ -1,11 +1,11 @@
-import { AuthGuard } from './guards/auth.guard';
-import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
-import { CookieInterceptor } from './interceptors/cookie.interceptor';
+import { AppModule } from './app.module';
 import { ConfigService } from './config/config.service';
+import { AuthGuard } from './guards/auth.guard';
+import { CookieInterceptor } from './interceptors/cookie.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,7 +14,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.setGlobalPrefix('api');
   app.useGlobalInterceptors(new CookieInterceptor(configService));
-  app.useGlobalGuards(new AuthGuard(configService));
+  app.useGlobalGuards(new AuthGuard(app.get(Reflector), configService));
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -40,7 +40,7 @@ async function bootstrap() {
   app.enableCors({
     origin: 'https://your-frontend.com',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type, x-csrf-token',
+    allowedHeaders: 'Content-Type, x-csrf-token, x-csrf-nonce',
     credentials: true,
   });
 

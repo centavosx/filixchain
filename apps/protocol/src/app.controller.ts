@@ -1,12 +1,23 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, ForbiddenException, Get } from '@nestjs/common';
+import { IsRefresh } from './decorators/is-refresh.decorator';
+import { GetCsrf } from './decorators/get-csrf.decorator';
+import { RedisService } from './redis/redis.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private redisService: RedisService) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @IsRefresh()
+  @Get('refresh')
+  async refresh(@GetCsrf() csrf: { token: string; nonce: string }) {
+    const data = await this.redisService.get<string>(csrf.nonce);
+
+    if (!!data) {
+      throw new ForbiddenException();
+    }
+
+    await this.redisService.set(csrf.nonce, csrf.token);
+
+    return;
   }
 }

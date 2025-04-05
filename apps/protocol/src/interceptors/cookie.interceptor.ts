@@ -23,10 +23,17 @@ export class CookieInterceptor implements NestInterceptor {
       switchMap(async (data) => {
         const res = context.switchToHttp().getResponse<Response>();
 
-        const newToken = await this.csrf.generateToken();
+        const { token, nonce } = await this.csrf.generateTokenAndNonce();
 
-        res.cookie('session', newToken, {
+        res.cookie('session', token, {
           maxAge: 5000,
+          sameSite: 'strict',
+          httpOnly: true,
+          secure: this.configService.get('NODE_ENV') === 'production',
+        });
+
+        res.cookie('nonce', nonce, {
+          maxAge: 10_800_000,
           sameSite: 'strict',
           httpOnly: true,
           secure: this.configService.get('NODE_ENV') === 'production',
