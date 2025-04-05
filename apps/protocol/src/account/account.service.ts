@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AccountTransactionSearchDto } from '../dto/account-tx-search.dto';
 import { DbService } from '../db/db.service';
 
