@@ -26,14 +26,12 @@ export const withAuth =
       maxAge: 10800,
       sameSite: 'strict',
       secure: false,
-      // Setting this to true means the cookie can only be modified through server actions, handlers, middleware.
       httpOnly: true,
     });
     response.cookies.set('nonce', nonce, {
       maxAge: 10800,
       sameSite: 'strict',
       secure: false,
-      // Setting this to true means the cookie can only be modified through server actions, handlers, middleware.
       httpOnly: true,
     });
 

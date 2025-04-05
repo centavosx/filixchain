@@ -86,11 +86,11 @@ export class BaseApi {
           }
         }
 
-        // // Force reload if it errors out
-        // if (typeof window !== 'undefined') {
-        //   window.location.reload();
-        //   return;
-        // }
+        // Force reload if it errors out
+        if (typeof window !== 'undefined') {
+          window.location.reload();
+          return;
+        }
 
         return Promise.reject(error);
       },
