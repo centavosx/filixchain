@@ -23,6 +23,7 @@ export const Listeners = () => {
 
   useEffect(() => {
     if (!account) return;
+
     const signedAccountAddress = account.getSignedAccount(0).walletAddress;
     const rawAddress = Transform.removePrefix(
       signedAccountAddress,

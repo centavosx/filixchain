@@ -26,7 +26,7 @@ export class CookieInterceptor implements NestInterceptor {
         const { token, nonce } = await this.csrf.generateTokenAndNonce();
 
         res.cookie('session', token, {
-          maxAge: 5000,
+          maxAge: 300_000,
           sameSite: 'strict',
           httpOnly: true,
           secure: this.configService.get('NODE_ENV') === 'production',

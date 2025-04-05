@@ -23,14 +23,17 @@ export class AuthGuard implements CanActivate {
     const request = context
       .switchToHttp()
       .getRequest<Request & { csrf: { token: string; nonce: string } }>();
-    const rawCsrfToken = request.headers['x-csrf-token'];
-    const rawCsrfNonce = request.headers['x-csrf-nonce'];
+
+    const rawCsrfToken = request.headers['x-xsrf-token'];
+    const rawCsrfNonce = request.headers['x-xsrf-nonce'];
     const userAgent = request.headers['user-agent'];
 
     if (
       !rawCsrfToken ||
-      !/Mozilla\/5.0\s\((Macintosh|Windows|Linux|iPhone|Android).*\)/.test(
-        userAgent,
+      !(
+        /Mozilla\/5.0\s\((Macintosh|Windows|Linux|iPhone|Android).*\)/.test(
+          userAgent,
+        ) || userAgent === 'Peso-In-Blockchain-Server/1.0'
       )
     )
       return false;

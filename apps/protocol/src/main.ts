@@ -27,7 +27,7 @@ async function bootstrap() {
     .addApiKey(
       {
         type: 'apiKey',
-        name: 'x-csrf-token',
+        name: 'x-xsrf-token',
         in: 'header',
       },
       'csrf-token',
@@ -38,9 +38,9 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, documentFactory);
 
   app.enableCors({
-    origin: 'https://your-frontend.com',
+    origin: ['https://your-frontend.com', 'http://localhost:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type, x-csrf-token, x-csrf-nonce',
+    allowedHeaders: 'Content-Type, x-xsrf-token, x-xsrf-nonce',
     credentials: true,
   });
 

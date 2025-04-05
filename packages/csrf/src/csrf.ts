@@ -1,5 +1,4 @@
 import { SignJWT, jwtVerify, decodeJwt } from 'jose';
-import * as crypto from 'crypto';
 
 export class Csrf {
   private _encodedKey: Uint8Array<ArrayBufferLike>;
@@ -17,7 +16,7 @@ export class Csrf {
       .setExpirationTime(exp)
       .sign(this._encodedKey);
 
-    const nonce = this.generateNonce(token);
+    const nonce = await this.generateNonce(token);
 
     return {
       token,
@@ -25,15 +24,19 @@ export class Csrf {
     };
   }
 
-  async isValidToken(token: string) {
+  async getVerifiedData(token: string) {
     try {
-      await jwtVerify(token, this._encodedKey, {
+      const data = await jwtVerify(token, this._encodedKey, {
         algorithms: ['HS256'],
       });
-      return true;
+      return data.payload;
     } catch (error) {
-      return false;
+      return null;
     }
+  }
+
+  async isValidToken(token: string) {
+    return !!this.getVerifiedData(token);
   }
 
   async isValidTokenAndNonce(token: string, nonce: string) {
@@ -41,9 +44,9 @@ export class Csrf {
 
     if (!isValid) return false;
 
-    const hashedToken = this.generateNonce(token);
+    const nonceData = await this.getVerifiedData(nonce);
 
-    if (hashedToken !== nonce) return false;
+    if (!nonceData || nonceData.token !== token) return false;
 
     const decodedToken = decodeJwt(token);
 
@@ -54,9 +57,13 @@ export class Csrf {
     return Date.now() - Number(date) <= 3 * 60 * 60 * 1000;
   }
 
-  generateNonce(token: string) {
-    const hash = crypto.createHash('sha256');
-    hash.update(token);
-    return hash.digest('hex');
+  async generateNonce(token: string) {
+    return new SignJWT({
+      token,
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('3hr')
+      .sign(this._encodedKey);
   }
 }
