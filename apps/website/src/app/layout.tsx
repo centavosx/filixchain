@@ -12,6 +12,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { BaseApi } from '@ph-blockchain/api';
 import { Listeners } from '@/components/app/listeners';
 import { generateTokens } from '@/lib/server/generate-tokens';
+import { QueryClientProvider } from '@/components/provider/query-client.provider';
 
 BaseApi.init('http://localhost:3002/api')
   .setGetToken(generateTokens)
@@ -42,22 +43,24 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased w-full flex flex-col`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SidebarProvider>
-            <AppSidebar />
-            <main className="flex flex-col w-full">
-              <Header />
-              {children}
-            </main>
-          </SidebarProvider>
-          <Listeners />
-          <Toaster />
-        </ThemeProvider>
+        <QueryClientProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <SidebarProvider>
+              <AppSidebar />
+              <main className="flex flex-col w-full">
+                <Header />
+                {children}
+              </main>
+            </SidebarProvider>
+            <Listeners />
+            <Toaster />
+          </ThemeProvider>
+        </QueryClientProvider>
       </body>
     </html>
   );

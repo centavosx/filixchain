@@ -8,7 +8,6 @@ import { Transform } from '@ph-blockchain/transformer';
 import { Minter, Transaction } from '@ph-blockchain/block';
 import { toast } from 'sonner';
 import { useApi } from '@/hooks/use-api';
-import { useNewBlock } from '@/hooks/use-new-block';
 
 Events.connect('ws://localhost:3002');
 Events.createConnectionListener(() => console.log('CONNECTED'));
@@ -16,10 +15,10 @@ Events.createConnectionListener(() => console.log('CONNECTED'));
 export const Listeners = () => {
   const txListenerRef = useRef<() => void>(null);
   const leaveAccountRef = useRef<() => void>(null);
+
   const { account, storedAccount } = useAuthStore();
   const { setAccount } = useUserAccountStore();
   const { executeApi: getAccount, data } = useApi(Account.getAccount);
-  const { setNewBlock } = useNewBlock();
 
   useEffect(() => {
     if (!account) return;
@@ -54,10 +53,6 @@ export const Listeners = () => {
       off();
     };
   }, [account, setAccount, getAccount]);
-
-  useEffect(() => {
-    Events.createConfirmedBlockListener(setNewBlock);
-  }, [setNewBlock]);
 
   useEffect(() => {
     txListenerRef.current?.();

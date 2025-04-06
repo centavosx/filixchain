@@ -10,31 +10,47 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Typography } from '@/components/ui/typography';
-import { useNewBlock } from '@/hooks/use-new-block';
-import { RawBlock } from '@ph-blockchain/block';
-import { Transform } from '@ph-blockchain/transformer';
+import {
+  getBlocksQueryAdapter,
+  useGetBlocksQuery,
+} from '@/hooks/api/use-get-blocks';
+import { Events } from '@ph-blockchain/api';
+import { Block } from '@ph-blockchain/block';
 import { useEffect, useState } from 'react';
 
-export type BlockSectionProps = {
-  blocks: RawBlock[];
-};
-export const BlockSection = ({ blocks: blocksProp }: BlockSectionProps) => {
-  const [blocks, setBlocks] = useState(blocksProp);
-  const { block } = useNewBlock();
+export const BlockSection = () => {
+  const { data } = useGetBlocksQuery({});
+
+  const [blocks, setBlocks] = useState(data ?? []);
 
   useEffect(() => {
-    if (!block) return;
+    const off = Events.createConfirmedBlockListener((data) => {
+      const block = new Block(
+        data.version,
+        data.height,
+        data.transactions || [],
+        data.targetHash,
+        data.previousHash,
+        data.nonce,
+        data.timestamp,
+      );
 
-    setBlocks((prev) => {
-      const newBlock = [block, ...prev];
+      setBlocks((prev) => {
+        const newBlock = [
+          ...getBlocksQueryAdapter({ data: [block.toJson(false)] }),
+          ...prev,
+        ];
 
-      if (newBlock.length > 3) {
-        newBlock.pop();
-      }
+        if (newBlock.length > 3) {
+          newBlock.pop();
+        }
 
-      return newBlock;
+        return newBlock;
+      });
     });
-  }, [block]);
+
+    return off;
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
@@ -50,9 +66,9 @@ export const BlockSection = ({ blocks: blocksProp }: BlockSectionProps) => {
                 Hash:
                 {value.blockHash}
               </Typography>
-              {!!value.timestamp && (
+              {!!value.displayCreated && (
                 <Typography as="small">
-                  Created: {Transform.date.formatToReadable(value.timestamp)}
+                  Created: {value.displayCreated}
                 </Typography>
               )}
             </CardDescription>
@@ -70,7 +86,7 @@ export const BlockSection = ({ blocks: blocksProp }: BlockSectionProps) => {
             <Typography as="large">
               Transactions: {value.transactionSize}
             </Typography>
-            <Button className="max-w-32 mt-4" href={`/block/${value.height}`}>
+            <Button className="max-w-32 mt-4" href={value.viewLink}>
               View
             </Button>
           </CardContent>
