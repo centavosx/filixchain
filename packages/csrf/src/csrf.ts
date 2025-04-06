@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify, decodeJwt } from 'jose';
+import { sha256 } from 'js-sha256';
 
 export class Csrf {
   private _encodedKey: Uint8Array<ArrayBufferLike>;
@@ -44,9 +45,9 @@ export class Csrf {
 
     if (!isValid) return false;
 
-    const nonceData = await this.getVerifiedData(nonce);
+    const hashedToken = sha256(token);
 
-    if (!nonceData || nonceData.token !== token) return false;
+    if (!nonce || hashedToken !== token) return false;
 
     const decodedToken = decodeJwt(token);
 
@@ -58,12 +59,6 @@ export class Csrf {
   }
 
   async generateNonce(token: string) {
-    return new SignJWT({
-      token,
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt()
-      .setExpirationTime('3hr')
-      .sign(this._encodedKey);
+    return sha256(token);
   }
 }
