@@ -1,20 +1,20 @@
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Session } from '@ph-blockchain/session';
 import { Request } from 'express';
-import { Csrf } from '@ph-blockchain/csrf';
 import { ConfigService } from '../config/config.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  private csrf: Csrf;
+  private session: Session;
   constructor(
     private readonly reflector: Reflector,
     private readonly configService: ConfigService,
   ) {
-    this.csrf = new Csrf(configService.get('CSRF_SECRET_KEY'));
+    this.session = new Session(configService.get('SESSION_SECRET_KEY'));
     if (configService.get('NODE_ENV') === 'development') {
-      this.csrf
-        .generateTokenAndNonce('1yr')
+      this.session
+        .generateTokens('1yr')
         .then((token) => console.log('YOUR TEST TOKEN:', token));
     }
   }
@@ -22,22 +22,26 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context
       .switchToHttp()
-      .getRequest<Request & { csrf: { token: string; nonce: string } }>();
+      .getRequest<
+        Request & { session: { accessToken: string; refreshToken: string } }
+      >();
 
-    let rawCsrfToken = request.headers['x-xsrf-token'];
-    let rawCsrfNonce = request.headers['x-xsrf-nonce'];
+    let rawAccessToken =
+      request.headers[Session.HEADER_ACCESS_KEY.toLowerCase()];
+    let rawRefreshToken =
+      request.headers[Session.HEADER_REFRESH_KEY.toLowerCase()];
 
     const cookies = request.cookies;
 
     if (!!request.headers.cookie) {
-      rawCsrfToken = cookies['XSRF-TOKEN'];
-      rawCsrfNonce = cookies['XSRF-NONCE'];
+      rawAccessToken = cookies[Session.COOKIE_ACCESS_KEY];
+      rawRefreshToken = cookies[Session.COOKIE_REFRESH_KEY];
     }
 
     const userAgent = request.headers['user-agent'];
 
     if (
-      !rawCsrfToken ||
+      !rawAccessToken ||
       !(
         /Mozilla\/5.0\s\((Macintosh|Windows|Linux|iPhone|Android).*\)/.test(
           userAgent,
@@ -46,28 +50,29 @@ export class AuthGuard implements CanActivate {
     )
       return false;
 
-    const isCsrfRefresh = this.reflector.get<boolean>(
-      'csrf-refresh',
+    const isRefresh = this.reflector.get<boolean>(
+      'token-refresh',
       context.getHandler(),
     );
 
-    const csrfToken = String(rawCsrfToken);
+    const accessToken = String(rawAccessToken);
 
-    if (!isCsrfRefresh) {
-      const isValid = await this.csrf.isValidToken(String(csrfToken));
+    if (!isRefresh) {
+      const isValid = await this.session.isValidToken(String(accessToken));
       return isValid;
     }
 
-    if (!rawCsrfNonce) return false;
+    if (!rawRefreshToken) return false;
 
-    const csrfNonce = String(rawCsrfNonce);
-    const isValid = await this.csrf.isValidTokenAndNonce(csrfToken, csrfNonce);
+    const refreshToken = String(rawRefreshToken);
+
+    const isValid = await this.session.isValidTokens(accessToken, refreshToken);
 
     if (!isValid) return false;
 
-    request.csrf = {
-      token: csrfToken,
-      nonce: csrfNonce,
+    request.session = {
+      accessToken,
+      refreshToken,
     };
 
     return true;

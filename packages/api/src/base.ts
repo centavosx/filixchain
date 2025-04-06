@@ -1,6 +1,7 @@
 import axios, { AxiosHeaders, AxiosInstance, HttpStatusCode } from 'axios';
 import qs from 'qs';
 import { Deferred } from './deferred';
+import { Session } from '@ph-blockchain/session';
 
 export class BaseApi {
   private static deferred?: Deferred<void>;
@@ -9,8 +10,8 @@ export class BaseApi {
   static readonly headers = new AxiosHeaders();
 
   static getToken: () => Promise<{
-    token: string;
-    nonce: string;
+    accessToken: string;
+    refreshToken: string;
   }>;
 
   static setGetToken(cb: typeof this.getToken) {
@@ -34,10 +35,9 @@ export class BaseApi {
         if (!BaseApi.deferred) {
           this.deferred = new Deferred<void>();
 
-          const { token, nonce } = await BaseApi.getToken();
+          const { accessToken } = await BaseApi.getToken();
 
-          BaseApi.headers.set('X-XSRF-TOKEN', token);
-          BaseApi.headers.set('X-XSRF-NONCE', nonce);
+          BaseApi.headers.set(Session.HEADER_ACCESS_KEY, accessToken);
 
           BaseApi.deferred.resolve();
           BaseApi.deferred = undefined;

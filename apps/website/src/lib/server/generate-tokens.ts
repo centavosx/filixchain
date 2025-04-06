@@ -1,8 +1,8 @@
-import { Csrf } from '@ph-blockchain/csrf';
+import { Session } from '@ph-blockchain/session';
 import { cache } from 'react';
 
-const csrf = new Csrf(process.env.CSRF_SECRET_KEY as string);
+const session = new Session(process.env.SESSION_SECRET_KEY as string);
 
 export const generateTokens = cache(async () => {
-  return await csrf.generateTokenAndNonce();
+  return await session.generateTokens();
 });

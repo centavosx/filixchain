@@ -4,13 +4,13 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 
-export const GetCsrf = createParamDecorator(
+export const GetSession = createParamDecorator(
   (_: unknown, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    const csrf = request.csrf;
+    const session = request.session;
 
-    if (!csrf) throw new ForbiddenException();
+    if (!session) throw new ForbiddenException();
 
-    return csrf;
+    return session;
   },
 );

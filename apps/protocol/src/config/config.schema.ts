@@ -9,7 +9,7 @@ import {
 
 export class EnvironmentVariables {
   @IsString()
-  CSRF_SECRET_KEY: string;
+  SESSION_SECRET_KEY: string;
 
   @IsOptional()
   @IsString()

@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Session } from '@ph-blockchain/session';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { ConfigService } from './config/config.service';
@@ -27,10 +28,18 @@ async function bootstrap() {
     .addApiKey(
       {
         type: 'apiKey',
-        name: 'x-xsrf-token',
+        name: Session.HEADER_ACCESS_KEY.toLowerCase(),
         in: 'header',
       },
-      'csrf-token',
+      Session.HEADER_ACCESS_KEY.toLowerCase(),
+    )
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: Session.HEADER_REFRESH_KEY.toLowerCase(),
+        in: 'header',
+      },
+      Session.HEADER_REFRESH_KEY.toLowerCase(),
     )
     .build();
 
@@ -38,9 +47,9 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, documentFactory);
 
   app.enableCors({
-    origin: ['https://your-frontend.com', 'http://localhost:3000'],
+    origin: ['http://localhost:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type, x-xsrf-token, x-xsrf-nonce',
+    allowedHeaders: `Content-Type, ${Session.HEADER_ACCESS_KEY.toLowerCase()}, ${Session.HEADER_REFRESH_KEY.toLowerCase()}`,
     credentials: true,
   });
 

@@ -1615,15 +1615,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@ph-blockchain/csrf@workspace:packages/csrf":
-  version: 0.0.0-use.local
-  resolution: "@ph-blockchain/csrf@workspace:packages/csrf"
-  dependencies:
-    jose: "npm:^6.0.10"
-    js-sha256: "npm:^0.11.0"
-  languageName: unknown
-  linkType: soft
-
 "@ph-blockchain/hash@npm:*, @ph-blockchain/hash@workspace:packages/hash":
   version: 0.0.0-use.local
   resolution: "@ph-blockchain/hash@workspace:packages/hash"
@@ -1669,6 +1660,15 @@ __metadata:
     level: "npm:^9.0.0"
     reflect-metadata: "npm:^0.2.0"
     rxjs: "npm:^7.8.1"
+  languageName: unknown
+  linkType: soft
+
+"@ph-blockchain/session@workspace:packages/session":
+  version: 0.0.0-use.local
+  resolution: "@ph-blockchain/session@workspace:packages/session"
+  dependencies:
+    jose: "npm:^6.0.10"
+    js-sha256: "npm:^0.11.0"
   languageName: unknown
   linkType: soft
 

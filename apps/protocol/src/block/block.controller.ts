@@ -1,10 +1,12 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { BlockService } from './block.service';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { Session } from '@ph-blockchain/session';
 import { BlockHeightQuery, BlockTransactionQuery } from '../dto/block.dto';
 import { Parameter } from '../utils/parameter';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { BlockService } from './block.service';
 
-@ApiBearerAuth('csrf-token')
+@ApiBearerAuth(Session.HEADER_ACCESS_KEY.toLowerCase())
+@ApiBearerAuth(Session.HEADER_REFRESH_KEY.toLowerCase())
 @Controller('block')
 export class BlockController {
   constructor(private readonly blockService: BlockService) {}

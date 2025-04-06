@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { generateTokens } from '@/lib/server/generate-tokens';
+import { Session } from '@ph-blockchain/session';
+import { NextRequest, NextResponse } from 'next/server';
 
 export type WithAuthOpts = {
   middleware?: (
@@ -20,15 +21,15 @@ export const withAuth =
       );
     };
 
-    const { token, nonce } = await generateTokens();
+    const { accessToken, refreshToken } = await generateTokens();
 
-    response.cookies.set('XSRF-TOKEN', token, {
+    response.cookies.set(Session.COOKIE_ACCESS_KEY, accessToken, {
       maxAge: 10800,
       sameSite: 'strict',
       secure: false,
       httpOnly: true,
     });
-    response.cookies.set('XSRF-NONCE', nonce, {
+    response.cookies.set(Session.COOKIE_REFRESH_KEY, refreshToken, {
       maxAge: 10800,
       sameSite: 'strict',
       secure: false,
