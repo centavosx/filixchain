@@ -21,17 +21,8 @@ export class BlockService {
     return blocks;
   }
 
-  async getHealth() {
-    const txSize = await this.dbService.blockchain.getTxSize();
-    const currentSupply = this.blockGateway.currentSupply;
-    return {
-      totalSupply: (
-        this.dbService.blockchain.MAX_SUPPLY - currentSupply
-      ).toString(),
-      maxSupply: this.dbService.blockchain.MAX_SUPPLY.toString(),
-      txSize: txSize.toString(),
-      blocks: this.blockGateway.currentHeight.toString(),
-    };
+  getHealth() {
+    return this.blockGateway.getHealth();
   }
 
   async getTransactions({

@@ -207,6 +207,22 @@ export class BlockGateway implements OnModuleInit {
         this.sendTo('accountInfo', account.address, account.serialize());
       }
     }
+
+    const health = await this.getHealth();
+    this.server.emit('block-health', health);
+  }
+
+  async getHealth() {
+    const txSize = await this.dbService.blockchain.getTxSize();
+    const currentSupply = this.currentSupply;
+    return {
+      totalSupply: (
+        this.dbService.blockchain.MAX_SUPPLY - currentSupply
+      ).toString(),
+      maxSupply: this.dbService.blockchain.MAX_SUPPLY.toString(),
+      txSize: txSize.toString(),
+      blocks: this.currentHeight.toString(),
+    };
   }
 
   public sendTo(key: string, address: string, data: unknown) {

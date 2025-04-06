@@ -1601,6 +1601,7 @@ __metadata:
   resolution: "@ph-blockchain/api@workspace:packages/api"
   dependencies:
     "@nestjs/config": "npm:^4.0.2"
+    "@ph-blockchain/session": "npm:*"
     "@types/qs": "npm:^6"
     axios: "npm:^1.7.9"
     qs: "npm:^6.14.0"
@@ -1663,7 +1664,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@ph-blockchain/session@workspace:packages/session":
+"@ph-blockchain/session@npm:*, @ph-blockchain/session@workspace:packages/session":
   version: 0.0.0-use.local
   resolution: "@ph-blockchain/session@workspace:packages/session"
   dependencies:
@@ -1698,6 +1699,7 @@ __metadata:
     "@radix-ui/react-separator": "npm:^1.1.1"
     "@radix-ui/react-slot": "npm:^1.1.1"
     "@radix-ui/react-tooltip": "npm:^1.1.7"
+    "@tanstack/react-query": "npm:^5.71.10"
     "@types/node": "npm:^20"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
@@ -2422,6 +2424,24 @@ __metadata:
   dependencies:
     tslib: "npm:^2.8.0"
   checksum: 10c0/33002f74f6f885f04c132960835fdfc474186983ea567606db62e86acd0680ca82f34647e8e610f4e1e422d1c16fce729dde22cd3b797ab1fd9061a825dabca4
+  languageName: node
+  linkType: hard
+
+"@tanstack/query-core@npm:5.71.10":
+  version: 5.71.10
+  resolution: "@tanstack/query-core@npm:5.71.10"
+  checksum: 10c0/2b6a9c6b252c434cdf1048f9f82d1de27ff06dd67c5c76408bb028778f77308e245b043a55db7b012148e5fd9317ee176d8179caffa18cf4d35c5d721cd81346
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query@npm:^5.71.10":
+  version: 5.71.10
+  resolution: "@tanstack/react-query@npm:5.71.10"
+  dependencies:
+    "@tanstack/query-core": "npm:5.71.10"
+  peerDependencies:
+    react: ^18 || ^19
+  checksum: 10c0/59275edfe5293fd0d825b4b048e4ceba890b5732a2ec5538d697296864498a647a51dc58fcebac5e36536d0ca7340deb0606870d86ffd4449933d368505b2ac4
   languageName: node
   linkType: hard
 

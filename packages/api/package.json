@@ -17,8 +17,8 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@ph-blockchain/session": "*",
     "@nestjs/config": "^4.0.2",
+    "@ph-blockchain/session": "*",
     "axios": "^1.7.9",
     "qs": "^6.14.0"
   },
