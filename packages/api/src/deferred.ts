@@ -1,7 +1,7 @@
 export class Deferred<T> {
   private _promise: Promise<T>;
   private _resolve!: (prop: T) => void;
-  private _reject!: (prop: T) => void;
+  private _reject!: (e: unknown) => void;
 
   constructor() {
     this._promise = new Promise<T>((resolve, reject) => {

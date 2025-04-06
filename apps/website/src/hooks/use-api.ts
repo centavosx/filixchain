@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AxiosError } from 'axios';
 import { BaseApi } from '@ph-blockchain/api';
-import { getTokens } from '@/lib/server/get-tokens';
 
-BaseApi.init('http://localhost:3002/api').setGetToken(getTokens);
+BaseApi.init('http://localhost:3002/api');
 
 // TODO: Use react-query
 // NOTE: Make sure callback is memoized

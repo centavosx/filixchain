@@ -1,14 +1,9 @@
-import axios, { AxiosHeaders, AxiosInstance } from 'axios';
+import axios, { AxiosHeaders, AxiosInstance, HttpStatusCode } from 'axios';
 import qs from 'qs';
 import { Deferred } from './deferred';
 
 export class BaseApi {
-  private static deferred?: Deferred<{
-    token: string;
-    nonce: string;
-  }>;
-
-  private static getTokenDeferred?: Deferred<void>;
+  private static deferred?: Deferred<void>;
 
   private static instance: AxiosInstance;
   static readonly headers = new AxiosHeaders();
@@ -23,20 +18,9 @@ export class BaseApi {
     return this;
   }
 
-  private static async getAndSetTokenInHeaders() {
-    const { token, nonce } = await BaseApi.getToken();
-
-    BaseApi.headers.set('X-XSRF-TOKEN', token);
-    BaseApi.headers.set('X-XSRF-NONCE', nonce);
-
-    return {
-      token,
-      nonce,
-    };
-  }
-
   static init(url: string) {
     this.instance = axios.create({
+      withCredentials: true,
       baseURL: url,
       paramsSerializer: function (params) {
         return qs.stringify(params, { arrayFormat: 'brackets' });
@@ -45,16 +29,20 @@ export class BaseApi {
 
     this.instance.interceptors.request.use(
       async (config) => {
-        if (typeof window === 'undefined') {
-          if (!BaseApi.getTokenDeferred && typeof window === 'undefined') {
-            this.getTokenDeferred = new Deferred<any>();
-            await this.getAndSetTokenInHeaders();
-            BaseApi.getTokenDeferred.resolve();
-          } else {
-            await BaseApi.getTokenDeferred?.promise;
-          }
+        if (typeof window !== 'undefined') return config;
+
+        if (!BaseApi.deferred) {
+          this.deferred = new Deferred<void>();
+
+          const { token, nonce } = await BaseApi.getToken();
+
+          BaseApi.headers.set('X-XSRF-TOKEN', token);
+          BaseApi.headers.set('X-XSRF-NONCE', nonce);
+
+          BaseApi.deferred.resolve();
+          BaseApi.deferred = undefined;
         } else {
-          await BaseApi.getAndSetTokenInHeaders();
+          await BaseApi.deferred?.promise;
         }
 
         config['headers'] = config.headers.concat(BaseApi.headers);
@@ -69,30 +57,29 @@ export class BaseApi {
       async (error) => {
         const originalRequest = error.config;
 
-        if (!BaseApi.getToken || originalRequest.url === '/refresh')
+        if (
+          !BaseApi.getToken ||
+          originalRequest.url === '/refresh' ||
+          typeof window === 'undefined'
+        )
           return Promise.reject(error);
 
-        const hasErrored = error.response && error.response.status === 403;
+        const hasErrored =
+          error.response && error.response.status === HttpStatusCode.Forbidden;
 
         if (hasErrored && originalRequest && !originalRequest._markForRetry) {
           originalRequest._markForRetry = true;
 
           try {
-            const { token, nonce } = await this.refresh();
-            BaseApi.instance.defaults.headers.common['X-XSRF-TOKEN'] = token;
+            await this.refresh();
             return BaseApi.instance(originalRequest);
           } catch (err) {
             return Promise.reject(err);
           }
         }
 
-        // Force reload if it errors out
-        if (typeof window !== 'undefined') {
-          window.location.reload();
-          return;
-        }
-
-        return Promise.reject(error);
+        window.location.reload();
+        return;
       },
     );
 
@@ -184,22 +171,17 @@ export class BaseApi {
   private static async refresh() {
     if (BaseApi.deferred) return await BaseApi.deferred.promise;
 
-    const deferred = new Deferred<any>();
+    const deferred = new Deferred<void>();
 
     BaseApi.deferred = deferred;
 
-    await BaseApi.get<unknown, unknown>(`/refresh`);
+    try {
+      await BaseApi.get<unknown, unknown>(`/refresh`);
+      BaseApi.deferred.resolve();
+    } catch (e) {
+      BaseApi.deferred.reject(e);
+    }
 
-    const { token, nonce } = await BaseApi.getAndSetTokenInHeaders();
-
-    const data = {
-      token,
-      nonce,
-    };
-
-    BaseApi.deferred.resolve(data);
     BaseApi.deferred = undefined;
-
-    return data;
   }
 }

@@ -11,10 +11,10 @@ import { Toaster } from '@/components/ui/sonner';
 
 import { BaseApi } from '@ph-blockchain/api';
 import { Listeners } from '@/components/app/listeners';
-import { getTokens } from '@/lib/server/get-tokens';
+import { generateTokens } from '@/lib/server/generate-tokens';
 
 BaseApi.init('http://localhost:3002/api')
-  .setGetToken(getTokens)
+  .setGetToken(generateTokens)
   .headers.setUserAgent('Peso-In-Blockchain-Server/1.0');
 
 const geistSans = Geist({

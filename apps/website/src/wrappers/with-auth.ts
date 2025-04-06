@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTokens } from '@/lib/server/get-tokens';
+import { generateTokens } from '@/lib/server/generate-tokens';
 
 export type WithAuthOpts = {
   middleware?: (
@@ -20,15 +20,15 @@ export const withAuth =
       );
     };
 
-    const { token, nonce } = await getTokens();
+    const { token, nonce } = await generateTokens();
 
-    response.cookies.set('session', token, {
+    response.cookies.set('XSRF-TOKEN', token, {
       maxAge: 10800,
       sameSite: 'strict',
       secure: false,
       httpOnly: true,
     });
-    response.cookies.set('nonce', nonce, {
+    response.cookies.set('XSRF-NONCE', nonce, {
       maxAge: 10800,
       sameSite: 'strict',
       secure: false,

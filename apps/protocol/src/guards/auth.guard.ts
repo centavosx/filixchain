@@ -24,8 +24,16 @@ export class AuthGuard implements CanActivate {
       .switchToHttp()
       .getRequest<Request & { csrf: { token: string; nonce: string } }>();
 
-    const rawCsrfToken = request.headers['x-xsrf-token'];
-    const rawCsrfNonce = request.headers['x-xsrf-nonce'];
+    let rawCsrfToken = request.headers['x-xsrf-token'];
+    let rawCsrfNonce = request.headers['x-xsrf-nonce'];
+
+    const cookies = request.cookies;
+
+    if (!!request.headers.cookie) {
+      rawCsrfToken = cookies['XSRF-TOKEN'];
+      rawCsrfNonce = cookies['XSRF-NONCE'];
+    }
+
     const userAgent = request.headers['user-agent'];
 
     if (
