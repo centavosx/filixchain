@@ -20,7 +20,7 @@ export const prefetchGetTransactionByIdQuery = async ({
   return queryClient;
 };
 
-export const getGetTransactionByIdQueryAdapter = (response: {
+export const getTransactionByIdQueryAdapter = (response: {
   data: MintOrTxSerialize;
 }) => {
   const { data } = response;
@@ -41,6 +41,6 @@ export const useGetTransactionByIdQueryQuery = (txHash: string) => {
   return useQuery({
     queryKey: ['blocks', 'transactions', txHash],
     queryFn: () => Block.getTransactionById(txHash),
-    select: getGetTransactionByIdQueryAdapter,
+    select: getTransactionByIdQueryAdapter,
   });
 };
