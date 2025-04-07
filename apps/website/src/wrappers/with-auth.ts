@@ -10,8 +10,13 @@ export type WithAuthOpts = {
 };
 export const withAuth =
   ({ middleware }: WithAuthOpts) =>
-  async (request: NextRequest): Promise<NextResponse<unknown> | Response> => {
-    const response = NextResponse.next();
+  async (
+    request: NextRequest,
+    _response: NextResponse,
+  ): Promise<NextResponse<unknown>> => {
+    const response = NextResponse.next({
+      headers: _response.headers,
+    });
 
     const getResponse = (customResponse?: NextResponse) => {
       return (
