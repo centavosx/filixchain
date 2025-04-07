@@ -33,14 +33,14 @@ export const TransactionTable = ({
   pagination,
 }: TransactionTableProps) => {
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 overflow-auto">
       <Table>
         <TableHeader>
           <TableRow>
             {!shouldExcludeBlock && <TableHead>Block</TableHead>}
-            <TableHead className="min-w-[90px]">Hash</TableHead>
-            <TableHead className="min-w-[90px]">From</TableHead>
-            <TableHead className="min-w-[90px]">To</TableHead>
+            <TableHead className="min-w-[180px]">Hash</TableHead>
+            <TableHead className="min-w-[180px]">From</TableHead>
+            <TableHead className="min-w-[180px]">To</TableHead>
             <TableHead className="text-center">Amount</TableHead>
             <TableHead>
               <TooltipProvider delayDuration={0}>

@@ -42,7 +42,7 @@ export const Typography = forwardRef<HTMLElement, TypographyProps>(
     return createElement(textEls[as], {
       ref,
       ...rest,
-      className: cn(textClass[as], className),
+      className: cn(textClass[as], 'break-all', className),
     });
   },
 );
