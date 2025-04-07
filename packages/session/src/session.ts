@@ -46,10 +46,11 @@ export class Session {
     };
   }
 
-  async getVerifiedData(token: string) {
+  async getVerifiedData(token: string, currentDate?: Date) {
     try {
       const data = await jwtVerify(token, this._encodedKey, {
         algorithms: ['HS256'],
+        ...(!!currentDate ? { currentDate } : {}),
       });
       return data.payload;
     } catch (error) {
@@ -57,23 +58,23 @@ export class Session {
     }
   }
 
-  async isValidToken(token: string) {
-    return !!this.getVerifiedData(token);
+  async isValidToken(token: string, currentDate?: Date) {
+    return !!this.getVerifiedData(token, currentDate);
   }
 
   async isValidTokens(token: string, refresh: string) {
-    const isAccessValid = await this.isValidToken(token);
+    const decodedAccessToken = await this.getVerifiedData(
+      token,
+      new Date(Date.now() - 3 * 60 * 60 * 1000),
+    );
 
-    if (!isAccessValid) return false;
+    if (!decodedAccessToken) return false;
 
-    const isRefreshValid = await this.isValidToken(refresh);
+    const decodedRefreshToken = await this.getVerifiedData(refresh);
 
-    if (!isRefreshValid) return false;
+    if (!decodedRefreshToken) return false;
 
-    const decodedToken = decodeJwt(token);
-    const decodedRefreshToken = decodeJwt(refresh);
-
-    const date = decodedToken?.date;
+    const date = decodedAccessToken?.date;
     const hashed = decodedRefreshToken?.hashed;
     const refreshType = decodedRefreshToken?.type;
 
