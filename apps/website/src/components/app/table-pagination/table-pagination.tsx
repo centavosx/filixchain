@@ -2,12 +2,16 @@ import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
+  PaginationFirst,
   PaginationItem,
+  PaginationLast,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { ReactNode, useMemo } from 'react';
+import { useAppSearchParams } from '@/hooks/use-app-search-params';
+
+import { Fragment, ReactNode, useMemo } from 'react';
 
 export type TablePaginationProps = {
   currentPage: number;
@@ -17,11 +21,13 @@ export const TablePagination = ({
   currentPage,
   maxPage,
 }: TablePaginationProps) => {
-  const pages = useMemo(() => {
-    let start = currentPage - 1;
+  const { updateAndGetString } = useAppSearchParams<{ page: number }>();
 
-    if (currentPage === maxPage) {
-      start = currentPage - 2;
+  const pages = useMemo(() => {
+    let start = currentPage - 2;
+
+    if (currentPage >= maxPage - 1) {
+      start = maxPage - 4;
     }
 
     if (start < 1) {
@@ -30,11 +36,13 @@ export const TablePagination = ({
 
     const pages: ReactNode[] = [];
 
-    while (pages.length < 3 && start <= maxPage) {
+    while (pages.length <= 4 && start <= maxPage) {
       pages.push(
         <PaginationItem key={start}>
           <PaginationLink
-            href={`?page=${start}`}
+            href={updateAndGetString({
+              page: start,
+            })}
             isActive={start === currentPage}
           >
             {start}
@@ -45,33 +53,59 @@ export const TablePagination = ({
     }
 
     return pages;
-  }, [currentPage, maxPage]);
+  }, [currentPage, maxPage, updateAndGetString]);
 
   return (
     <Pagination className="p-4 justify-end">
       <PaginationContent>
         {currentPage > 1 && (
-          <PaginationItem>
-            <PaginationPrevious href={`?page=${currentPage - 1}`} />
-          </PaginationItem>
+          <Fragment>
+            <PaginationItem>
+              <PaginationFirst
+                href={updateAndGetString({
+                  page: 1,
+                })}
+              />
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationPrevious
+                href={updateAndGetString({
+                  page: currentPage - 1,
+                })}
+              />
+            </PaginationItem>
+          </Fragment>
         )}
 
-        {currentPage > 2 && (
+        {currentPage > 5 && (
           <PaginationItem>
             <PaginationEllipsis />
           </PaginationItem>
         )}
         {pages}
-        {maxPage > 3 && currentPage <= maxPage - 2 && (
+        {maxPage > 5 && currentPage <= maxPage - 3 && (
           <PaginationItem>
             <PaginationEllipsis />
           </PaginationItem>
         )}
 
         {currentPage < maxPage && (
-          <PaginationItem>
-            <PaginationNext href={`?page=${currentPage + 1}`} />
-          </PaginationItem>
+          <Fragment>
+            <PaginationItem>
+              <PaginationNext
+                href={updateAndGetString({
+                  page: currentPage + 1,
+                })}
+              />
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationLast
+                href={updateAndGetString({
+                  page: maxPage,
+                })}
+              />
+            </PaginationItem>
+          </Fragment>
         )}
       </PaginationContent>
     </Pagination>

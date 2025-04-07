@@ -4,6 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import Link, { LinkProps } from 'next/link';
 
 const buttonVariants = cva(
   'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
@@ -41,6 +42,7 @@ export interface ButtonProps
   asChild?: boolean;
   isLoading?: boolean;
   href?: string;
+  linkProps?: LinkProps;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -54,17 +56,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       disabled,
       href,
+      linkProps,
       ...props
     },
     ref,
   ) => {
-    const Comp = href ? 'a' : asChild ? Slot : 'button';
-    return (
+    const Comp = asChild ? Slot : 'button';
+    const renderChildren = (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref as never}
         disabled={isLoading || disabled}
-        href={href}
         {...(props as object)}
       >
         <>
@@ -73,6 +75,16 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         </>
       </Comp>
     );
+
+    if (href) {
+      return (
+        <Link href={href} {...linkProps}>
+          {renderChildren}
+        </Link>
+      );
+    }
+
+    return renderChildren;
   },
 );
 Button.displayName = 'Button';

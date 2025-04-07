@@ -1,80 +1,87 @@
-import { TransactionTable } from '@/components/app/transaction-table';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Typography } from '@/components/ui/typography';
-import { Account } from '@ph-blockchain/api';
-import { Transaction } from '@ph-blockchain/block';
-import { Transform } from '@ph-blockchain/transformer';
+import { prefetchGetAccountByIdQuery } from '@/hooks/api/use-get-account-by-id';
+import { prefetchGetAccountTransactionsQuery } from '@/hooks/api/use-get-account-transactions';
+import { searchParamParser } from '@/lib/search-param-parser';
+import AccountDetailsScreen from '@/screens/accounts/details';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { notFound } from 'next/navigation';
 
 const MAX_LIMIT = 20;
 
 export type AccountProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ page: string | string[] }>;
+  searchParams: Promise<{ page: string; reverse: string; limit: string }>;
 };
 export default async function AccountPage({
   params,
   searchParams,
 }: AccountProps) {
   const accountId = (await params).id;
-  const rawPage = (await searchParams)?.page;
+  const awaitedSearchParams = await searchParams;
 
-  const accountData = (await Account.getAccount(accountId)).data;
+  const page = searchParamParser({
+    key: 'page',
+    searchParams: awaitedSearchParams,
+    transformer: Number,
+    validator: (value) => isFinite(value) && value > 0,
+    fallback: 1,
+  });
 
-  const currentPageString =
-    (Array.isArray(rawPage)
-      ? rawPage.find((value) => /\d+/.test(value))
-      : rawPage) || '';
-  const currentPage = +(currentPageString.match(/\d+/g)?.[0] || '1') || 1;
-  const txSize = +accountData.size;
-  const numberOfPages = Math.ceil(txSize / MAX_LIMIT);
+  const reverse = searchParamParser({
+    key: 'reverse',
+    searchParams: awaitedSearchParams,
+    transformer: (value) =>
+      value === undefined
+        ? true
+        : value === 'true' || value === 'True' || value === 'TRUE',
+    fallback: true,
+  });
 
-  const accountTx = (
-    await Account.getAccountTransaction(accountId, {
-      end: txSize - (currentPage - 1) * MAX_LIMIT,
-      reverse: true,
-      limit: MAX_LIMIT,
-    })
-  ).data;
+  const limit = searchParamParser({
+    key: 'limit',
+    searchParams: awaitedSearchParams,
+    transformer: Number,
+    validator: (value) => isFinite(value) && value > 0 && value < 50,
+    fallback: MAX_LIMIT,
+  });
+
+  const queryClient = await prefetchGetAccountByIdQuery({
+    data: {
+      id: accountId,
+    },
+  });
+
+  const queryData: { data: { size: number } } | undefined =
+    queryClient.getQueryData(['account', accountId]);
+
+  if (!queryData) notFound();
+
+  const txSize = +queryData.data.size;
+
+  const numberOfPages = Math.ceil(txSize / limit);
+
+  const query = {
+    end: txSize - (page - 1) * limit,
+    reverse,
+    limit,
+  };
+
+  await prefetchGetAccountTransactionsQuery({
+    queryClient,
+    data: {
+      id: accountId,
+      query,
+    },
+  });
 
   return (
-    <div className="flex flex-col p-6 gap-8">
-      <section>
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <Typography>
-                Account Address:{' '}
-                {Transform.addPrefix(accountData.address, Transaction.prefix)}
-              </Typography>
-            </CardTitle>
-            <CardDescription>
-              <Typography>Nonce: {accountData.nonce}</Typography>
-              <Typography>Transactions: {accountData.size}</Typography>
-
-              <Typography as="p" className="mt-4 font-bold text-lg">
-                Balance: {Transform.toHighestUnit(accountData.amount)} PESO
-              </Typography>
-            </CardDescription>
-          </CardHeader>
-          <Separator className="mb-6" />
-          <CardContent className="flex flex-row gap-8">
-            <TransactionTable
-              data={accountTx}
-              pagination={{
-                maxPage: numberOfPages,
-                currentPage: currentPage,
-              }}
-            />
-          </CardContent>
-        </Card>
-      </section>
-    </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <AccountDetailsScreen
+        page={page}
+        numberOfPages={numberOfPages}
+        end={query.end}
+        limit={query.limit}
+        reverse={query.reverse}
+      />
+    </HydrationBoundary>
   );
 }

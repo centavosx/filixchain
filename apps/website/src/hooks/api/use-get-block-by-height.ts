@@ -30,8 +30,14 @@ export const getBlockByHeightQueryAdapter = (response: { data: RawBlock }) => {
           encoded.length === Minter.ENCODED_SIZE
             ? Minter.decode(encoded)
             : Transaction.decode(encoded);
-
-        return mintOrTx.serialize();
+        const value = mintOrTx.serialize();
+        return {
+          ...value,
+          displayAmount: `${(
+            BigInt(value.amount) / Transaction.TX_CONVERSION_UNIT
+          ).toString()} PESO`,
+          viewLink: `/transaction/${value.transactionId}`,
+        };
       }) ?? [],
     displayCreated: Transform.date.formatToReadable(Number(data.timestamp)),
   };

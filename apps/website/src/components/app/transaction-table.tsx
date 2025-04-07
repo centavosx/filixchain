@@ -16,14 +16,14 @@ import {
 } from '../ui/tooltip';
 import { Button } from '../ui/button';
 import { Typography } from '../ui/typography';
-import { MintOrTxSerialize, Transaction } from '@ph-blockchain/block';
 import {
   TablePagination,
   TablePaginationProps,
 } from './table-pagination/table-pagination';
+import { getTransactionsAdapter } from '@/hooks/api/use-get-transactions';
 
 export type TransactionTableProps = {
-  data: MintOrTxSerialize[];
+  data: ReturnType<typeof getTransactionsAdapter>;
   shouldExcludeBlock?: boolean;
   pagination?: TablePaginationProps;
 };
@@ -73,18 +73,9 @@ export const TransactionTable = ({
               <TableCell className="text-wrap break-all max-w-[200px]">
                 {tx.to}
               </TableCell>
-              <TableCell className="text-center">
-                {(
-                  BigInt(tx.amount) / Transaction.TX_CONVERSION_UNIT
-                ).toString()}{' '}
-                PESO
-              </TableCell>
+              <TableCell className="text-center">{tx.displayAmount}</TableCell>
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  href={`/transaction/${tx.transactionId}`}
-                >
+                <Button variant="ghost" size="icon" href={tx.viewLink}>
                   <Eye />
                 </Button>
               </TableCell>

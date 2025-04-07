@@ -2,7 +2,6 @@ import { prefetchGetBlockHealthQuery } from '@/hooks/api/use-get-block-health';
 import { prefetchGetBlocksQuery } from '@/hooks/api/use-get-blocks';
 import { prefetchGetTransactionsQuery } from '@/hooks/api/use-get-transactions';
 import HomePage from '@/screens/home';
-import { Page } from '@/type/page';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 
 export default async function Home() {
