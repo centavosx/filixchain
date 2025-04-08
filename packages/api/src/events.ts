@@ -5,12 +5,14 @@ import { Account, Block, RawBlock, Transaction } from '@ph-blockchain/block';
 export class Events {
   private static socket: Socket;
 
-  static connect(url: string) {
+  static connect(url: string, headers?: Record<string, string>) {
     if (this.socket) return;
 
     this.socket = io(url, {
       autoConnect: true,
       reconnection: true,
+      withCredentials: true,
+      extraHeaders: headers,
       transports: ['websocket'],
     });
   }
@@ -19,8 +21,8 @@ export class Events {
     this.socket.emit('init-miner');
   }
 
-  static initAccount(account: string) {
-    this.socket.emit('init-account', { address: account });
+  static subscribeAccount(account: string) {
+    this.socket.emit('subscribe-account', { address: account });
     return () => {
       this.socket.emit('leave-account', { address: account });
     };

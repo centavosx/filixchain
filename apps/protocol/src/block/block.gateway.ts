@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Body,
   ConflictException,
-  ForbiddenException,
   OnModuleInit,
   UseFilters,
   UsePipes,
@@ -13,6 +12,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 import { Minter, MintOrTx, Transaction } from '@ph-blockchain/block';
 import { Block } from '@ph-blockchain/block';
@@ -20,6 +20,14 @@ import { Server, Socket } from 'socket.io';
 import { BlockGatewayFilter } from './block.filter';
 import { InitAccountDto, RawBlockDto } from './block.dto';
 import { DbService } from '../db/db.service';
+import * as cookie from 'cookie';
+import { Session } from '@ph-blockchain/session';
+import { ConfigService } from 'src/config/config.service';
+import { BlockGatewayException } from './block.exception';
+
+type WsClient = Socket & {
+  type: 'miner' | 'user';
+};
 
 @WebSocketGateway()
 @UseFilters(BlockGatewayFilter)
@@ -28,10 +36,18 @@ export class BlockGateway implements OnModuleInit {
   @WebSocketServer()
   server: Server;
 
+  private filterException = new BlockGatewayFilter();
+
   public currentSupply: bigint;
 
-  constructor(private readonly dbService: DbService) {
+  private session: Session;
+
+  constructor(
+    private readonly dbService: DbService,
+    private readonly configService: ConfigService,
+  ) {
     this.currentSupply = dbService.blockchain.MAX_SUPPLY;
+    this.session = new Session(configService.get('SESSION_SECRET_KEY'));
   }
 
   private MINER_ROOM = 'miner';
@@ -48,8 +64,6 @@ export class BlockGateway implements OnModuleInit {
   public mempoolQueue = new Map<string, Transaction>();
   public currentEncodedTxToMine: string[] = [];
   public mintNonce = 0;
-
-  private blockedClients = new Set<string>();
 
   onModuleInit() {
     this.dbService.waitForIntialization().then(async () => {
@@ -78,7 +92,6 @@ export class BlockGateway implements OnModuleInit {
       ? this.dbService.blockchain.genesisHash
       : block.blockHash;
     this.currentHeight = !block ? 0 : +block.height + 1;
-    this.blockedClients.clear();
     this.sendAvailabilityNotification(true);
   }
 
@@ -96,25 +109,70 @@ export class BlockGateway implements OnModuleInit {
     });
   }
 
-  async handleConnection(client: Socket) {}
+  async handleConnection(client: WsClient) {
+    try {
+      const handshake = client.handshake;
+      const headers = handshake.headers;
+      const userAgent = headers['user-agent'];
+      const isBrowser =
+        /Mozilla\/5.0\s\((Macintosh|Windows|Linux|iPhone|Android).*\)/.test(
+          userAgent,
+        );
 
-  @SubscribeMessage('init-miner')
-  handleInitMiner(@ConnectedSocket() client: Socket) {
-    client.join(this.MINER_ROOM);
-    this.sendAvailabilityNotification(false, client);
+      if (!!headers.cookie && isBrowser) {
+        const cookies = cookie.parse(headers.cookie);
+        const rawAccessToken = cookies[Session.COOKIE_ACCESS_KEY];
+        const isValid = await this.session.isValidToken(String(rawAccessToken));
+
+        if (!isValid) {
+          throw new BlockGatewayException(
+            'Not a valid a valid authentication',
+            {
+              code: 403,
+              shouldDisconnect: true,
+            },
+          );
+        }
+
+        client.type = 'user';
+        return;
+      }
+
+      const isMiner = userAgent === 'Peso-In-Blockchain-Miner/1.0';
+
+      if (isMiner) {
+        client.type = 'miner';
+        client.join(this.MINER_ROOM);
+        this.sendAvailabilityNotification(false, client);
+        return;
+      }
+
+      throw new BlockGatewayException('Not a valid ws connection', {
+        code: 403,
+        shouldDisconnect: true,
+      });
+    } catch (e) {
+      this.filterException.catchException(client, e);
+    }
   }
 
-  @SubscribeMessage('init-account')
+  @SubscribeMessage('subscribe-account')
   handleInitAccount(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: WsClient,
     @Body() dto: InitAccountDto,
   ) {
+    if (client.type !== 'user') {
+      throw new BlockGatewayException(
+        'Only authenticated users are allowed to subscribe',
+      );
+    }
+
     client.join(`${this.ACCOUNT_ROOM_PREFIX}${dto.address.toLowerCase()}`);
   }
 
   @SubscribeMessage('leave-account')
   handleLeaveAccount(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: WsClient,
     @Body() dto: InitAccountDto,
   ) {
     client.leave(`${this.ACCOUNT_ROOM_PREFIX}${dto.address.toLowerCase()}`);
@@ -123,17 +181,17 @@ export class BlockGateway implements OnModuleInit {
   @SubscribeMessage('submit-block')
   async addBlockInChain(
     @Body() rawBlock: RawBlockDto,
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: WsClient,
   ) {
-    if (this.blockedClients.has(client.id)) {
-      throw new ForbiddenException(
-        'You have already submitted your block. However, it has been marked as invalid. Please wait for the next block.',
+    if (client.type !== 'miner') {
+      throw new BlockGatewayException(
+        'Only miners are allowed to submit blocks.',
       );
     }
 
-    if (this.isValidatingMiner || this.blockedClients.has(client.id)) {
+    if (this.isValidatingMiner) {
       throw new ConflictException(
-        'Failed to submit, block from other miner is now being validated.',
+        'Another miner’s block is currently under validation. Please retry shortly.',
       );
     }
 
@@ -164,18 +222,20 @@ export class BlockGateway implements OnModuleInit {
         nonce,
         Date.now(),
       );
+
       // To make sure that the generated blockhash, merkleroot, or size matches the specified value
-      if (
+      const isRequestInValidBlock =
         block.blockHash !== blockHash ||
         block.merkleRoot !== merkleRoot ||
         block.transactionSize !== transactionSize ||
-        transactions.length !== transactionSize
-      )
-        throw new Error(
-          `Invalid block, provided details didnt meet the blockhash`,
-        );
+        transactions.length !== transactionSize;
 
-      this.validateBlockState(block);
+      const isLatestBlock = this.isValidLatestBlockState(block);
+
+      if (isRequestInValidBlock || !isLatestBlock)
+        throw new Error(
+          `There's something wrong with your block. Please ensure that the block is created based on the latest network state.`,
+        );
 
       const {
         totalMinerReward,
@@ -191,13 +251,11 @@ export class BlockGateway implements OnModuleInit {
         hash: minedBlockHash,
         earned: totalMinerReward.toString(),
       });
-
       this.server.emit('block', block.toJson(true));
     } catch (e) {
-      this.blockedClients.add(client.id);
       this.sendAvailabilityNotification(false);
       this.isValidatingMiner = false;
-      throw new BadRequestException(e.message);
+      throw new BlockGatewayException(e.message);
     }
 
     if (accountAddresses) {
@@ -239,7 +297,8 @@ export class BlockGateway implements OnModuleInit {
     block: Block,
     trasactions: MintOrTx[],
   ) {
-    let addresses = new Set<string>([mintAddress]);
+    const addresses = new Set<string>([mintAddress]);
+
     for (const transaction of trasactions) {
       transaction.addBlock(block);
 
@@ -259,6 +318,7 @@ export class BlockGateway implements OnModuleInit {
       addressMempool?.delete(transactionId);
       this.mempoolQueue?.delete(transactionId);
     }
+
     return [...addresses.values()];
   }
 
@@ -289,15 +349,12 @@ export class BlockGateway implements OnModuleInit {
   /**
    *  To validate block if it matches with the current chain state.
    */
-  validateBlockState(block: Block) {
-    if (block.previousHash !== this.activeBlockHash)
-      throw new Error('Previous hash is not valid');
-
-    if (block.targetHash !== this.targetHash)
-      throw new Error('Block contains invalid target hash');
-
-    if (block.height !== this.currentHeight)
-      throw new Error('Block is not synced to the latest height');
+  isValidLatestBlockState(block: Block) {
+    return !(
+      block.previousHash !== this.activeBlockHash ||
+      block.targetHash !== this.targetHash ||
+      block.height !== this.currentHeight
+    );
   }
 
   async saveToDb(block: Block, mintAddress: string) {

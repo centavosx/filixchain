@@ -15,7 +15,13 @@ export class BlockGatewayFilter extends BaseWsExceptionFilter {
     host: ArgumentsHost,
   ) {
     const client = host.switchToWs().getClient() as Socket;
+    this.catchException(client, exception);
+  }
 
+  catchException(
+    client: Socket,
+    exception: WsException | HttpException | BlockGatewayException,
+  ) {
     let error: string | object;
 
     let statusCode = HttpStatus.BAD_REQUEST;

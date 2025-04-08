@@ -12,7 +12,9 @@ export class Miner {
   }
 
   connect() {
-    Events.connect('ws://localhost:3002');
+    Events.connect('ws://localhost:3002', {
+      ['user-agent']: 'Peso-In-Blockchain-Miner/1.0',
+    });
 
     Events.createConnectionListener(() => {
       console.log('CONNECTED');

@@ -11,6 +11,7 @@ import { useApi } from '@/hooks/use-api';
 
 Events.connect('ws://localhost:3002');
 Events.createConnectionListener(() => console.log('CONNECTED'));
+Events.createErrorListener((e) => console.log(e));
 
 export const Listeners = () => {
   const txListenerRef = useRef<() => void>(null);
@@ -38,7 +39,7 @@ export const Listeners = () => {
     });
 
     if (!txListenerRef.current) {
-      leaveAccountRef.current = Events.initAccount(rawAddress);
+      leaveAccountRef.current = Events.subscribeAccount(rawAddress);
       txListenerRef.current = Events.createTransactionListener((data) => {
         const isReceive = data.to === signedAccountAddress;
         const isSent = data.from === signedAccountAddress;
