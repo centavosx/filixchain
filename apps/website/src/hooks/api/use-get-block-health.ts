@@ -16,19 +16,21 @@ export const prefetchGetBlockHealthQuery = async ({
   return queryClient;
 };
 
-export const useGetBlockHealthQuery = () => {
-  return useQuery({
-    queryKey: ['block', 'health'],
-    queryFn: () => Block.getHealth(),
-    select: adapter,
-  });
-};
-
-const adapter = (response: { data: BlockHealthResult }) => {
+export const getBlockHealthAdapter = (response: {
+  data: BlockHealthResult;
+}) => {
   const { data } = response;
   return {
     supply: `${Transform.toHighestUnit(data.totalSupply)} / ${Transform.toHighestUnit(data.maxSupply)}`,
     numberOfBlocks: data.blocks,
     txSize: data.txSize,
   };
+};
+
+export const useGetBlockHealthQuery = () => {
+  return useQuery({
+    queryKey: ['block', 'health'],
+    queryFn: () => Block.getHealth(),
+    select: getBlockHealthAdapter,
+  });
 };

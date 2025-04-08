@@ -93,4 +93,19 @@ export class Events {
       this.socket.off(evt, cb);
     };
   }
+
+  static createBlockHealthListener(
+    cb: (data: {
+      totalSupply: string;
+      maxSupply: string;
+      txSize: string;
+      blocks: string;
+    }) => void,
+  ) {
+    const evt = 'block-health';
+    this.socket.on(evt, cb);
+    return () => {
+      this.socket.off(evt, cb);
+    };
+  }
 }
