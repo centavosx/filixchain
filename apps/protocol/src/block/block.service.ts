@@ -23,7 +23,7 @@ export class BlockService {
 
     if (page !== undefined) {
       if (reverse) {
-        end = currentEnd - limit * (page - 1) - 1;
+        currentEnd = currentEnd - limit * (page - 1) - 1;
       } else {
         start += limit * (page - 1);
       }
