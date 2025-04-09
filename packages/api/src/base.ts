@@ -2,6 +2,7 @@ import axios, { AxiosHeaders, AxiosInstance, HttpStatusCode } from 'axios';
 import qs from 'qs';
 import { Deferred } from './deferred';
 import { Session } from '@ph-blockchain/session';
+import { ApiError } from './error';
 
 export class BaseApi {
   private static deferred?: Deferred<void>;
@@ -91,24 +92,32 @@ export class BaseApi {
     params?: Params,
     headers?: AxiosHeaders,
   ) {
-    const response = await BaseApi.instance?.get(endpoint, {
-      params,
-      headers,
-    });
+    try {
+      const response = await BaseApi.instance?.get(endpoint, {
+        params,
+        headers,
+      });
 
-    return response.data as Result;
+      return response.data as Result;
+    } catch (e) {
+      throw new ApiError(e);
+    }
   }
   protected static async delete<Params, Result>(
     endpoint: string,
     params?: Params,
     headers?: AxiosHeaders,
   ) {
-    const response = await BaseApi.instance?.delete(endpoint, {
-      params,
-      headers,
-    });
+    try {
+      const response = await BaseApi.instance?.delete(endpoint, {
+        params,
+        headers,
+      });
 
-    return response.data as Result;
+      return response.data as Result;
+    } catch (e) {
+      throw new ApiError(e);
+    }
   }
 
   protected static async post<Body, Params, Result>(
@@ -117,12 +126,16 @@ export class BaseApi {
     params?: Params,
     headers?: AxiosHeaders,
   ) {
-    const response = await BaseApi.instance?.post(endpoint, data, {
-      params,
-      headers,
-    });
+    try {
+      const response = await BaseApi.instance?.post(endpoint, data, {
+        params,
+        headers,
+      });
 
-    return response.data as Result;
+      return response.data as Result;
+    } catch (e) {
+      throw new ApiError(e);
+    }
   }
 
   protected static async patch<Body, Params, Result>(
@@ -131,12 +144,16 @@ export class BaseApi {
     params?: Params,
     headers?: AxiosHeaders,
   ) {
-    const response = await BaseApi.instance?.patch(endpoint, data, {
-      params,
-      headers,
-    });
+    try {
+      const response = await BaseApi.instance?.patch(endpoint, data, {
+        params,
+        headers,
+      });
 
-    return response.data as Result;
+      return response.data as Result;
+    } catch (e) {
+      throw new ApiError(e);
+    }
   }
 
   protected static async put<Body, Params, Result>(
@@ -145,12 +162,16 @@ export class BaseApi {
     params?: Params,
     headers?: AxiosHeaders,
   ) {
-    const response = await BaseApi.instance?.put(endpoint, data, {
-      params,
-      headers,
-    });
+    try {
+      const response = await BaseApi.instance?.put(endpoint, data, {
+        params,
+        headers,
+      });
 
-    return response.data as Result;
+      return response.data as Result;
+    } catch (e) {
+      throw new ApiError(e);
+    }
   }
 
   private static async refresh() {

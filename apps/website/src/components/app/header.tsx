@@ -9,11 +9,8 @@ import { SidebarTrigger } from '../ui/sidebar';
 import { AuthSheet } from './auth-sheet';
 import { Transform } from '@ph-blockchain/transformer';
 import { Transaction } from '@ph-blockchain/block';
-import { redirectToPage } from '@/lib/redirectToPage';
-import { useApi } from '@/hooks/use-api';
 
 export const Header = () => {
-  const { executeApi, isLoading } = useApi(redirectToPage);
   const { setTheme } = useTheme();
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -23,7 +20,7 @@ export const Header = () => {
       value.trim(),
       Transaction.prefix,
     ).trim();
-    executeApi(normalizedValue);
+    // executeApi(normalizedValue);
   };
 
   return (
@@ -49,14 +46,14 @@ export const Header = () => {
               className="flex-1"
               placeholder="Search Address..."
               onKeyDown={handleKeyDown}
-              disabled={isLoading}
+              // disabled={isLoading}
             />
-            {isLoading && (
+            {/* {isLoading && (
               <Loader2
                 className="absolute animate-spin right-3 top-2"
                 size={16}
               />
-            )}
+            )} */}
           </div>
           <AuthSheet />
         </div>
