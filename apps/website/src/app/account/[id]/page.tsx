@@ -1,11 +1,10 @@
+import { Defaults } from '@/constants/defaults';
 import { prefetchGetAccountByIdQuery } from '@/hooks/api/use-get-account-by-id';
 import { prefetchGetAccountTransactionsQuery } from '@/hooks/api/use-get-account-transactions';
 import { searchParamParser } from '@/lib/search-param-parser';
 import AccountDetailsScreen from '@/screens/accounts/details';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { notFound } from 'next/navigation';
-
-const MAX_LIMIT = 20;
 
 export type AccountProps = {
   params: Promise<{ id: string }>;
@@ -29,19 +28,20 @@ export default async function AccountPage({
   const reverse = searchParamParser({
     key: 'reverse',
     searchParams: awaitedSearchParams,
-    transformer: (value) =>
-      value === undefined
-        ? true
-        : value === 'true' || value === 'True' || value === 'TRUE',
+    transformer: (value) => (!value ? true : value.toLowerCase() === 'true'),
     fallback: true,
   });
 
   const limit = searchParamParser({
     key: 'limit',
     searchParams: awaitedSearchParams,
-    transformer: Number,
-    validator: (value) => isFinite(value) && value > 0 && value < 50,
-    fallback: MAX_LIMIT,
+    transformer: (value) => {
+      if (!value) return Defaults.defaultLimit;
+      return Number(value);
+    },
+    validator: (value) =>
+      isFinite(value) && value > 0 && value <= Defaults.maxLimit,
+    fallback: Defaults.maxLimit,
   });
 
   const queryClient = await prefetchGetAccountByIdQuery({
@@ -55,12 +55,8 @@ export default async function AccountPage({
 
   if (!queryData) notFound();
 
-  const txSize = +queryData.data.size;
-
-  const numberOfPages = Math.ceil(txSize / limit);
-
   const query = {
-    end: txSize - (page - 1) * limit,
+    page,
     reverse,
     limit,
   };
@@ -77,8 +73,6 @@ export default async function AccountPage({
     <HydrationBoundary state={dehydrate(queryClient)}>
       <AccountDetailsScreen
         page={page}
-        numberOfPages={numberOfPages}
-        end={query.end}
         limit={query.limit}
         reverse={query.reverse}
       />

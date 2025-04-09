@@ -10,18 +10,19 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Typography } from '@/components/ui/typography';
-import {
-  getBlocksQueryAdapter,
-  useGetBlocksQuery,
-} from '@/hooks/api/use-get-blocks';
+import { useGetBlocksQuery } from '@/hooks/api/use-get-blocks';
+import { UiMapper } from '@/lib/ui-mapper';
 import { Events } from '@ph-blockchain/api';
 import { Block } from '@ph-blockchain/block';
 import { useEffect, useState } from 'react';
 
 export const BlockSection = () => {
-  const { data } = useGetBlocksQuery({});
+  const { data } = useGetBlocksQuery({
+    limit: 3,
+    reverse: true,
+  });
 
-  const [blocks, setBlocks] = useState(data ?? []);
+  const [blocks, setBlocks] = useState(data?.data ?? []);
 
   useEffect(() => {
     const off = Events.createConfirmedBlockListener((data) => {
@@ -36,10 +37,7 @@ export const BlockSection = () => {
       );
 
       setBlocks((prev) => {
-        const newBlock = [
-          ...getBlocksQueryAdapter({ data: [block.toJson(false)] }),
-          ...prev,
-        ];
+        const newBlock = [UiMapper.block(block.toJson(false)), ...prev];
 
         if (newBlock.length > 3) {
           newBlock.pop();

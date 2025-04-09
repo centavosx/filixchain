@@ -12,15 +12,19 @@ export class MempoolService {
   ) {}
 
   public getMempool() {
-    return [...this.blockGateway.mempoolQueue.values()].map((value) =>
-      value.serialize(),
-    );
+    return {
+      data: [...this.blockGateway.mempoolQueue.values()].map((value) =>
+        value.serialize(),
+      ),
+    };
   }
 
   public getMempoolFromAddress(address: string) {
-    return [...(this.blockGateway.mempoolMap.get(address)?.values() ?? [])].map(
-      (value) => value.serialize(),
-    );
+    return {
+      data: [
+        ...(this.blockGateway.mempoolMap.get(address)?.values() ?? []),
+      ].map((value) => value.serialize()),
+    };
   }
 
   public async postToMempool(encodedTransactions: string[]) {
@@ -60,26 +64,27 @@ export class MempoolService {
         validatedTransactions.push(transaction);
       }
 
+      const serializedTransactions: ReturnType<Transaction['serialize']>[] = [];
+
       // Add to the state once transaction has been validated
       for (const transaction of validatedTransactions) {
-        let userExistingTxs = this.blockGateway.mempoolMap.get(
+        const userExistingTxs = this.blockGateway.mempoolMap.get(
           transaction.rawFromAddress,
         );
 
-        if (!userExistingTxs) {
-          userExistingTxs = new Map<string, Transaction>();
-          this.blockGateway.mempoolMap.set(
-            transaction.rawFromAddress,
-            userExistingTxs,
-          );
-        }
-
         userExistingTxs.set(transaction.transactionId, transaction);
+
         this.blockGateway.mempoolQueue.set(
           transaction.transactionId,
           transaction,
         );
+
+        serializedTransactions.push(transaction.serialize());
       }
+
+      return {
+        data: serializedTransactions,
+      };
     } catch (e) {
       throw new BadRequestException(e.message);
     }

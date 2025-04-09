@@ -1,6 +1,7 @@
-import { Transaction } from '@ph-blockchain/block';
+import { MintOrTxSerialize } from '@ph-blockchain/block';
 import { BaseApi } from './base';
 import { AccountTransactionSearchDto, GetAccountResult } from './types/account';
+import { PaginationData } from './types/pagination';
 
 export class Account extends BaseApi {
   private static baseEndpoint = '/account';
@@ -17,7 +18,7 @@ export class Account extends BaseApi {
   ) {
     return super.get<
       AccountTransactionSearchDto,
-      ReturnType<Transaction['serialize']>[]
+      PaginationData<MintOrTxSerialize>
     >(`${Account.baseEndpoint}/${address}/transactions`, query);
   }
 }

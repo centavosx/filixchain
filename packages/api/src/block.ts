@@ -1,4 +1,4 @@
-import { RawBlock } from '@ph-blockchain/block';
+import { MintOrTxSerialize, RawBlock } from '@ph-blockchain/block';
 import { BaseApi } from './base';
 import {
   BlockHealthResult,
@@ -6,12 +6,16 @@ import {
   BlockTransactionQuery,
   BlockTransactionResult,
 } from './types/block';
+import { PaginationData } from './types/pagination';
 
 export class Block extends BaseApi {
   private static baseEndpoint = '/block';
 
   static getBlocks(params: BlockHeightQuery) {
-    return super.get<BlockHeightQuery, RawBlock[]>(this.baseEndpoint, params);
+    return super.get<BlockHeightQuery, PaginationData<RawBlock>>(
+      this.baseEndpoint,
+      params,
+    );
   }
 
   static getBlockByHeight(height: string | number) {
@@ -36,7 +40,7 @@ export class Block extends BaseApi {
   }
 
   static getTransactionById(id: string) {
-    return super.get<unknown, BlockTransactionResult['transactions'][number]>(
+    return super.get<unknown, MintOrTxSerialize>(
       `${Block.baseEndpoint}/transaction/${id}`,
     );
   }

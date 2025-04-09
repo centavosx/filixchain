@@ -18,8 +18,10 @@ export default async function Home() {
   await prefetchGetTransactionsQuery({
     queryClient,
     data: {
-      limit: 20,
-      reverse: true,
+      query: {
+        limit: 20,
+        reverse: true,
+      },
     },
   });
 

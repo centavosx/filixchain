@@ -6,6 +6,7 @@ export type GetAccountResult = {
 };
 
 export type AccountTransactionSearchDto = {
+  page?: number;
   start?: number;
   end?: number;
   limit?: number;

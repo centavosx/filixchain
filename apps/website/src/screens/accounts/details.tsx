@@ -16,15 +16,11 @@ import { useParams } from 'next/navigation';
 
 export type AccountPageProps = {
   page: number;
-  end: number;
   reverse: boolean;
   limit: number;
-  numberOfPages: number;
 };
 export default function AccountDetailsScreen({
   page,
-  numberOfPages,
-  end,
   reverse,
   limit,
 }: AccountPageProps) {
@@ -33,7 +29,7 @@ export default function AccountDetailsScreen({
 
   const { data: accountData } = useGetAccountByIdQuery(accountId);
   const { data: accountTx } = useGetAccountTransactionsQuery(accountId, {
-    end,
+    page,
     reverse,
     limit,
   });
@@ -60,9 +56,9 @@ export default function AccountDetailsScreen({
           <Separator className="mb-6" />
           <CardContent className="flex flex-row gap-8">
             <TransactionTable
-              data={accountTx ?? []}
+              data={accountTx?.data ?? []}
               pagination={{
-                maxPage: numberOfPages,
+                maxPage: accountTx?.totalPages ?? 0,
                 currentPage: page,
               }}
             />

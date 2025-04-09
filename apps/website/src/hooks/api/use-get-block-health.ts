@@ -16,10 +16,7 @@ export const prefetchGetBlockHealthQuery = async ({
   return queryClient;
 };
 
-export const getBlockHealthAdapter = (response: {
-  data: BlockHealthResult;
-}) => {
-  const { data } = response;
+export const getBlockHealthAdapter = (data: BlockHealthResult) => {
   return {
     supply: `${Transform.toHighestUnit(data.totalSupply)} / ${Transform.toHighestUnit(data.maxSupply)}`,
     numberOfBlocks: data.blocks,

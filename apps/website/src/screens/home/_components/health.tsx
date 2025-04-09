@@ -22,7 +22,7 @@ export const HealthSection = () => {
     setHealth(data);
 
     const off = Events.createBlockHealthListener((value) =>
-      setHealth(getBlockHealthAdapter({ data: value })),
+      setHealth(getBlockHealthAdapter(value)),
     );
 
     return () => {

@@ -96,10 +96,7 @@ export class BaseApi {
       headers,
     });
 
-    return {
-      data: response.data as Result,
-      status: response.status,
-    };
+    return response.data as Result;
   }
   protected static async delete<Params, Result>(
     endpoint: string,
@@ -111,10 +108,7 @@ export class BaseApi {
       headers,
     });
 
-    return {
-      data: response.data as Result,
-      status: response.status,
-    };
+    return response.data as Result;
   }
 
   protected static async post<Body, Params, Result>(
@@ -128,10 +122,7 @@ export class BaseApi {
       headers,
     });
 
-    return {
-      data: response.data as Result,
-      status: response.status,
-    };
+    return response.data as Result;
   }
 
   protected static async patch<Body, Params, Result>(
@@ -145,10 +136,7 @@ export class BaseApi {
       headers,
     });
 
-    return {
-      data: response.data as Result,
-      status: response.status,
-    };
+    return response.data as Result;
   }
 
   protected static async put<Body, Params, Result>(
@@ -162,10 +150,7 @@ export class BaseApi {
       headers,
     });
 
-    return {
-      data: response.data as Result,
-      status: response.status,
-    };
+    return response.data as Result;
   }
 
   private static async refresh() {

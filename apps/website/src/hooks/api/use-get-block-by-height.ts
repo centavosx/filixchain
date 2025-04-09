@@ -20,8 +20,7 @@ export const prefetchGetBlockByHeightQuery = async ({
   return queryClient;
 };
 
-export const getBlockByHeightQueryAdapter = (response: { data: RawBlock }) => {
-  const { data } = response;
+export const getBlockByHeightQueryAdapter = (data: RawBlock) => {
   return {
     ...data,
     transactions:

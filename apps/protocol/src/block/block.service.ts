@@ -20,6 +20,7 @@ export class BlockService {
     ...rest
   }: BlockHeightQuery) {
     let currentEnd = end ?? this.blockGateway.currentHeight;
+    const pageEndStart = currentEnd;
 
     if (page !== undefined) {
       if (reverse) {
@@ -37,7 +38,10 @@ export class BlockService {
       ...rest,
     });
 
-    return blocks;
+    const difference = pageEndStart - start;
+    const totalPages = Math.ceil(difference / limit);
+
+    return { data: blocks, totalPages };
   }
 
   getHealth() {
@@ -49,12 +53,18 @@ export class BlockService {
     lastBlockHeight,
     ...rest
   }: BlockTransactionQuery) {
-    return this.dbService.blockchain.getTransactions({
-      ...rest,
-      lastBlockHeight:
-        lastBlockHeight ?? (reverse ? this.blockGateway.currentHeight : 0),
-      reverse,
-    });
+    const { transactions, lastHeight, nextTxIndex } =
+      await this.dbService.blockchain.getTransactions({
+        ...rest,
+        lastBlockHeight:
+          lastBlockHeight ?? (reverse ? this.blockGateway.currentHeight : 0),
+        reverse,
+      });
+    return {
+      data: transactions,
+      lastHeight,
+      nextTxIndex,
+    };
   }
 
   async getTransactionDetail(hash: string) {

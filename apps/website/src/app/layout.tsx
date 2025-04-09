@@ -2,18 +2,14 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 
-import ThemeProvider from '@/components/provider/theme.provider';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app/sidebar';
 
 import { Header } from '@/components/app/header';
-import { Toaster } from '@/components/ui/sonner';
 
 import { BaseApi } from '@ph-blockchain/api';
-import { Listeners } from '@/components/app/listeners';
 import { generateTokens } from '@/lib/server/generate-tokens';
-import { QueryClientProvider } from '@/components/provider/query-client.provider';
 import { headers } from 'next/headers';
+import { Providers } from '@/components/provider';
 
 BaseApi.init('http://localhost:3002/api')
   .setGetToken(generateTokens)
@@ -46,25 +42,13 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased w-full flex flex-col`}
       >
-        <QueryClientProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-            nonce={nonce ?? ''}
-          >
-            <SidebarProvider>
-              <AppSidebar />
-              <main className="flex flex-col w-full">
-                <Header />
-                {children}
-              </main>
-            </SidebarProvider>
-            <Listeners />
-            <Toaster />
-          </ThemeProvider>
-        </QueryClientProvider>
+        <Providers nonce={nonce}>
+          <AppSidebar />
+          <main className="flex flex-col w-full">
+            <Header />
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );

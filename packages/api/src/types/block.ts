@@ -1,6 +1,8 @@
 import { MintOrTxSerialize } from '@ph-blockchain/block';
+import { PaginationData } from './pagination';
 
 export type BlockHeightQuery = {
+  page?: number;
   start?: number;
   end?: number;
   reverse?: boolean;
@@ -22,8 +24,7 @@ export type BlockHealthResult = {
   blocks: string;
 };
 
-export type BlockTransactionResult = {
-  transactions: MintOrTxSerialize[];
-  nextTxIndex: string;
-  lastHeight: string;
-};
+export type BlockTransactionResult = PaginationData<
+  MintOrTxSerialize,
+  { nextTxIndex: string; lastHeight: string }
+>;

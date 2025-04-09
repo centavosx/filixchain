@@ -3,10 +3,8 @@
 import { TransactionTable } from '@/components/app/transaction-table';
 import { Label } from '@/components/ui/label';
 import { Typography } from '@/components/ui/typography';
-import {
-  getTransactionsAdapter,
-  useGetTransactionsQuery,
-} from '@/hooks/api/use-get-transactions';
+import { useGetTransactionsQuery } from '@/hooks/api/use-get-transactions';
+import { UiMapper } from '@/lib/ui-mapper';
 
 import { Events } from '@ph-blockchain/api';
 import { Block } from '@ph-blockchain/block';
@@ -14,8 +12,11 @@ import { Block } from '@ph-blockchain/block';
 import { useEffect, useState } from 'react';
 
 export const TransactionsSection = () => {
-  const { data } = useGetTransactionsQuery({});
-  const [txs, setTxs] = useState(data ?? []);
+  const { data } = useGetTransactionsQuery({
+    limit: 20,
+    reverse: true,
+  });
+  const [txs, setTxs] = useState(data?.data ?? []);
 
   useEffect(() => {
     const off = Events.createConfirmedBlockListener((data) => {
@@ -31,13 +32,11 @@ export const TransactionsSection = () => {
 
       setTxs((prev) => {
         const newTxs = [
-          ...getTransactionsAdapter({
-            data: {
-              transactions: block
-                .decodeTransactions()
-                .map((value) => value.decoded.serialize()),
-            },
-          }),
+          ...UiMapper.transactions(
+            block
+              .decodeTransactions()
+              .map((value) => value.decoded.serialize()),
+          ),
           ...prev,
         ];
 

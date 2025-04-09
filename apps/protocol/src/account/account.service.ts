@@ -24,18 +24,24 @@ export class AccountService {
     }: AccountTransactionSearchDto,
   ) {
     const account = await this.dbService.account.findByAddress(address);
+    let totalPages = undefined;
 
     if (page !== undefined) {
       const txSize = +account.size.toString();
+      const pageEndStart = end ?? txSize;
 
       if (reverse) {
         end = (end ?? txSize) - limit * (page - 1) - 1;
       } else {
         start += limit * (page - 1);
+        end = pageEndStart;
       }
+
+      const rowDiff = end - start;
+      totalPages = Math.ceil(rowDiff / limit);
     }
 
-    const data = await this.dbService.account.getTx(account, {
+    const accountTransactions = await this.dbService.account.getTx(account, {
       reverse,
       start,
       end,
@@ -44,8 +50,17 @@ export class AccountService {
       limit,
     });
 
-    return (
-      await this.dbService.blockchain.findTransactionsById(data, false, true)
+    const data = (
+      await this.dbService.blockchain.findTransactionsById(
+        accountTransactions,
+        false,
+        true,
+      )
     ).map((value) => value.serialize());
+
+    return {
+      data,
+      totalPages,
+    };
   }
 }

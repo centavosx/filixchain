@@ -20,10 +20,7 @@ export const prefetchGetTransactionByIdQuery = async ({
   return queryClient;
 };
 
-export const getTransactionByIdQueryAdapter = (response: {
-  data: MintOrTxSerialize;
-}) => {
-  const { data } = response;
+export const getTransactionByIdQueryAdapter = (data: MintOrTxSerialize) => {
   return {
     ...data,
     displayCreated: Transform.date.formatToReadable(Number(data.timestamp)),

@@ -22,26 +22,21 @@ import {
 } from './table-pagination/table-pagination';
 import { UiMapper } from '@/lib/ui-mapper';
 
-export type TransactionTableProps = {
-  data: ReturnType<(typeof UiMapper)['transactions']>;
-  shouldExcludeBlock?: boolean;
+export type BlocksTableProps = {
+  data: ReturnType<(typeof UiMapper)['blocks']>;
   pagination?: TablePaginationProps;
 };
-export const TransactionTable = ({
-  data,
-  shouldExcludeBlock,
-  pagination,
-}: TransactionTableProps) => {
+export const BlocksTable = ({ data, pagination }: BlocksTableProps) => {
   return (
     <div className="flex flex-col flex-1 overflow-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            {!shouldExcludeBlock && <TableHead>Block</TableHead>}
+            <TableHead className="min-w-[100px]">Height</TableHead>
             <TableHead className="min-w-[180px]">Hash</TableHead>
-            <TableHead className="min-w-[180px]">From</TableHead>
-            <TableHead className="min-w-[180px]">To</TableHead>
-            <TableHead className="text-center">Amount</TableHead>
+            <TableHead className="min-w-[180px]">Previous</TableHead>
+            <TableHead className="min-w-[100px] text-center">Size</TableHead>
+            <TableHead className="text-center">Created</TableHead>
             <TableHead>
               <TooltipProvider delayDuration={0}>
                 <Tooltip>
@@ -51,7 +46,7 @@ export const TransactionTable = ({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <Typography>View Transaction</Typography>
+                    <Typography>View Block</Typography>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -59,23 +54,25 @@ export const TransactionTable = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((tx) => (
-            <TableRow key={tx.transactionId}>
-              {!shouldExcludeBlock && (
-                <TableCell className="font-medium">{tx.blockHeight}</TableCell>
-              )}
+          {data.map((block) => (
+            <TableRow key={block.blockHash}>
               <TableCell className="text-wrap break-all max-w-[250px]">
-                {tx.transactionId}
+                {block.height}
+              </TableCell>
+              <TableCell className="text-wrap break-all max-w-[250px]">
+                {block.blockHash}
               </TableCell>
               <TableCell className="text-wrap break-all max-w-[200px]">
-                {tx.from}
+                {block.previousHash}
               </TableCell>
-              <TableCell className="text-wrap break-all max-w-[200px]">
-                {tx.to}
+              <TableCell className="text-wrap break-all max-w-[200px] text-center">
+                {block.transactionSize}
               </TableCell>
-              <TableCell className="text-center">{tx.displayAmount}</TableCell>
+              <TableCell className="text-center">
+                {block.displayCreated}
+              </TableCell>
               <TableCell>
-                <Button variant="ghost" size="icon" href={tx.viewLink}>
+                <Button variant="ghost" size="icon" href={block.viewLink}>
                   <Eye />
                 </Button>
               </TableCell>

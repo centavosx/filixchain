@@ -21,8 +21,7 @@ export const prefetchGetAccountByIdQuery = async ({
   return queryClient;
 };
 
-export const getAccountByIdAdapter = (response: { data: GetAccountResult }) => {
-  const { data } = response;
+export const getAccountByIdAdapter = (data: GetAccountResult) => {
   return {
     ...data,
     displayAddress: Transform.addPrefix(data.address, Transaction.prefix),
@@ -31,10 +30,11 @@ export const getAccountByIdAdapter = (response: { data: GetAccountResult }) => {
   };
 };
 
-export const useGetAccountByIdQuery = (id: string) => {
+export const useGetAccountByIdQuery = (id: string, disabled?: boolean) => {
   return useQuery({
     queryKey: ['account', id],
     queryFn: () => Account.getAccount(id),
     select: getAccountByIdAdapter,
+    enabled: !disabled,
   });
 };
