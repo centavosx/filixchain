@@ -216,6 +216,7 @@ export class Account extends BlockAccount {
     this._amount = amount;
     this.pendingTxToSave.push(...temporaryTx);
     this._nonce = temporaryNonce;
+
     for (const batch of batchesTemp) {
       const { txId, sent, rowIndex, timestamp } = batch;
       this._batches.rowIndex.put(rowIndex, txId);
@@ -257,6 +258,7 @@ export class Account extends BlockAccount {
 
     this._amount = amount;
     this._size = temporarySize;
+
     for (const batch of batchesTemp) {
       const { txId, receive, rowIndex, timestamp } = batch;
       this._batches.rowIndex.put(rowIndex, txId);
@@ -321,7 +323,6 @@ export class Account extends BlockAccount {
       to,
     }: AccountTransactionSearchDto = {},
   ) {
-    // if (start < 1706026109489) throw new Error('Not valid start index');
     const query = {
       gte: Crypto.encodeIntTo8BytesString(start),
       lte: end ? Crypto.encodeIntTo8BytesString(end) : undefined,

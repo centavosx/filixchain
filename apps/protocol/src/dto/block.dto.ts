@@ -1,14 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { AppHash } from '@ph-blockchain/hash';
 import { Transform } from 'class-transformer';
-import {
-  IsBoolean,
-  IsNumber,
-  IsOptional,
-  IsPositive,
-  Length,
-  Matches,
-} from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsPositive } from 'class-validator';
 import { Transformer } from 'src/utils/transformer';
 
 export type RawBlock = {
@@ -39,7 +31,7 @@ export type RawBlockDb = {
 
 export class BlockHeightQuery {
   @ApiPropertyOptional({
-    description: 'Start height of the block. Defaults to zero',
+    description: 'Current page',
   })
   @IsOptional()
   @Transform(Transformer.toInt)
