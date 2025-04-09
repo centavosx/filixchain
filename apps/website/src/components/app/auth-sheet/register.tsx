@@ -25,7 +25,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as bip39 from 'bip39';
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from '@/hooks/use-auth';
-import { useEffect, useState } from 'react';
 
 const RegisterFormSchema = z
   .object({
@@ -61,16 +60,8 @@ const RegisterFormSchema = z
     }
   });
 
-export type RegisterSheetContentProps = {
-  isOpen: boolean;
-  onChangeOpenState: (isOpen: boolean) => void;
-};
-export const RegisterSheetContent = ({
-  isOpen,
-  //   onChangeOpenState,
-}: RegisterSheetContentProps) => {
+export const RegisterSheetContent = () => {
   const { register } = useAuthStore();
-  const [hasGenerated, setHasGenerated] = useState(false);
   const form = useForm<z.infer<typeof RegisterFormSchema>>({
     values: {
       password: '',
@@ -94,14 +85,7 @@ export const RegisterSheetContent = ({
 
   const handleGenerateMnemonic = () => {
     form.setValue('privateKey', bip39.generateMnemonic());
-    setHasGenerated(true);
   };
-
-  useEffect(() => {
-    if (isOpen) return;
-    form.reset();
-    setHasGenerated(false);
-  }, [isOpen, form]);
 
   return (
     <Form {...form}>
@@ -173,11 +157,7 @@ export const RegisterSheetContent = ({
             />
           </div>
           <SheetFooter>
-            <Button
-              variant="outline"
-              onClick={handleGenerateMnemonic}
-              disabled={hasGenerated}
-            >
+            <Button variant="outline" onClick={handleGenerateMnemonic}>
               Generate Mnemonic
             </Button>
             <Button type="submit" isLoading={isSubmitting}>

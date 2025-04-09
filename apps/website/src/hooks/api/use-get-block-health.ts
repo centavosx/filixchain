@@ -24,6 +24,7 @@ export const getBlockHealthAdapter = (response: {
     supply: `${Transform.toHighestUnit(data.totalSupply)} / ${Transform.toHighestUnit(data.maxSupply)}`,
     numberOfBlocks: data.blocks,
     txSize: data.txSize,
+    blocks: +data.blocks,
   };
 };
 
