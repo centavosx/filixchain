@@ -14,6 +14,18 @@ export class Transformer {
     return converted;
   }
 
+  static toInt({ value }: TransformFnParams) {
+    if (!value) return value;
+
+    const converted = parseInt(value);
+
+    if (isNaN(converted)) {
+      throw new BadRequestException('Not a valid number');
+    }
+
+    return converted;
+  }
+
   static toBoolean({ value }: TransformFnParams) {
     if (value === 'true' || value === 'false') {
       return value === 'true';

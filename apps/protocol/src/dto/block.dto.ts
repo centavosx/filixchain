@@ -5,6 +5,7 @@ import {
   IsBoolean,
   IsNumber,
   IsOptional,
+  IsPositive,
   Length,
   Matches,
 } from 'class-validator';
@@ -38,19 +39,28 @@ export type RawBlockDb = {
 
 export class BlockHeightQuery {
   @ApiPropertyOptional({
-    description: 'Start height of the transaction. Defaults to zero',
+    description: 'Start height of the block. Defaults to zero',
   })
   @IsOptional()
-  @Transform(Transformer.toNumber)
+  @Transform(Transformer.toInt)
+  @IsNumber()
+  @IsPositive()
+  page?: number;
+
+  @ApiPropertyOptional({
+    description: 'Start height of the block. Defaults to zero',
+  })
+  @IsOptional()
+  @Transform(Transformer.toInt)
   @IsNumber()
   start?: number;
 
   @ApiPropertyOptional({
     description:
-      'End height of the transaction. Defaults to the latest block height.',
+      'End height of the block. Defaults to the latest block height.',
   })
   @IsOptional()
-  @Transform(Transformer.toNumber)
+  @Transform(Transformer.toInt)
   @IsNumber()
   end?: number;
 
@@ -66,8 +76,9 @@ export class BlockHeightQuery {
     description: 'Total number of rows to . (Defaults to 20)',
   })
   @IsOptional()
-  @Transform(Transformer.toNumber)
+  @Transform(Transformer.toInt)
   @IsNumber()
+  @IsPositive()
   limit?: number;
 
   @ApiPropertyOptional({
@@ -85,7 +96,7 @@ export class BlockTransactionQuery {
     description: 'Last block height query',
   })
   @IsOptional()
-  @Transform(Transformer.toNumber)
+  @Transform(Transformer.toInt)
   @IsNumber()
   lastBlockHeight?: number;
 
@@ -93,7 +104,7 @@ export class BlockTransactionQuery {
     description: 'Last txIndex query',
   })
   @IsOptional()
-  @Transform(Transformer.toNumber)
+  @Transform(Transformer.toInt)
   @IsNumber()
   nextTxIndex?: number;
 
@@ -109,7 +120,7 @@ export class BlockTransactionQuery {
     description: 'Total number of rows to. (Defaults to 20)',
   })
   @IsOptional()
-  @Transform(Transformer.toNumber)
-  @IsNumber()
+  @Transform(Transformer.toInt)
+  @IsPositive()
   limit?: number;
 }

@@ -11,13 +11,32 @@ export class BlockService {
     private readonly dbService: DbService,
   ) {}
 
-  async getBlocks({ start = 0, end, limit = 20, ...rest }: BlockHeightQuery) {
+  async getBlocks({
+    page,
+    start = 0,
+    end,
+    limit = 20,
+    reverse,
+    ...rest
+  }: BlockHeightQuery) {
+    let currentEnd = end ?? this.blockGateway.currentHeight;
+
+    if (page !== undefined) {
+      if (reverse) {
+        end = currentEnd - limit * (page - 1) - 1;
+      } else {
+        start += limit * (page - 1);
+      }
+    }
+
     const blocks = await this.dbService.blockchain.getBlocksByHeight({
       start,
-      end: end ?? this.blockGateway.currentHeight,
+      end: currentEnd,
       limit,
+      reverse,
       ...rest,
     });
+
     return blocks;
   }
 
