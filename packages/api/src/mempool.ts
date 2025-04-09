@@ -1,23 +1,27 @@
 import { BaseApi } from './base';
+import { PaginationData } from './types/pagination';
 import { SerializedTransaction } from './types/transaction';
 
 export class Mempool extends BaseApi {
   private static baseEndpoint = '/mempool';
 
   static getMempool() {
-    return super.get<unknown, SerializedTransaction>(Mempool.baseEndpoint);
+    return super.get<unknown, PaginationData<SerializedTransaction>>(
+      Mempool.baseEndpoint,
+    );
   }
 
   static getMempoolByAddress(address: string) {
-    return super.get<unknown, SerializedTransaction>(
+    return super.get<unknown, PaginationData<SerializedTransaction>>(
       `${Mempool.baseEndpoint}/address/${address}`,
     );
   }
 
   static subscribe(transaction: string[]) {
-    return super.post<{ transaction: string[] }, unknown, void>(
-      `${Mempool.baseEndpoint}/subscribe`,
-      { transaction },
-    );
+    return super.post<
+      { transaction: string[] },
+      unknown,
+      PaginationData<SerializedTransaction>
+    >(`${Mempool.baseEndpoint}/subscribe`, { transaction });
   }
 }
