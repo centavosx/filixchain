@@ -8,6 +8,18 @@ export class ApiError extends AxiosError<
     super(e.message, e.code, e.config, e.request, e.response);
   }
 
+  get type() {
+    return 'error' as const;
+  }
+
+  get title() {
+    return this.response.statusText;
+  }
+
+  get subtitle() {
+    return this.message;
+  }
+
   get messages() {
     const message = this.response.data?.message;
     if (!message) {

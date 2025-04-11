@@ -3,18 +3,18 @@
 import { User } from 'lucide-react';
 import { Sheet, SheetTrigger } from '../../ui/sheet';
 
+import { useGetAccountByIdQuery } from '@/hooks/api/use-get-account-by-id';
 import { useAuthStore } from '@/hooks/use-auth';
+import { useUserAccountStore } from '@/hooks/use-user-account';
+import { Events } from '@ph-blockchain/api';
+import { Minter, Transaction } from '@ph-blockchain/block';
+import { Transform } from '@ph-blockchain/transformer';
 import { useEffect, useMemo, useRef } from 'react';
-import { toast } from 'sonner';
 import { Button } from '../../ui/button';
+import { appToast } from '../custom-toast';
 import { Accounts } from './accounts';
 import { LoginSheetContent } from './login';
 import { RegisterSheetContent } from './register';
-import { Transform } from '@ph-blockchain/transformer';
-import { Minter, Transaction } from '@ph-blockchain/block';
-import { useGetAccountByIdQuery } from '@/hooks/api/use-get-account-by-id';
-import { Events } from '@ph-blockchain/api';
-import { useUserAccountStore } from '@/hooks/use-user-account';
 
 export const AuthSheet = () => {
   const txListenerRef = useRef<() => void>(null);
@@ -39,7 +39,11 @@ export const AuthSheet = () => {
 
     const timeoutId = setTimeout(() => {
       logout();
-      toast.error('Session ended. Re-login again to use your account.');
+      appToast({
+        type: 'error',
+        title: 'Session ended.',
+        subtitle: 'Please re-login again to use your account.',
+      });
     }, 180000);
 
     return () => {
@@ -66,12 +70,23 @@ export const AuthSheet = () => {
     if (!txListenerRef.current) {
       leaveAccountRef.current = Events.subscribeAccount(rawAddress);
       txListenerRef.current = Events.createTransactionListener((data) => {
-        const isReceive = data.to === fetchedAccount.address;
-        const isSent = data.from === fetchedAccount.address;
+        const isReceive = data.to === fetchedAccount.displayAddress;
+        const isSent = data.from === fetchedAccount.displayAddress;
         if (isReceive || isSent) {
-          toast.success(
-            `${isReceive ? (data.from === Minter.address ? 'Minted' : 'Received') : 'Sent'} ${Transform.toHighestUnit(data.amount)} PESO`,
-          );
+          const purpose = isReceive
+            ? data.from === Minter.address
+              ? 'Minted'
+              : 'Received'
+            : 'Sent';
+          appToast({
+            type: 'success',
+            title: purpose,
+            subtitle: `You have successfully ${purpose.toLowerCase()} ${Transform.toHighestUnit(data.amount)} PESO`,
+            messages: [
+              `Hash: ${data.transactionId}`,
+              `Height: ${data.blockHeight}`,
+            ],
+          });
         }
       });
     }
@@ -81,10 +96,12 @@ export const AuthSheet = () => {
   }, [fetchedAccount, setAccount, rawAddress]);
 
   useEffect(() => {
-    txListenerRef.current?.();
-    txListenerRef.current = null;
-    leaveAccountRef.current?.();
-    leaveAccountRef.current = null;
+    if (!storedAccount) {
+      txListenerRef.current?.();
+      txListenerRef.current = null;
+      leaveAccountRef.current?.();
+      leaveAccountRef.current = null;
+    }
   }, [storedAccount]);
 
   return (

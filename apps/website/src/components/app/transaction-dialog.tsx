@@ -15,7 +15,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Block, Transaction } from '@ph-blockchain/block';
 import { Transform } from '@ph-blockchain/transformer';
 import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 import { z } from 'zod';
 import {
   Form,
@@ -26,7 +25,7 @@ import {
   FormMessage,
 } from '../ui/form';
 import { usePostSubscribe } from '@/hooks/api/use-post-subscribe';
-import { Typography } from '../ui/typography';
+import { appToast } from './custom-toast';
 
 const CreateTransactionSchema = z.object({
   to: z.string().regex(/^ph-[0-9a-fA-F]{40}/, 'Not a valid address'),
@@ -69,20 +68,22 @@ export const TransactionDialog = () => {
 
     await mutateAsync([encodedTransaction], {
       onSuccess: ({ data }) => {
-        toast(
-          <div className="flex flex-1 gap-4 flex-col">
-            <Typography>
-              You have successfully submitted this transaction to the mempool.
-            </Typography>
-            <Typography>Transaction Id: {data[0]?.transactionId}</Typography>
-          </div>,
-        );
+        appToast({
+          type: 'success',
+          title: 'Added to mempool',
+          subtitle:
+            'You have successfully submitted this transaction to the mempool. Please wait for your transaction to be confirmed.',
+          messages: [
+            `Hash: ${data[0].transactionId}`,
+            `From: ${data[0].from}`,
+            `To: ${data[0].to}`,
+            `Amount: ${Transform.toHighestUnit(data[0].amount)}`,
+            `Fee: ${Transform.toHighestUnit(data[0].fixedFee)}`,
+          ],
+        });
       },
       onError: (e) => {
-        console.log(e);
-        toast.error(
-          e.response?.data?.message ?? e.message ?? 'An error has occured',
-        );
+        appToast(e);
       },
     });
   };
