@@ -1,4 +1,11 @@
 import { Miner } from './miner';
+import * as dotenv from 'dotenv';
 
-const miner = new Miner('ph-865c612863a9682d8352083f025530134bc7f721');
+const NODE_ENV = process.env.MINER_ENV ?? 'development';
+
+dotenv.config({
+  path: NODE_ENV === 'development' ? '.env.development' : '.env',
+});
+
+const miner = new Miner(process.env.MINER_WALLET_ADDRESS);
 miner.connect();

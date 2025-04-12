@@ -44,7 +44,7 @@ export class AuthGuard implements CanActivate {
       !(
         /Mozilla\/5.0\s\((Macintosh|Windows|Linux|iPhone|Android).*\)/.test(
           userAgent,
-        ) || userAgent === 'Peso-In-Blockchain-Server/1.0'
+        ) || userAgent === this.configService.get('SERVER_USER_AGENT')
       )
     )
       return false;

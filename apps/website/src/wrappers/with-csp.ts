@@ -1,3 +1,4 @@
+import { Config } from '@/constants/config';
 import { Session } from '@ph-blockchain/session';
 import { NextRequest, NextResponse, userAgent } from 'next/server';
 
@@ -39,7 +40,7 @@ export const withCsp =
         form-action 'self';
         frame-ancestors 'none';
         upgrade-insecure-requests;
-        connect-src 'self' http://localhost:3002 ws://localhost:3002;
+        connect-src 'self' ${Config.httpApiUrl} ${Config.wsUrl};
     `;
 
     const contentSecurityPolicyHeaderValue = cspHeader

@@ -152,7 +152,7 @@ export class BlockGateway implements OnModuleInit {
         return;
       }
 
-      const isMiner = userAgent === 'Peso-In-Blockchain-Miner/1.0';
+      const isMiner = userAgent === this.configService.get('MINER_USER_AGENT');
 
       if (isMiner) {
         client.type = 'miner';

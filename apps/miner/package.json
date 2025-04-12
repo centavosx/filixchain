@@ -7,13 +7,16 @@
   "license": "UNLICENSED",
   "packageManager": "yarn@4.5.3",
   "scripts": {
-    "start": "npx ts-node src/index.ts"
+    "start": "MINER_ENV=production node dist/index.js",
+    "start:dev": "MINER_ENV=development npx --env-file=.env.development ts-node src/index.ts",
+    "build": "MINER_ENV=production tsc"
   },
   "dependencies": {
     "@ph-blockchain/api": "*",
     "@ph-blockchain/block": "*",
     "@ph-blockchain/hash": "*",
     "@ph-blockchain/session": "*",
-    "@ph-blockchain/transformer": "*"
+    "@ph-blockchain/transformer": "*",
+    "dotenv": "^16.5.0"
   }
 }

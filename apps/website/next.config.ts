@@ -1,4 +1,19 @@
 import type { NextConfig } from 'next';
+import { envSchema } from './config.schema';
+import { ZodError } from 'zod';
+
+try {
+  const data = envSchema.parse(process.env);
+  Object.keys(data).forEach((key) => {
+    process.env[key] = data[key as keyof typeof data];
+  });
+} catch (error) {
+  if (error instanceof ZodError) {
+    console.error(JSON.stringify(error.errors, null, 2));
+    process.exit(1);
+  }
+  throw error;
+}
 
 const nextConfig: NextConfig = {
   webpack(config, { isServer }) {

@@ -50,6 +50,12 @@ export class EnvironmentVariables {
     each: true,
   })
   WS_ALLOWED_ORIGIN: string[];
+
+  @IsString()
+  SERVER_USER_AGENT: string;
+
+  @IsString()
+  MINER_USER_AGENT: string;
 }
 
 export function validate(config: Record<string, unknown>) {

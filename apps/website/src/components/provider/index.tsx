@@ -6,9 +6,10 @@ import ThemeProvider from './theme.provider';
 import { BaseApi, Events } from '@ph-blockchain/api';
 import { SidebarProvider } from '../ui/sidebar';
 import { Toaster } from '../ui/sonner';
+import { Config } from '@/constants/config';
 
-BaseApi.init('http://localhost:3002/api');
-Events.connect('ws://localhost:3002');
+BaseApi.init(Config.apiBaseUrl);
+Events.connect(Config.wsUrl);
 Events.createConnectionListener(() => console.log('CONNECTED'));
 Events.createErrorListener((e) => console.log(e));
 

@@ -10,10 +10,11 @@ import { BaseApi } from '@ph-blockchain/api';
 import { generateToken } from '@/lib/server/generate-tokens';
 import { headers } from 'next/headers';
 import { Providers } from '@/components/provider';
+import { Config } from '@/constants/config';
 
-BaseApi.init('http://localhost:3002/api')
+BaseApi.init(Config.apiBaseUrl)
   .setGetToken(generateToken)
-  .headers.setUserAgent('Peso-In-Blockchain-Server/1.0');
+  .headers.setUserAgent(Config.userAgent);
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

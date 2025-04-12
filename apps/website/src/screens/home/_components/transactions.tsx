@@ -1,7 +1,6 @@
 'use client';
 
 import { TransactionTable } from '@/components/app/transaction-table';
-import { Label } from '@/components/ui/label';
 import { Typography } from '@/components/ui/typography';
 import { useGetTransactionsQuery } from '@/hooks/api/use-get-transactions';
 import { UiMapper } from '@/lib/ui-mapper';

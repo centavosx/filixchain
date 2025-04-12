@@ -12,8 +12,8 @@ export class Miner {
   }
 
   connect() {
-    Events.connect('ws://localhost:3002', {
-      ['user-agent']: 'Peso-In-Blockchain-Miner/1.0',
+    Events.connect(process.env.WS_URL, {
+      ['user-agent']: process.env.MINER_USER_AGENT,
     });
 
     Events.createConnectionListener(() => {
