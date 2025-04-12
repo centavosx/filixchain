@@ -183,11 +183,11 @@ export class Account extends BlockAccount {
     for (const tx of transaction) {
       // Transaction nonce are validated first before being added
       if (tx.nonce !== this._nonce) {
-        throw new Error("Tx nonce is not valid for the current user's nonce");
+        throw new Error('Nonce has already been used.');
       }
 
       if (tx.rawFromAddress !== this._address) {
-        throw new Error('This transaction is not for this account');
+        throw new Error('Invalid transaction for this account');
       }
 
       if (tx instanceof Transaction) {
@@ -238,7 +238,7 @@ export class Account extends BlockAccount {
     for (const tx of transaction) {
       // Transaction added should be sent to this address
       if (tx.rawToAddress !== this._address) {
-        throw new Error(`Transaction is not sent to this account`);
+        throw new Error(`Invalid transaction for this account`);
       }
 
       if (this._batches) {

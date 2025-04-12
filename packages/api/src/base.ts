@@ -10,10 +10,7 @@ export class BaseApi {
   private static instance: AxiosInstance;
   static readonly headers = new AxiosHeaders();
 
-  static getToken: () => Promise<{
-    accessToken: string;
-    refreshToken: string;
-  }>;
+  static getToken: () => Promise<string>;
 
   static setGetToken(cb: typeof this.getToken) {
     this.getToken = cb;
@@ -36,7 +33,7 @@ export class BaseApi {
         if (!BaseApi.deferred) {
           this.deferred = new Deferred<void>();
 
-          const { accessToken } = await BaseApi.getToken();
+          const accessToken = await BaseApi.getToken();
 
           BaseApi.headers.set(Session.HEADER_ACCESS_KEY, accessToken);
 
@@ -56,31 +53,15 @@ export class BaseApi {
     this.instance.interceptors.response.use(
       (response) => response,
       async (error) => {
-        const originalRequest = error.config;
-
-        if (
-          !BaseApi.getToken ||
-          originalRequest.url === '/refresh' ||
-          typeof window === 'undefined'
-        )
-          return Promise.reject(error);
-
-        const hasErrored =
+        if (typeof window === 'undefined') return Promise.reject(error);
+        const isForbidden =
           error.response && error.response.status === HttpStatusCode.Forbidden;
 
-        if (hasErrored && originalRequest && !originalRequest._markForRetry) {
-          originalRequest._markForRetry = true;
-
-          try {
-            await this.refresh();
-            return BaseApi.instance(originalRequest);
-          } catch (err) {
-            return Promise.reject(err);
-          }
+        if (isForbidden) {
+          window.location.reload();
         }
 
-        window.location.reload();
-        return;
+        return Promise.reject(error);
       },
     );
 
@@ -172,22 +153,5 @@ export class BaseApi {
     } catch (e) {
       throw new ApiError(e);
     }
-  }
-
-  private static async refresh() {
-    if (BaseApi.deferred) return await BaseApi.deferred.promise;
-
-    const deferred = new Deferred<void>();
-
-    BaseApi.deferred = deferred;
-
-    try {
-      await BaseApi.get<unknown, unknown>(`/refresh`);
-      BaseApi.deferred.resolve();
-    } catch (e) {
-      BaseApi.deferred.reject(e);
-    }
-
-    BaseApi.deferred = undefined;
   }
 }

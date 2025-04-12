@@ -6,7 +6,6 @@ import { Parameter } from '../utils/parameter';
 import { AccountService } from './account.service';
 
 @ApiBearerAuth(Session.HEADER_ACCESS_KEY.toLowerCase())
-@ApiBearerAuth(Session.HEADER_REFRESH_KEY.toLowerCase())
 @ApiTags('Account')
 @Controller('account')
 export class AccountController {

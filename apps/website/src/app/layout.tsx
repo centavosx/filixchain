@@ -7,12 +7,12 @@ import { AppSidebar } from '@/components/app/sidebar';
 import { Header } from '@/components/app/header';
 
 import { BaseApi } from '@ph-blockchain/api';
-import { generateTokens } from '@/lib/server/generate-tokens';
+import { generateToken } from '@/lib/server/generate-tokens';
 import { headers } from 'next/headers';
 import { Providers } from '@/components/provider';
 
 BaseApi.init('http://localhost:3002/api')
-  .setGetToken(generateTokens)
+  .setGetToken(generateToken)
   .headers.setUserAgent('Peso-In-Blockchain-Server/1.0');
 
 const geistSans = Geist({

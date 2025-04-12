@@ -3,6 +3,6 @@ import { cache } from 'react';
 
 const session = new Session(process.env.SESSION_SECRET_KEY as string);
 
-export const generateTokens = cache(async () => {
-  return await session.generateTokens();
+export const generateToken = cache(async () => {
+  return await session.generateToken();
 });

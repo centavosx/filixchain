@@ -1,20 +1,22 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { Session } from '@ph-blockchain/session';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { ConfigService } from '../config/config.service';
+import { RedisService } from '../redis/redis.service';
+import { AppHash } from '@ph-blockchain/hash';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   private session: Session;
+
   constructor(
-    private readonly reflector: Reflector,
     private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
   ) {
     this.session = new Session(configService.get('SESSION_SECRET_KEY'));
     if (configService.get('NODE_ENV') === 'development') {
       this.session
-        .generateTokens('1yr')
+        .generateToken()
         .then((token) => console.log('YOUR TEST TOKEN:', token));
     }
   }
@@ -28,14 +30,11 @@ export class AuthGuard implements CanActivate {
 
     let rawAccessToken =
       request.headers[Session.HEADER_ACCESS_KEY.toLowerCase()];
-    let rawRefreshToken =
-      request.headers[Session.HEADER_REFRESH_KEY.toLowerCase()];
 
     const cookies = request.cookies;
 
     if (!!request.headers.cookie) {
       rawAccessToken = cookies[Session.COOKIE_ACCESS_KEY];
-      rawRefreshToken = cookies[Session.COOKIE_REFRESH_KEY];
     }
 
     const userAgent = request.headers['user-agent'];
@@ -50,31 +49,21 @@ export class AuthGuard implements CanActivate {
     )
       return false;
 
-    const isRefresh = this.reflector.get<boolean>(
-      'token-refresh',
-      context.getHandler(),
-    );
-
     const accessToken = String(rawAccessToken);
 
-    if (!isRefresh) {
-      const isValid = await this.session.isValidToken(String(accessToken));
-      return isValid;
+    const hashedToken = AppHash.createSha256Hash(accessToken);
+
+    // Check if token exists meaning it is invalidated
+    const isInvalidated = await this.redisService.get(`token-${hashedToken}`);
+
+    const isValid =
+      !isInvalidated && (await this.session.isValidToken(accessToken));
+
+    if (!isValid) {
+      const response = context.switchToHttp().getResponse<Response>();
+      response.clearCookie(Session.COOKIE_ACCESS_KEY);
     }
 
-    if (!rawRefreshToken) return false;
-
-    const refreshToken = String(rawRefreshToken);
-
-    const isValid = await this.session.isValidTokens(accessToken, refreshToken);
-
-    if (!isValid) return false;
-
-    request.session = {
-      accessToken,
-      refreshToken,
-    };
-
-    return true;
+    return isValid;
   }
 }

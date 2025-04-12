@@ -38,6 +38,14 @@ export class Transaction {
       blockHeight,
     } = data;
 
+    if (!/^ph-[0-9a-fA-F]{40}$/.test(from)) {
+      throw new Error('From is not a valid wallet address');
+    }
+
+    if (!/^ph-[0-9a-fA-F]{40}$/.test(to)) {
+      throw new Error('To is not a valid wallet address');
+    }
+
     this.from = from;
     this.to = to;
     this.amount = BigInt(amount);

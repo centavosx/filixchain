@@ -6,7 +6,6 @@ import { Parameter } from '../utils/parameter';
 import { BlockService } from './block.service';
 
 @ApiBearerAuth(Session.HEADER_ACCESS_KEY.toLowerCase())
-@ApiBearerAuth(Session.HEADER_REFRESH_KEY.toLowerCase())
 @Controller('block')
 export class BlockController {
   constructor(private readonly blockService: BlockService) {}

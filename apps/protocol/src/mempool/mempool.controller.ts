@@ -6,7 +6,6 @@ import { MempoolDto } from './mempool.dto';
 import { MempoolService } from './mempool.service';
 
 @ApiBearerAuth(Session.HEADER_ACCESS_KEY.toLowerCase())
-@ApiBearerAuth(Session.HEADER_REFRESH_KEY.toLowerCase())
 @ApiTags('Mempool')
 @Controller('mempool')
 export class MempoolController {

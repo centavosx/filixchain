@@ -1669,7 +1669,6 @@ __metadata:
   resolution: "@ph-blockchain/session@workspace:packages/session"
   dependencies:
     jose: "npm:^6.0.10"
-    js-sha256: "npm:^0.11.0"
   languageName: unknown
   linkType: soft
 
@@ -7673,13 +7672,6 @@ __metadata:
   version: 6.0.10
   resolution: "jose@npm:6.0.10"
   checksum: 10c0/d1327afd7fe6011a6648b570b8a220dd89c3d427d6fb3225825650df3249b58bf0f76494179a34a0f7ad185832fb083d6402092d3c7f880c677d0dd38cc75eae
-  languageName: node
-  linkType: hard
-
-"js-sha256@npm:^0.11.0":
-  version: 0.11.0
-  resolution: "js-sha256@npm:0.11.0"
-  checksum: 10c0/90980fe01ca01fbd166751fb16c4caa09c1ab997e8bf77c0764cc05c772c6044946f4c1b3bad266ce78357280d2131d3dc0cf2dd7646e78272996bd4d590aa4f
   languageName: node
   linkType: hard
 

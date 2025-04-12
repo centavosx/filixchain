@@ -22,11 +22,14 @@ import { InitAccountDto, RawBlockDto } from './block.dto';
 import { DbService } from '../db/db.service';
 import * as cookie from 'cookie';
 import { Session } from '@ph-blockchain/session';
-import { ConfigService } from 'src/config/config.service';
+import { ConfigService } from '../config/config.service';
 import { BlockGatewayException } from './block.exception';
+import { RedisService } from '../redis/redis.service';
+import { AppHash } from '@ph-blockchain/hash';
 
 type WsClient = Socket & {
   type: 'miner' | 'user';
+  token?: string;
 };
 
 @WebSocketGateway()
@@ -45,6 +48,7 @@ export class BlockGateway implements OnModuleInit {
   constructor(
     private readonly dbService: DbService,
     private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
   ) {
     this.currentSupply = dbService.blockchain.MAX_SUPPLY;
     this.session = new Session(configService.get('SESSION_SECRET_KEY'));
@@ -114,6 +118,7 @@ export class BlockGateway implements OnModuleInit {
       const handshake = client.handshake;
       const headers = handshake.headers;
       const userAgent = headers['user-agent'];
+
       const isBrowser =
         /Mozilla\/5.0\s\((Macintosh|Windows|Linux|iPhone|Android).*\)/.test(
           userAgent,
@@ -122,18 +127,27 @@ export class BlockGateway implements OnModuleInit {
       if (!!headers.cookie && isBrowser) {
         const cookies = cookie.parse(headers.cookie);
         const rawAccessToken = cookies[Session.COOKIE_ACCESS_KEY];
-        const isValid = await this.session.isValidToken(String(rawAccessToken));
+
+        const accessToken = String(rawAccessToken);
+
+        const hashedToken = AppHash.createSha256Hash(accessToken);
+
+        // Check if token exists meaning it is invalidated
+        const isInvalidated = await this.redisService.get(
+          `token-${hashedToken}`,
+        );
+
+        const isValid =
+          !isInvalidated &&
+          (await this.session.isValidToken(String(rawAccessToken)));
 
         if (!isValid) {
-          throw new BlockGatewayException(
-            'Not a valid a valid authentication',
-            {
-              code: 403,
-              shouldDisconnect: true,
-            },
-          );
+          throw new BlockGatewayException('Not a valid token', {
+            code: 403,
+            shouldDisconnect: true,
+          });
         }
-
+        client.token = hashedToken;
         client.type = 'user';
         return;
       }
@@ -153,6 +167,12 @@ export class BlockGateway implements OnModuleInit {
       });
     } catch (e) {
       this.filterException.catchException(client, e);
+    }
+  }
+
+  async handleDisconnect(client: WsClient) {
+    if (client.token) {
+      await this.redisService.set(`token-${client.token}`, true, 3_600_000);
     }
   }
 
