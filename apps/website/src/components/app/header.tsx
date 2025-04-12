@@ -52,7 +52,7 @@ export const Header = () => {
   }, [error]);
 
   return (
-    <Menubar className="justify-between p-8 w-full bg-background rounded-none">
+    <Menubar className="justify-between p-8 max-md:px-2 w-full bg-background rounded-none gap-4">
       <MenubarMenu>
         <SidebarTrigger />
       </MenubarMenu>
