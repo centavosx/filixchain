@@ -16,6 +16,11 @@ export class MempoolController {
     return this.mempoolService.getMempool();
   }
 
+  @Get(Parameter.hash.path)
+  getPendingTx(@Param(Parameter.hash.key) hash: string) {
+    return this.mempoolService.getPendingTx(hash);
+  }
+
   @Get(`/address/${Parameter.address.path}`)
   getMempoolFromAddress(@Param(Parameter.address.key) address: string) {
     return this.mempoolService.getMempoolFromAddress(address);

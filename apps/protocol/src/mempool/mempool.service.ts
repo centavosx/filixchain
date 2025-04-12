@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { BlockGateway } from '../block/block.gateway';
 import { Transaction } from '@ph-blockchain/block';
 import { DbService } from '../db/db.service';
@@ -17,6 +22,14 @@ export class MempoolService {
         value.serialize(),
       ),
     };
+  }
+
+  public getPendingTx(id: string) {
+    const data = this.blockGateway.mempoolQueue.get(id);
+
+    if (!data) throw new NotFoundException('Not found');
+
+    return data.serialize();
   }
 
   public getMempoolFromAddress(address: string) {

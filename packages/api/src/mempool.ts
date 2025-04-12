@@ -1,3 +1,4 @@
+import { MintOrTxSerialize } from '@ph-blockchain/block';
 import { BaseApi } from './base';
 import { PaginationData } from './types/pagination';
 import { SerializedTransaction } from './types/transaction';
@@ -8,6 +9,12 @@ export class Mempool extends BaseApi {
   static getMempool() {
     return super.get<unknown, PaginationData<SerializedTransaction>>(
       Mempool.baseEndpoint,
+    );
+  }
+
+  static getPendingTxById(id: string) {
+    return super.get<unknown, SerializedTransaction>(
+      `${Mempool.baseEndpoint}/${id}`,
     );
   }
 
