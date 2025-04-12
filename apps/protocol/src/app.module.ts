@@ -6,6 +6,7 @@ import { ConfigModule } from './config/config.module';
 import { DbModule } from './db/db.module';
 import { MempoolModule } from './mempool/mempool.module';
 import { RedisModule } from './redis/redis.module';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -17,5 +18,6 @@ import { RedisModule } from './redis/redis.module';
     BlockModule,
   ],
   controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

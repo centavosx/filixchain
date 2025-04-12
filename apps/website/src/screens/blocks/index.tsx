@@ -1,6 +1,7 @@
 'use client';
 
 import { BlocksTable } from '@/components/app/blocks-table';
+import { Typography } from '@/components/ui/typography';
 import { useGetBlocksQuery } from '@/hooks/api/use-get-blocks';
 
 type BlocksScreenProps = {
@@ -20,6 +21,7 @@ export default function BlocksScreen({
   });
   return (
     <div className="flex flex-col p-6 gap-8">
+      <Typography as="h4">Blocks</Typography>
       <BlocksTable
         data={blocks?.data ?? []}
         pagination={{

@@ -28,8 +28,8 @@ const items = [
     icon: BlocksIcon,
   },
   {
-    title: 'Transactions',
-    url: '/transaction',
+    title: 'Mempool',
+    url: '/mempool',
     icon: Receipt,
   },
 ];
@@ -56,10 +56,10 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       <item.icon />
-                      <Label>{item.title}</Label>
-                    </a>
+                      <Label className="cursor-pointer">{item.title}</Label>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

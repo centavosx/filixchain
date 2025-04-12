@@ -59,8 +59,8 @@ export const TransactionTable = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((tx) => (
-            <TableRow key={tx.transactionId}>
+          {data.map((tx, index) => (
+            <TableRow key={`${tx.transactionId}_${index}`}>
               {!shouldExcludeBlock && (
                 <TableCell className="font-medium">{tx.blockHeight}</TableCell>
               )}

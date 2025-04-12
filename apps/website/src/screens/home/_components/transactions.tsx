@@ -49,9 +49,7 @@ export const TransactionsSection = () => {
 
   return (
     <div className="flex flex-col gap-4 w-full">
-      <Label asChild>
-        <Typography as="h4">Latest Transactions</Typography>
-      </Label>
+      <Typography as="h4">Latest Transactions</Typography>
       <TransactionTable data={txs} />
     </div>
   );

@@ -1,7 +1,6 @@
 import { getQueryClient } from '@/lib/query-client';
+import { UiMapper } from '@/lib/ui-mapper';
 import { Block } from '@ph-blockchain/api';
-import { MintOrTxSerialize } from '@ph-blockchain/block';
-import { Transform } from '@ph-blockchain/transformer';
 import { QueryClient, useQuery } from '@tanstack/react-query';
 
 export const prefetchGetTransactionByIdQuery = async ({
@@ -20,24 +19,10 @@ export const prefetchGetTransactionByIdQuery = async ({
   return queryClient;
 };
 
-export const getTransactionByIdQueryAdapter = (data: MintOrTxSerialize) => {
-  return {
-    ...data,
-    displayCreated: Transform.date.formatToReadable(Number(data.timestamp)),
-    displayAmount: `${Transform.toHighestUnit(data.amount)} PESO`,
-    mintData:
-      'fixedFee' in data
-        ? {
-            displayFixedFee: `${Transform.toHighestUnit(data.fixedFee)} PESO`,
-          }
-        : undefined,
-  };
-};
-
 export const useGetTransactionByIdQueryQuery = (txHash: string) => {
   return useQuery({
     queryKey: ['blocks', 'transactions', txHash],
     queryFn: () => Block.getTransactionById(txHash),
-    select: getTransactionByIdQueryAdapter,
+    select: UiMapper.transaction,
   });
 };

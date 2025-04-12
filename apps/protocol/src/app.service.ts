@@ -1,10 +1,10 @@
-import { catchError } from './../../website/src/lib/catch-error';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { SearchDto } from './dto/search-dto';
 import { BlockGateway } from './block/block.gateway';
 import { DbService } from './db/db.service';
 import { Transform } from '@ph-blockchain/transformer';
 import { Transaction } from '@ph-blockchain/block';
+import { catchError } from './utils/catch-error';
 
 @Injectable()
 export class AppService {
@@ -50,20 +50,6 @@ export class AppService {
       }
     }
 
-    if (isFinite(Number(value))) {
-      const blockUsingHeight = await catchError(
-        async () =>
-          await this.dbService.blockchain.getBlockByHeight(Number(value)),
-      );
-
-      if (!!blockUsingHeight) {
-        return {
-          type: 'height',
-          value: blockUsingHeight.height.toString(),
-        };
-      }
-    }
-
     const valueWithoutPrefix = Transform.removePrefix(
       value.trim(),
       Transaction.prefix,
@@ -79,6 +65,20 @@ export class AppService {
         return {
           type: 'account',
           value: account.address,
+        };
+      }
+    }
+
+    if (isFinite(Number(value))) {
+      const blockUsingHeight = await catchError(
+        async () =>
+          await this.dbService.blockchain.getBlockByHeight(Number(value)),
+      );
+
+      if (!!blockUsingHeight) {
+        return {
+          type: 'height',
+          value: blockUsingHeight.height.toString(),
         };
       }
     }

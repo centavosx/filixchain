@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Typography } from '@/components/ui/typography';
 import { useGetBlocksQuery } from '@/hooks/api/use-get-blocks';
 import { UiMapper } from '@/lib/ui-mapper';
@@ -52,9 +51,8 @@ export const BlockSection = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <Label asChild>
-        <Typography as="h4">Latest Blocks</Typography>
-      </Label>
+      <Typography as="h4">Latest Blocks</Typography>
+
       {blocks.map((value) => (
         <Card className="shadow-xl" key={value.blockHash}>
           <CardHeader className="gap-2">
@@ -84,7 +82,13 @@ export const BlockSection = () => {
             <Typography as="large">
               Transactions: {value.transactionSize}
             </Typography>
-            <Button className="max-w-32 mt-4" href={value.viewLink}>
+            <Button
+              className="w-full"
+              href={value.viewLink}
+              linkProps={{
+                className: 'max-w-32 mt-4',
+              }}
+            >
               View
             </Button>
           </CardContent>

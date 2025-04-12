@@ -19,10 +19,17 @@ export class UiMapper {
   static transaction(value: MintOrTxSerialize) {
     return {
       ...value,
+      displayCreated: Transform.date.formatToReadable(Number(value.timestamp)),
       displayAmount: `${(
         BigInt(value.amount) / Transaction.TX_CONVERSION_UNIT
       ).toString()} PESO`,
       viewLink: `/transaction/${value.transactionId}`,
+      mintData:
+        'fixedFee' in value
+          ? {
+              displayFixedFee: `${Transform.toHighestUnit(value.fixedFee)} PESO`,
+            }
+          : undefined,
     };
   }
 

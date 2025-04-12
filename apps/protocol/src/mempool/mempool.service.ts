@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
-  OnModuleInit,
 } from '@nestjs/common';
 import { BlockGateway } from '../block/block.gateway';
 import { Transaction } from '@ph-blockchain/block';

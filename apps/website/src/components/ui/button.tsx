@@ -42,7 +42,11 @@ export interface ButtonProps
   asChild?: boolean;
   isLoading?: boolean;
   href?: string;
-  linkProps?: LinkProps;
+  linkProps?: Partial<
+    LinkProps & {
+      className: string;
+    }
+  >;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
