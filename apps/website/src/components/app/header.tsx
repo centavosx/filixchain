@@ -6,7 +6,7 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Menubar, MenubarMenu, MenubarTrigger } from '../ui/menubar';
+import { Menubar, MenubarMenu } from '../ui/menubar';
 import { SidebarTrigger } from '../ui/sidebar';
 import { AuthSheet } from './auth-sheet';
 import { appToast } from './custom-toast';
@@ -55,7 +55,6 @@ export const Header = () => {
     <Menubar className="justify-between p-8 w-full bg-background rounded-none">
       <MenubarMenu>
         <SidebarTrigger />
-        <MenubarTrigger>Block Explorer</MenubarTrigger>
       </MenubarMenu>
       <MenubarMenu>
         <div className="flex gap-4 flex-1 items-center justify-end">

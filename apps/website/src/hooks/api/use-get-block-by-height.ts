@@ -1,4 +1,5 @@
 import { getQueryClient } from '@/lib/query-client';
+import { UiMapper } from '@/lib/ui-mapper';
 import { Block } from '@ph-blockchain/api';
 import { Minter, RawBlock, Transaction } from '@ph-blockchain/block';
 import { Transform } from '@ph-blockchain/transformer';
@@ -30,13 +31,7 @@ export const getBlockByHeightQueryAdapter = (data: RawBlock) => {
             ? Minter.decode(encoded)
             : Transaction.decode(encoded);
         const value = mintOrTx.serialize();
-        return {
-          ...value,
-          displayAmount: `${(
-            BigInt(value.amount) / Transaction.TX_CONVERSION_UNIT
-          ).toString()} PESO`,
-          viewLink: `/transaction/${value.transactionId}`,
-        };
+        return UiMapper.transaction(value);
       }) ?? [],
     displayCreated: Transform.date.formatToReadable(Number(data.timestamp)),
   };

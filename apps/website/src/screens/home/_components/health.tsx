@@ -11,16 +11,17 @@ import { Events } from '@ph-blockchain/api';
 import { useEffect, useState } from 'react';
 
 export const HealthSection = () => {
-  const [health, setHealth] = useState<{
-    supply: string;
-    numberOfBlocks: string;
-    txSize: string;
-  }>();
   const { data } = useGetBlockHealthQuery();
+  const [health, setHealth] = useState<
+    | {
+        supply: string;
+        numberOfBlocks: string;
+        txSize: string;
+      }
+    | undefined
+  >(data);
 
   useEffect(() => {
-    setHealth(data);
-
     const off = Events.createBlockHealthListener((value) =>
       setHealth(getBlockHealthAdapter(value)),
     );
@@ -28,7 +29,7 @@ export const HealthSection = () => {
     return () => {
       off();
     };
-  }, [data]);
+  }, []);
 
   return (
     <section>
