@@ -19,7 +19,9 @@ export class UiMapper {
   static transaction(value: MintOrTxSerialize) {
     return {
       ...value,
-      displayCreated: Transform.date.formatToReadable(Number(value.timestamp)),
+      displayCreated: value.timestamp
+        ? Transform.date.formatToReadable(Number(value.timestamp))
+        : undefined,
       displayAmount: `${(
         BigInt(value.amount) / Transaction.TX_CONVERSION_UNIT
       ).toString()} PESO`,

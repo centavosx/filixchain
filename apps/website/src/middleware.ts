@@ -7,8 +7,8 @@ BaseApi.init('http://localhost:3002/api')
   .setGetToken(generateToken)
   .headers.setUserAgent('Peso-In-Blockchain-Server/1.0');
 
-export default withAuth({
-  middleware: withCsp(),
+export default withCsp({
+  middleware: withAuth({}),
 });
 
 export const config = {

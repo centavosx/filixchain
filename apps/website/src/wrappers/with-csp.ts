@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { Session } from '@ph-blockchain/session';
+import { NextRequest, NextResponse, userAgent } from 'next/server';
 
 export type WithAuthOpts = {
   middleware?: (
@@ -12,9 +13,19 @@ export const withCsp =
     request: NextRequest,
     _response: NextResponse,
   ): Promise<NextResponse<unknown>> => {
+    const { browser } = userAgent(request);
+
     const response = NextResponse.next({
       headers: _response.headers,
     });
+
+    if (!browser.major || !browser.name) {
+      const newResponse = NextResponse.rewrite(
+        new URL('/not-found', request.url),
+      );
+      newResponse.cookies.delete(Session.COOKIE_ACCESS_KEY);
+      return newResponse;
+    }
 
     const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
 
