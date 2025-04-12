@@ -1633,6 +1633,7 @@ __metadata:
     "@ph-blockchain/api": "npm:*"
     "@ph-blockchain/block": "npm:*"
     "@ph-blockchain/hash": "npm:*"
+    "@ph-blockchain/session": "npm:*"
     "@ph-blockchain/transformer": "npm:*"
   languageName: unknown
   linkType: soft
@@ -1652,6 +1653,7 @@ __metadata:
     "@nestjs/websockets": "npm:^11.0.3"
     "@ph-blockchain/block": "npm:*"
     "@ph-blockchain/hash": "npm:*"
+    "@ph-blockchain/session": "npm:*"
     "@ph-blockchain/transformer": "npm:*"
     "@types/cookie-parser": "npm:^1.4.8"
     "@types/express": "npm:^5.0.0"
@@ -1690,6 +1692,7 @@ __metadata:
     "@ph-blockchain/api": "npm:*"
     "@ph-blockchain/block": "npm:*"
     "@ph-blockchain/hash": "npm:*"
+    "@ph-blockchain/session": "npm:*"
     "@ph-blockchain/transformer": "npm:*"
     "@radix-ui/react-dialog": "npm:^1.1.5"
     "@radix-ui/react-label": "npm:^2.1.1"
