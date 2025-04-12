@@ -1,12 +1,5 @@
-import { BaseApi } from '@ph-blockchain/api';
 import { withAuth } from './wrappers/with-auth';
 import { withCsp } from './wrappers/with-csp';
-import { generateToken } from './lib/server/generate-tokens';
-import { Config } from './constants/config';
-
-BaseApi.init(Config.apiBaseUrl)
-  .setGetToken(generateToken)
-  .headers.setUserAgent(Config.userAgent);
 
 export default withCsp({
   middleware: withAuth({}),

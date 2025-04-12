@@ -10,14 +10,14 @@
   "scripts": {
     "test": "jest --verbose",
     "test:watch": "jest --watch --verbose",
-    "build": "tsc"
+    "build": "npx tsc"
   },
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@ph-blockchain/session": "*",
+    "@ph-blockchain/session": "workspace:*",
     "axios": "^1.7.9",
     "qs": "^6.14.0",
     "socket.io-client": "^4.8.1"

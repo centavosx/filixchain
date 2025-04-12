@@ -1,4 +1,4 @@
-import { AppHash, Crypto } from '@ph-blockchain/hash';
+import { AppHash } from '@ph-blockchain/hash';
 import { Transaction } from './transaction';
 import { RawBlock } from './types';
 import { Minter } from './minter';
@@ -18,7 +18,7 @@ export class Block {
   readonly targetHash: string;
 
   private _blockHash: string;
-  private _merkleRoot: string;
+  private _merkleRoot?: string | null;
   private _nonce = 0;
   private _isMined = false;
 
@@ -35,7 +35,7 @@ export class Block {
   ) {
     this.version = version;
     this.height = height;
-    this.timestamp = timestamp;
+    this.timestamp = timestamp ?? Date.now();
     this.transactions = new Set(transactions);
     this.previousHash = previousHash ?? Block.genesisHash;
     this.targetHash = targetHash;

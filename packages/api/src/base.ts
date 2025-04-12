@@ -31,13 +31,13 @@ export class BaseApi {
         if (typeof window !== 'undefined') return config;
 
         if (!BaseApi.deferred) {
-          this.deferred = new Deferred<void>();
+          BaseApi.deferred = new Deferred<void>();
 
           const accessToken = await BaseApi.getToken();
 
           BaseApi.headers.set(Session.HEADER_ACCESS_KEY, accessToken);
 
-          BaseApi.deferred.resolve();
+          BaseApi.deferred?.resolve();
           BaseApi.deferred = undefined;
         } else {
           await BaseApi.deferred?.promise;
@@ -81,7 +81,7 @@ export class BaseApi {
 
       return response.data as Result;
     } catch (e) {
-      throw new ApiError(e);
+      throw new ApiError(e as any);
     }
   }
   protected static async delete<Params, Result>(
@@ -97,7 +97,7 @@ export class BaseApi {
 
       return response.data as Result;
     } catch (e) {
-      throw new ApiError(e);
+      throw new ApiError(e as any);
     }
   }
 
@@ -115,7 +115,7 @@ export class BaseApi {
 
       return response.data as Result;
     } catch (e) {
-      throw new ApiError(e);
+      throw new ApiError(e as any);
     }
   }
 
@@ -133,7 +133,7 @@ export class BaseApi {
 
       return response.data as Result;
     } catch (e) {
-      throw new ApiError(e);
+      throw new ApiError(e as any);
     }
   }
 
@@ -151,7 +151,7 @@ export class BaseApi {
 
       return response.data as Result;
     } catch (e) {
-      throw new ApiError(e);
+      throw new ApiError(e as any);
     }
   }
 }

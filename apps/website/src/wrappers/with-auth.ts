@@ -1,5 +1,4 @@
 import { generateToken } from '@/lib/server/generate-tokens';
-import { AppApi } from '@ph-blockchain/api';
 import { Session } from '@ph-blockchain/session';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -27,19 +26,10 @@ export const withAuth =
       );
     };
 
-    let newAccessToken: string | undefined;
+    const token = await generateToken();
 
-    const token = request.cookies.get(Session.COOKIE_ACCESS_KEY);
-
-    try {
-      if (!token) throw new Error();
-      await AppApi.getHealth();
-    } catch {
-      newAccessToken = await generateToken();
-    }
-
-    if (newAccessToken) {
-      response.cookies.set(Session.COOKIE_ACCESS_KEY, newAccessToken, {
+    if (token) {
+      response.cookies.set(Session.COOKIE_ACCESS_KEY, token, {
         maxAge: 10800,
         sameSite: 'strict',
         secure: false,

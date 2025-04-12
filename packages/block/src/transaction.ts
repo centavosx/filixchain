@@ -70,7 +70,7 @@ export class Transaction {
       amount: this.amount.toString(),
       nonce: this.nonce.toString(),
       version: this.version.toString(),
-      signature: this.signature.signedMessage,
+      signature: this.signature?.signedMessage,
       fixedFee: Transaction.FIXED_FEE.toString(),
       timestamp: this._timestamp?.toString(),
       blockHeight: this._blockHeight?.toString(),
@@ -101,7 +101,7 @@ export class Transaction {
         'Public key and signed message is not added in the signature field',
       );
 
-    const { publicKey, signedMessage } = signature;
+    const { publicKey = '', signedMessage = '' } = signature ?? {};
 
     const encodedVersion = Crypto.encodeIntTo8BytesString(version);
     const encodedNonce = Crypto.encodeIntTo8BytesString(nonce);

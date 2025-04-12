@@ -19,7 +19,7 @@ import { Account } from './account';
 export class Blockchain {
   static SUPPLY_KEY = 'SUPPLY';
   static SIZE_KEY = 'SIZE';
-  static MAX_SUPPLY = Transaction.TX_CONVERSION_UNIT ** BigInt(2);
+  static MAX_SUPPLY = BigInt(Number(Transaction.TX_CONVERSION_UNIT) ** 2);
 
   private static _isOpen = false;
   private static _db: Level<string, string>;

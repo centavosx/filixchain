@@ -9,14 +9,17 @@
   "scripts": {
     "start": "MINER_ENV=production node dist/index.js",
     "start:dev": "MINER_ENV=development npx --env-file=.env.development ts-node src/index.ts",
-    "build": "MINER_ENV=production tsc"
+    "build": "MINER_ENV=production npx tsc"
   },
   "dependencies": {
-    "@ph-blockchain/api": "*",
-    "@ph-blockchain/block": "*",
-    "@ph-blockchain/hash": "*",
-    "@ph-blockchain/session": "*",
-    "@ph-blockchain/transformer": "*",
+    "@ph-blockchain/api": "workspace:*",
+    "@ph-blockchain/block": "workspace:*",
+    "@ph-blockchain/hash": "workspace:*",
+    "@ph-blockchain/session": "workspace:*",
+    "@ph-blockchain/transformer": "workspace:*",
     "dotenv": "^16.5.0"
+  },
+  "devDependencies": {
+    "typescript": "5.1.3"
   }
 }

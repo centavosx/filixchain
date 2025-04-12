@@ -12,7 +12,7 @@ import { headers } from 'next/headers';
 import { Providers } from '@/components/provider';
 import { Config } from '@/constants/config';
 
-BaseApi.init(Config.apiBaseUrl)
+BaseApi.init(Config.serverApiBaseUrl)
   .setGetToken(generateToken)
   .headers.setUserAgent(Config.userAgent);
 

@@ -10,14 +10,14 @@
   "scripts": {
     "test": "jest --verbose",
     "test:watch": "jest --watch --verbose",
-    "build": "tsc"
+    "build": "npx tsc"
   },
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@ph-blockchain/transformer": "*",
+    "@ph-blockchain/transformer": "workspace:*",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {

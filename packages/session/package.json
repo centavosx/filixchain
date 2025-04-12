@@ -10,7 +10,7 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "build": "tsc"
+    "build": "npx tsc"
   },
   "dependencies": {
     "jose": "^6.0.10"

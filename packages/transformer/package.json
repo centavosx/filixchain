@@ -10,9 +10,10 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "build": "tsc"
+    "build": "npx tsc"
   },
   "dependencies": {
+    "@ph-blockchain/block": "workspace:*",
     "date-fns": "^4.1.0",
     "level": "^9.0.0"
   },

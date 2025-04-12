@@ -4,7 +4,7 @@ export class Session {
   static readonly COOKIE_ACCESS_KEY = 'access';
   static readonly HEADER_ACCESS_KEY = 'X-Access-Key';
 
-  private _encodedKey: Uint8Array<ArrayBufferLike>;
+  private _encodedKey: Uint8Array;
 
   constructor(key: string) {
     this._encodedKey = new TextEncoder().encode(key);

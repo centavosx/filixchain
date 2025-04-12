@@ -12,7 +12,6 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException,
 } from '@nestjs/websockets';
 import { Minter, MintOrTx, Transaction } from '@ph-blockchain/block';
 import { Block } from '@ph-blockchain/block';

@@ -10,10 +10,10 @@
   "scripts": {
     "test": "jest --verbose",
     "test:watch": "jest --watch --verbose",
-    "build": "tsc"
+    "build": "npx tsc"
   },
   "dependencies": {
-    "@ph-blockchain/hash": "*"
+    "@ph-blockchain/hash": "workspace:*"
   },
   "jest": {
     "preset": "ts-jest",

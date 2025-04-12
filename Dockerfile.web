@@ -1,0 +1,52 @@
+FROM node:22.12.0-alpine AS base
+
+FROM base AS builder
+
+WORKDIR /app
+
+RUN corepack enable
+
+RUN corepack prepare yarn@4.5.3 --activate
+
+copy .yarn ./.yarn
+COPY .yarnrc.yml ./
+COPY package.json yarn.lock ./
+COPY apps/website ./apps/website
+COPY packages ./packages
+
+RUN yarn workspaces focus @ph-blockchain/website
+
+ENV NEXT_TELEMETRY_DISABLED 1
+
+ARG SESSION_SECRET_KEY
+ARG SERVER_USER_AGENT
+ARG NEXT_PUBLIC_BASE_API_URL
+ARG NEXT_PUBLIC_WS_API_URL
+ARG SERVER_BASE_API_URL
+
+ENV SESSION_SECRET_KEY=${SESSION_SECRET_KEY} \
+    SERVER_USER_AGENT=${SERVER_USER_AGENT} \
+    NEXT_PUBLIC_BASE_API_URL=${NEXT_PUBLIC_BASE_API_URL} \
+    NEXT_PUBLIC_WS_API_URL=${NEXT_PUBLIC_WS_API_URL} \
+    SERVER_BASE_API_URL=${SERVER_BASE_API_URL}
+
+RUN yarn build:package
+
+RUN yarn website build
+
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+USER nextjs
+
+COPY --from=builder --chown=nextjs:nodejs /app/apps/website/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/website/public ./apps/website/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/website/.next/static ./apps/website/.next/static
+
+EXPOSE 3000
+
+CMD ["node", "apps/website/server.js"]

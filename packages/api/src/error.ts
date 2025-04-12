@@ -13,7 +13,7 @@ export class ApiError extends AxiosError<
   }
 
   get title() {
-    return this.response.statusText;
+    return this.response?.statusText;
   }
 
   get subtitle() {
@@ -21,7 +21,7 @@ export class ApiError extends AxiosError<
   }
 
   get messages() {
-    const message = this.response.data?.message;
+    const message = this.response?.data?.message;
     if (!message) {
       return [this.message];
     }

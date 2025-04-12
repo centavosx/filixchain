@@ -7,6 +7,6 @@ export type RawBlock = {
   readonly targetHash: string;
   readonly blockHash: string;
   readonly nonce: number;
-  readonly merkleRoot: string;
+  readonly merkleRoot: string | null;
   readonly transactionSize: number;
 };

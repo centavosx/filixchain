@@ -1,0 +1,67 @@
+FROM node:22.12.0-alpine AS base
+
+FROM base AS builder
+
+WORKDIR /app
+
+RUN corepack enable
+
+RUN corepack prepare yarn@4.5.3 --activate
+
+copy .yarn ./.yarn
+COPY .yarnrc.yml .
+COPY package.json yarn.lock ./
+COPY apps/protocol ./apps/protocol
+COPY packages ./packages
+COPY .env .env
+
+RUN yarn workspaces focus @ph-blockchain/protocol
+
+RUN yarn transformer build
+RUN yarn hash build
+RUN yarn block build
+RUN yarn session build
+RUN yarn protocol build
+
+RUN rm -rf node_modules
+RUN yarn cache clean
+
+RUN yarn workspaces focus --production @ph-blockchain/protocol
+
+FROM base AS runner
+WORKDIR /app
+
+ARG NODE_ENV
+ARG WS_PORT
+ARG SESSION_SECRET_KEY
+ARG SERVER_USER_AGENT
+ARG MINER_USER_AGENT
+ARG REDIS_HOST
+ARG REDIS_PORT
+ARG REDIS_PASS
+ARG HTTP_ALLOWED_ORIGIN
+ARG WS_ALLOWED_ORIGIN
+
+ENV NODE_ENV=staging \
+    PORT=3003 \
+    WS_PORT=${WS_PORT} \
+    SESSION_SECRET_KEY=${SESSION_SECRET_KEY} \
+    SERVER_USER_AGENT=${SERVER_USER_AGENT} \
+    MINER_USER_AGENT=${MINER_USER_AGENT} \
+    REDIS_HOST=${REDIS_HOST} \
+    REDIS_PORT=${REDIS_PORT} \
+    REDIS_PASS=${REDIS_PASS} \
+    HTTP_ALLOWED_ORIGIN=${HTTP_ALLOWED_ORIGIN} \
+    WS_ALLOWED_ORIGIN=${WS_ALLOWED_ORIGIN}
+
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/apps/protocol/dist ./dist
+COPY --from=builder /app/packages/transformer ./packages/transformer
+COPY --from=builder /app/packages/hash ./packages/hash
+COPY --from=builder /app/packages/block ./packages/block
+COPY --from=builder /app/packages/session ./packages/session
+COPY --from=builder /app/node_modules ./node_modules
+
+EXPOSE 3003
+
+CMD ["node", "dist/main"]

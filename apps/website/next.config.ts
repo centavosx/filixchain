@@ -16,10 +16,12 @@ try {
 }
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   webpack(config, { isServer }) {
     config.experiments = {
       layers: true,
       asyncWebAssembly: true,
+      syncWebAssembly: true,
     };
 
     // github.com/vercel/next.js/issues/64792)
