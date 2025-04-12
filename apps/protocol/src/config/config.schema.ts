@@ -1,5 +1,6 @@
-import { plainToInstance, Type } from 'class-transformer';
+import { plainToInstance, Transform, Type } from 'class-transformer';
 import {
+  IsArray,
   IsIn,
   IsInt,
   IsOptional,
@@ -8,6 +9,16 @@ import {
 } from 'class-validator';
 
 export class EnvironmentVariables {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  HTTP_PORT: number = 3002;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  WS_PORT: number = 0;
+
   @IsString()
   SESSION_SECRET_KEY: string;
 
@@ -27,6 +38,18 @@ export class EnvironmentVariables {
 
   @IsString()
   REDIS_PASS: string;
+
+  @Transform(({ value }) => value?.split(','))
+  @IsString({
+    each: true,
+  })
+  HTTP_ALLOWED_ORIGIN: string[];
+
+  @Transform(({ value }) => value?.split(','))
+  @IsString({
+    each: true,
+  })
+  WS_ALLOWED_ORIGIN: string[];
 }
 
 export function validate(config: Record<string, unknown>) {

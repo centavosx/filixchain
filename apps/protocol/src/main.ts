@@ -7,12 +7,14 @@ import { AppModule } from './app.module';
 import { ConfigService } from './config/config.service';
 import { AuthGuard } from './guards/auth.guard';
 import { RedisService } from './redis/redis.service';
+import { SocketAdapter } from './adapter/socket.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
   const redisService = app.get(RedisService);
+
   app.use(cookieParser());
   app.setGlobalPrefix('api');
   app.useGlobalGuards(new AuthGuard(configService, redisService));
@@ -39,12 +41,13 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, documentFactory);
 
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: configService.get('HTTP_ALLOWED_ORIGIN'),
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: `Content-Type, ${Session.HEADER_ACCESS_KEY.toLowerCase()}`,
     credentials: true,
   });
+  app.useWebSocketAdapter(new SocketAdapter(app, configService));
 
-  await app.listen(process.env.PORT ?? 3002);
+  await app.listen(configService.get('HTTP_PORT'));
 }
 bootstrap();
