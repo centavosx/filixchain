@@ -30,9 +30,9 @@ export const withAuth =
 
     if (token) {
       response.cookies.set(Session.COOKIE_ACCESS_KEY, token, {
-        maxAge: 10800,
-        sameSite: 'strict',
-        secure: false,
+        maxAge: 3600,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
       });
     }
