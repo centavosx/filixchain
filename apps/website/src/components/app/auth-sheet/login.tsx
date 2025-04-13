@@ -87,7 +87,7 @@ export const LoginSheetContent = () => {
             </Alert>
           )}
           <SheetFooter>
-            <Button variant="outline" onClick={reset}>
+            <Button type="button" variant="outline" onClick={reset}>
               Reset
             </Button>
             <Button type="submit" isLoading={isSubmitting}>

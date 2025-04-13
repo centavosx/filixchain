@@ -1,4 +1,8 @@
 export class Config {
+  static get isDevelop() {
+    return process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+  }
+
   static get sessionKey() {
     return process.env.SESSION_SECRET_KEY as string;
   }
@@ -25,5 +29,9 @@ export class Config {
 
   static get serverApiBaseUrl() {
     return `${this.serverHttpApiUrl}/api`;
+  }
+
+  static get cookieDomain() {
+    return process.env.COOKIE_DOMAIN as string;
   }
 }
