@@ -1,7 +1,8 @@
-import { HttpStatus } from '@nestjs/common';
 import { Events } from '@ph-blockchain/api';
 import { Block, Minter, Transaction } from '@ph-blockchain/block';
 import { Transform } from '@ph-blockchain/transformer';
+
+const NODE_ENV = process.env.MINER_ENV ?? 'development';
 
 export class Miner {
   private currentMiningBlock: Block;
@@ -46,7 +47,7 @@ export class Miner {
       }
 
       if (!this.currentMiningBlock?.isMined) {
-        await this.currentMiningBlock.mine(true);
+        await this.currentMiningBlock.mine(NODE_ENV === 'development');
       }
 
       if (!this.currentMiningBlock.isMined) return;
@@ -68,7 +69,7 @@ export class Miner {
     });
 
     Events.createErrorListener((e) => {
-      if (e.statusCode === HttpStatus.BAD_REQUEST) {
+      if (e.statusCode === 403) {
         console.log(
           `\rSomething went wrong with your block. MESSAGE: ${e.data.message}`,
         );

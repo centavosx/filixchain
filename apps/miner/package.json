@@ -7,9 +7,9 @@
   "license": "UNLICENSED",
   "packageManager": "yarn@4.5.3",
   "scripts": {
-    "start": "MINER_ENV=production node dist/index.js",
+    "start": "node dist/index.js",
     "start:dev": "MINER_ENV=development npx --env-file=.env.development ts-node src/index.ts",
-    "build": "MINER_ENV=production npx tsc"
+    "build": "npx tsc"
   },
   "dependencies": {
     "@ph-blockchain/api": "workspace:*",

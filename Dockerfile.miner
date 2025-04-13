@@ -1,0 +1,41 @@
+FROM node:22.12.0-alpine AS base
+
+FROM base AS builder
+
+WORKDIR /app
+
+RUN corepack enable
+
+RUN corepack prepare yarn@4.5.3 --activate
+
+copy .yarn ./.yarn
+COPY .yarnrc.yml ./
+COPY package.json yarn.lock ./
+COPY apps/miner ./apps/miner
+COPY packages ./packages
+
+RUN yarn workspaces focus @ph-blockchain/miner
+
+RUN yarn build:package
+
+RUN yarn miner build
+
+FROM base AS runner
+WORKDIR /app
+
+ARG NODE_ENV
+ARG MINER_WALLET_ADDRESS
+ARG MINER_USER_AGENT
+ARG WS_URL
+
+ENV NODE_ENV=${NODE_ENV} \
+    MINER_WALLET_ADDRESS=${MINER_WALLET_ADDRESS} \
+    MINER_USER_AGENT=${MINER_USER_AGENT} \
+    WS_URL=${WS_URL}
+
+COPY --from=builder --chown=nextjs:nodejs /app/apps/miner/dist ./dist
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+
+CMD ["node", "dist/index.js"]

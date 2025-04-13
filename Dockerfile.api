@@ -13,7 +13,6 @@ COPY .yarnrc.yml .
 COPY package.json yarn.lock ./
 COPY apps/protocol ./apps/protocol
 COPY packages ./packages
-COPY .env .env
 
 RUN yarn workspaces focus @ph-blockchain/protocol
 
@@ -41,9 +40,10 @@ ARG REDIS_PORT
 ARG REDIS_PASS
 ARG HTTP_ALLOWED_ORIGIN
 ARG WS_ALLOWED_ORIGIN
+ARG HTTP_PORT
 
-ENV NODE_ENV=staging \
-    PORT=3003 \
+ENV NODE_ENV=${NODE_ENV} \
+    HTTP_PORT=${HTTP_PORT} \
     WS_PORT=${WS_PORT} \
     SESSION_SECRET_KEY=${SESSION_SECRET_KEY} \
     SERVER_USER_AGENT=${SERVER_USER_AGENT} \
@@ -61,7 +61,5 @@ COPY --from=builder /app/packages/hash ./packages/hash
 COPY --from=builder /app/packages/block ./packages/block
 COPY --from=builder /app/packages/session ./packages/session
 COPY --from=builder /app/node_modules ./node_modules
-
-EXPOSE 3003
 
 CMD ["node", "dist/main"]

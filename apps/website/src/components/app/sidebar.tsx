@@ -42,7 +42,7 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link href="/">
-                <Typography as="large">PESO IN BLOCKCHAIN</Typography>
+                <Typography as="large">FiliXChain</Typography>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

@@ -20,12 +20,10 @@ export class Config {
   }
 
   static get apiBaseUrl() {
-    console.log(this.httpApiUrl);
     return `${this.httpApiUrl}/api`;
   }
 
   static get serverApiBaseUrl() {
-    console.log(this.serverHttpApiUrl);
     return `${this.serverHttpApiUrl}/api`;
   }
 }

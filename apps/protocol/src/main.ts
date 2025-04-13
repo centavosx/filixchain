@@ -48,6 +48,15 @@ async function bootstrap() {
   });
   app.useWebSocketAdapter(new SocketAdapter(app, configService));
 
-  await app.listen(configService.get('HTTP_PORT'));
+  const port = configService.get('HTTP_PORT');
+
+  await app.listen(port, () => {
+    console.log(`LISTENING TO: 0.0.0.0:${port}`, 'CORS: ', {
+      origin: configService.get('HTTP_ALLOWED_ORIGIN'),
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      allowedHeaders: `Content-Type, ${Session.HEADER_ACCESS_KEY.toLowerCase()}`,
+      credentials: true,
+    });
+  });
 }
 bootstrap();
