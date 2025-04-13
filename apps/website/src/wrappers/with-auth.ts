@@ -31,7 +31,8 @@ export const withAuth =
     if (token) {
       response.cookies.set(Session.COOKIE_ACCESS_KEY, token, {
         maxAge: 3600,
-        sameSite: 'lax',
+        sameSite: 'none',
+        domain: '.filixchain.xyz',
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
       });
