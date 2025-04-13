@@ -26,6 +26,7 @@ import {
 } from '../ui/form';
 import { usePostSubscribe } from '@/hooks/api/use-post-subscribe';
 import { appToast } from './custom-toast';
+import { useState } from 'react';
 
 const CreateTransactionSchema = z.object({
   to: z.string().regex(/^ph-[0-9a-fA-F]{40}/, 'Not a valid address'),
@@ -33,6 +34,8 @@ const CreateTransactionSchema = z.object({
 });
 
 export const TransactionDialog = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const { mutateAsync, isPending } = usePostSubscribe();
   const { account: authAccount } = useAuthStore();
   const { account } = useUserAccountStore();
@@ -68,6 +71,7 @@ export const TransactionDialog = () => {
 
     await mutateAsync([encodedTransaction], {
       onSuccess: ({ data }) => {
+        setIsDialogOpen(false);
         appToast({
           type: 'success',
           title: 'Added to mempool',
@@ -90,7 +94,7 @@ export const TransactionDialog = () => {
 
   return (
     <Form {...form}>
-      <Dialog>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button variant="outline">Send</Button>
         </DialogTrigger>
