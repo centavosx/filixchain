@@ -22,18 +22,28 @@ export const prefetchGetBlockByHeightQuery = async ({
 };
 
 export const getBlockByHeightQueryAdapter = (data: RawBlock) => {
+  const mappedTransactions: ReturnType<typeof UiMapper.transactions> = [];
+  let minerTransaction: Minter | undefined;
+
+  for (const encodedTransaction of data.transactions ?? []) {
+    const isForMiner = encodedTransaction.length === Minter.ENCODED_SIZE;
+    const decodedMintOrTx = isForMiner
+      ? Minter.decode(encodedTransaction)
+      : Transaction.decode(encodedTransaction);
+
+    if (isForMiner) {
+      minerTransaction = decodedMintOrTx as Minter;
+    }
+
+    const serializedData = decodedMintOrTx.serialize();
+    mappedTransactions.push(UiMapper.transaction(serializedData));
+  }
+
   return {
     ...data,
-    transactions:
-      data.transactions?.map((encoded) => {
-        const mintOrTx =
-          encoded.length === Minter.ENCODED_SIZE
-            ? Minter.decode(encoded)
-            : Transaction.decode(encoded);
-        const value = mintOrTx.serialize();
-        return UiMapper.transaction(value);
-      }) ?? [],
+    transactions: mappedTransactions,
     displayCreated: Transform.date.formatToReadable(Number(data.timestamp)),
+    minerTransaction,
   };
 };
 

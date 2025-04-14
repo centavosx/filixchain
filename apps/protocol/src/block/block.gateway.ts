@@ -88,6 +88,7 @@ export class BlockGateway implements OnModuleInit {
     if (!!targetHash) {
       this.targetHash = targetHash;
     }
+
     this.mintNonce = Number(account.nonce);
     this.currentSupply = supply;
     this.isValidatingMiner = false;

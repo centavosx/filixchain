@@ -43,9 +43,7 @@ export default function TransactionReceiptScreen() {
                 <Typography as="large">{data?.from}</Typography>
               </div>
               <div className="flex flex-col gap-2">
-                <Typography as="muted">
-                  {!!data?.mintData ? 'Minted By' : 'To'}:
-                </Typography>
+                <Typography as="muted">To:</Typography>
                 <Typography as="large">{data?.to}</Typography>
               </div>
               <div className="flex flex-col gap-2">

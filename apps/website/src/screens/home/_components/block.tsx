@@ -63,7 +63,7 @@ export const BlockSection = () => {
                 {value.blockHash}
               </Typography>
               {!!value.displayCreated && (
-                <Typography as="small">
+                <Typography as="muted">
                   Created: {value.displayCreated}
                 </Typography>
               )}

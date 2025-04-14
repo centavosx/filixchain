@@ -17,33 +17,40 @@ import { useParams } from 'next/navigation';
 export default function BlockHeightScreen() {
   const params = useParams<{ height: string }>();
   const height = params.height;
-  const { data: block } = useGetBlockByHeightQuery(height);
 
+  const { data: block } = useGetBlockByHeightQuery(height);
+  const miner = block?.minerTransaction;
   return (
     <div className="flex flex-col p-6 gap-8">
       <section>
         <Card>
-          <CardHeader>
-            <CardTitle>
-              <Typography>Block Height: {block?.height}</Typography>
-            </CardTitle>
-            <CardDescription>
-              <Typography>Hash: {block?.blockHash}</Typography>
-              <Typography>Previous: {block?.previousHash}</Typography>
-              <Typography>Merkle: {block?.merkleRoot}</Typography>
-              <Typography>Target: {block?.targetHash}</Typography>
-              <Typography>
-                Created:{' '}
-                {Transform.date.formatToReadable(Number(block?.timestamp))}
+          <CardHeader className="flex-row flex gap-4 justify-between max-xl:flex-col">
+            <div className="flex flex-col">
+              <CardTitle>
+                <Typography>Block Height: {block?.height}</Typography>
+              </CardTitle>
+              <CardDescription>
+                <Typography>Hash: {block?.blockHash}</Typography>
+                <Typography>Previous: {block?.previousHash}</Typography>
+                <Typography>Merkle: {block?.merkleRoot}</Typography>
+                <Typography>Target: {block?.targetHash}</Typography>
+                <Typography>
+                  Created:{' '}
+                  {Transform.date.formatToReadable(Number(block?.timestamp))}
+                </Typography>
+              </CardDescription>
+            </div>
+            {miner && (
+              <Typography as="small" className="font-bold">
+                Mined By: {miner.to}
               </Typography>
-
-              <Typography as="p" className="mt-4 font-bold text-lg">
-                Transaction Size: {block?.transactionSize}
-              </Typography>
-            </CardDescription>
+            )}
           </CardHeader>
           <Separator className="mb-6" />
-          <CardContent className="flex flex-row gap-8">
+          <CardContent className="flex flex-col gap-8">
+            <Typography as="h4">
+              Transactions (Size: {block?.transactionSize})
+            </Typography>
             <TransactionTable
               data={block?.transactions ?? []}
               shouldExcludeBlock

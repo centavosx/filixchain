@@ -46,7 +46,6 @@ export default function AccountDetailsScreen({
             </CardTitle>
             <CardDescription>
               <Typography>Nonce: {accountData?.nonce}</Typography>
-              <Typography>Transactions: {accountData?.size}</Typography>
 
               <Typography as="p" className="mt-4 font-bold text-lg">
                 Balance: {accountData?.displayBalance}
@@ -54,7 +53,10 @@ export default function AccountDetailsScreen({
             </CardDescription>
           </CardHeader>
           <Separator className="mb-6" />
-          <CardContent className="flex flex-row gap-8">
+          <CardContent className="flex flex-col gap-8">
+            <Typography as="h4">
+              Transactions (Size: {accountData?.size})
+            </Typography>
             <TransactionTable
               data={accountTx?.data ?? []}
               pagination={{
