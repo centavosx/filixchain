@@ -9,6 +9,7 @@ services:
         - NEXT_PUBLIC_WS_API_URL=${WS_API_URL}
         - NEXT_PUBLIC_BASE_API_URL=${BASE_API_URL}
         - SERVER_BASE_API_URL=${SERVER_BASE_API_URL}
+        - COOKIE_DOMAIN=${COOKIE_DOMAIN}
     restart: always
     depends_on:
       - api
