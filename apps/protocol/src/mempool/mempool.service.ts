@@ -43,6 +43,7 @@ export class MempoolService {
     try {
       const validatedTransactions: Transaction[] = [];
       const accountTemp = new Map<string, Account>();
+      const accountTx: Record<string, Transaction[]> = {};
 
       // The purpose of this is just to check transactions validity
       for (const encodedTransaction of encodedTransactions) {
@@ -51,6 +52,10 @@ export class MempoolService {
         const rawFromAddress = transaction.rawFromAddress;
 
         let account = accountTemp.get(rawFromAddress);
+
+        if (!accountTx[rawFromAddress]) {
+          accountTx[rawFromAddress] = [];
+        }
 
         if (!account) {
           account = await this.dbService.account.findByAddress(rawFromAddress);
@@ -72,6 +77,7 @@ export class MempoolService {
           accountTemp.set(rawFromAddress, account);
         }
 
+        accountTx[rawFromAddress].push(transaction);
         account.addTransaction(transaction);
         validatedTransactions.push(transaction);
       }
@@ -93,6 +99,10 @@ export class MempoolService {
 
         serializedTransactions.push(transaction.serialize());
       }
+
+      Object.entries(accountTx).forEach(([address, txs]) => {
+        this.blockGateway.sendNewPendingTx(address, txs);
+      });
 
       return {
         data: serializedTransactions,

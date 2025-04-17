@@ -12,7 +12,7 @@ import { Transform } from '@ph-blockchain/transformer';
 import { useEffect, useMemo, useRef } from 'react';
 import { Button } from '../../ui/button';
 import { appToast } from '../custom-toast';
-import { Accounts } from './accounts';
+import { Account } from './account';
 import { LoginSheetContent } from './login';
 import { RegisterSheetContent } from './register';
 
@@ -119,7 +119,7 @@ export const AuthSheet = () => {
           <RegisterSheetContent />
         )
       ) : (
-        <Accounts />
+        <Account />
       )}
     </Sheet>
   );

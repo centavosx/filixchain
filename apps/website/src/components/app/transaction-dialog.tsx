@@ -79,8 +79,6 @@ export const TransactionDialog = () => {
             'You have successfully submitted this transaction to the mempool. Please wait for your transaction to be confirmed.',
           messages: [
             `Hash: ${data[0].transactionId}`,
-            `From: ${data[0].from}`,
-            `To: ${data[0].to}`,
             `Amount: ${Transform.toHighestUnit(data[0].amount)}`,
             `Fee: ${Transform.toHighestUnit(data[0].fixedFee)}`,
           ],
@@ -93,8 +91,8 @@ export const TransactionDialog = () => {
   };
 
   return (
-    <Form {...form}>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Form {...form}>
         <DialogTrigger asChild>
           <Button variant="outline">Send</Button>
         </DialogTrigger>
@@ -150,7 +148,7 @@ export const TransactionDialog = () => {
             </DialogFooter>
           </form>
         </DialogContent>
-      </Dialog>
-    </Form>
+      </Form>
+    </Dialog>
   );
 };

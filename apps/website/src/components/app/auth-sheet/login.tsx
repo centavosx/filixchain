@@ -50,8 +50,8 @@ export const LoginSheetContent = () => {
   };
 
   return (
-    <Form {...form}>
-      <SheetContent className="flex flex-col gap-8">
+    <SheetContent className="flex flex-col gap-8">
+      <Form {...form}>
         <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-8">
           <SheetHeader>
             <SheetTitle>Login</SheetTitle>
@@ -70,7 +70,12 @@ export const LoginSheetContent = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="Password" type="password" {...field} />
+                    <Input
+                      placeholder="Password"
+                      autoComplete="new-password"
+                      type="password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -95,7 +100,7 @@ export const LoginSheetContent = () => {
             </Button>
           </SheetFooter>
         </form>
-      </SheetContent>
-    </Form>
+      </Form>
+    </SheetContent>
   );
 };

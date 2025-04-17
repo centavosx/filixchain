@@ -16,7 +16,7 @@ import { TransactionDialog } from '../transaction-dialog';
 import { useUserAccountStore } from '@/hooks/use-user-account';
 import { Transform } from '@ph-blockchain/transformer';
 
-export const Accounts = () => {
+export const Account = () => {
   const [signedAccount, setSignedAccount] = useState<SignAccount>();
   const { account, logout } = useAuthStore();
   const { account: blockAccount } = useUserAccountStore();
@@ -28,7 +28,7 @@ export const Accounts = () => {
   if (!signedAccount) return null;
 
   return (
-    <SheetContent className="flex flex-col gap-8">
+    <SheetContent className="flex flex-col gap-4">
       <SheetHeader>
         <SheetTitle>Account</SheetTitle>
       </SheetHeader>

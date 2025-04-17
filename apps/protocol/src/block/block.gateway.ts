@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   ConflictException,
   OnModuleInit,
@@ -386,5 +385,9 @@ export class BlockGateway implements OnModuleInit {
       totalMinerReward: minerRewards,
       transactions: transactions,
     };
+  }
+
+  sendNewPendingTx(rawAddress: string, txs: Transaction[]) {
+    this.sendTo('newPendingTxs', rawAddress, txs);
   }
 }

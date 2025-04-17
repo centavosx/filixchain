@@ -18,13 +18,14 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Button } from '../../ui/button';
-import { Textarea } from '../../ui/textarea';
 import { Input } from '@/components/ui/input';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as bip39 from 'bip39';
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from '@/hooks/use-auth';
+import { ProtectedTextarea } from '../protected-text-area';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const RegisterFormSchema = z
   .object({
@@ -39,6 +40,7 @@ const RegisterFormSchema = z
       .regex(/[^\w]/, 'Password must contain special characters'),
     confirmPassword: z.string(),
     privateKey: z.string().min(1, 'Required'),
+    showMnemonic: z.boolean().default(false),
   })
   .superRefine(({ confirmPassword, password, privateKey }, ctx) => {
     if (confirmPassword !== password) {
@@ -67,9 +69,13 @@ export const RegisterSheetContent = () => {
       password: '',
       confirmPassword: '',
       privateKey: '',
+      showMnemonic: false,
     },
     resolver: zodResolver(RegisterFormSchema),
   });
+
+  const shouldShowMnemonic = form.watch('showMnemonic');
+
   const isSubmitting = form.formState.isSubmitting;
 
   const handleRegister = async (data: z.infer<typeof RegisterFormSchema>) => {
@@ -88,8 +94,8 @@ export const RegisterSheetContent = () => {
   };
 
   return (
-    <Form {...form}>
-      <SheetContent className="flex flex-col gap-8">
+    <SheetContent className="flex flex-col gap-8">
+      <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleRegister)}
           className="space-y-8"
@@ -108,7 +114,12 @@ export const RegisterSheetContent = () => {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input placeholder="Password" type="password" {...field} />
+                    <Input
+                      placeholder="Password"
+                      type="password"
+                      autoComplete="new-password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -123,6 +134,7 @@ export const RegisterSheetContent = () => {
                   <FormControl>
                     <Input
                       placeholder="Confirm Password"
+                      autoComplete="new-password"
                       type="password"
                       {...field}
                     />
@@ -138,13 +150,31 @@ export const RegisterSheetContent = () => {
                 <FormItem>
                   <FormLabel>Private Key / Mnemonic</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <ProtectedTextarea
                       placeholder="Private Key / Mnemonic"
+                      masked={!shouldShowMnemonic}
                       {...field}
                       rows={10}
                     />
                   </FormControl>
                   <FormMessage />
+                  <div className="flex space-x-2 py-2 items-center">
+                    <Checkbox
+                      id="show-mnemonic"
+                      checked={shouldShowMnemonic}
+                      onCheckedChange={(checked) => {
+                        form.setValue('showMnemonic', Boolean(checked));
+                      }}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <label
+                        htmlFor="show-mnemonic"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Show
+                      </label>
+                    </div>
+                  </div>
                   <FormDescription>
                     Your private key / mnemonic will be encrypted by your
                     password.
@@ -157,7 +187,11 @@ export const RegisterSheetContent = () => {
             />
           </div>
           <SheetFooter>
-            <Button variant="outline" onClick={handleGenerateMnemonic}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGenerateMnemonic}
+            >
               Generate Mnemonic
             </Button>
             <Button type="submit" isLoading={isSubmitting}>
@@ -165,7 +199,7 @@ export const RegisterSheetContent = () => {
             </Button>
           </SheetFooter>
         </form>
-      </SheetContent>
-    </Form>
+      </Form>
+    </SheetContent>
   );
 };
