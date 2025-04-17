@@ -55,6 +55,7 @@ services:
         - HTTP_ALLOWED_ORIGIN=${HTTP_ALLOWED_ORIGIN}
         - WS_ALLOWED_ORIGIN=${WS_ALLOWED_ORIGIN}
         - NODE_ENV=${NODE_ENV}
+        - FAUCET_KEY=${FAUCET_KEY}
     restart: always
     networks:
       - dokploy-network
