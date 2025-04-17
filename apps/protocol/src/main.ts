@@ -8,9 +8,10 @@ import { ConfigService } from './config/config.service';
 import { AuthGuard } from './guards/auth.guard';
 import { RedisService } from './redis/redis.service';
 import { SocketAdapter } from './adapter/socket.adapter';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const configService = app.get(ConfigService);
   const redisService = app.get(RedisService);
@@ -23,7 +24,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
-
+  app.set('trust proxy', (io) => console.log(io));
   const config = new DocumentBuilder()
     .setTitle('FiliXChain')
     .setDescription('A Filipino blockchain')

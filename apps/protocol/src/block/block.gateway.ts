@@ -3,6 +3,7 @@ import {
   ConflictException,
   OnModuleInit,
   UseFilters,
+  UseGuards,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -12,25 +13,28 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Minter, MintOrTx, Transaction } from '@ph-blockchain/block';
-import { Block } from '@ph-blockchain/block';
-import { Server, Socket } from 'socket.io';
-import { BlockGatewayFilter } from './block.filter';
-import { InitAccountDto, RawBlockDto } from './block.dto';
-import { DbService } from '../db/db.service';
-import * as cookie from 'cookie';
-import { Session } from '@ph-blockchain/session';
-import { ConfigService } from '../config/config.service';
-import { BlockGatewayException } from './block.exception';
-import { RedisService } from '../redis/redis.service';
+import { Block, Minter, MintOrTx, Transaction } from '@ph-blockchain/block';
 import { AppHash } from '@ph-blockchain/hash';
+import { Session } from '@ph-blockchain/session';
+import * as cookie from 'cookie';
+import { randomUUID } from 'crypto';
+import { Server, Socket } from 'socket.io';
+import { ConfigService } from '../config/config.service';
+import { DbService } from '../db/db.service';
+import { WsThrottlerProxyGuard } from '../guards/ws-throttler-proxy.guard';
+import { RedisService } from '../redis/redis.service';
+import { InitAccountDto, RawBlockDto } from './block.dto';
+import { BlockGatewayException } from './block.exception';
+import { BlockGatewayFilter } from './block.filter';
 
 type WsClient = Socket & {
   type: 'miner' | 'user';
   token?: string;
+  uniqueId: string;
 };
 
 @WebSocketGateway()
+@UseGuards(WsThrottlerProxyGuard)
 @UseFilters(BlockGatewayFilter)
 @UsePipes(new ValidationPipe({ transform: true }))
 export class BlockGateway implements OnModuleInit {
@@ -122,7 +126,7 @@ export class BlockGateway implements OnModuleInit {
         /Mozilla\/5.0\s\((Macintosh|Windows|Linux|iPhone|Android).*\)/.test(
           userAgent,
         );
-
+      client.uniqueId = randomUUID();
       if (!!headers.cookie && isBrowser) {
         const cookies = cookie.parse(headers.cookie);
         const rawAccessToken = cookies[Session.COOKIE_ACCESS_KEY];

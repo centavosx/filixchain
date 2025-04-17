@@ -34,7 +34,7 @@ export class AuthGuard implements CanActivate {
     const cookies = request.cookies;
 
     if (!!request.headers.cookie) {
-      rawAccessToken = cookies[Session.COOKIE_ACCESS_KEY];
+      rawAccessToken = cookies[Session.COOKIE_ACCESS_KEY] ?? rawAccessToken;
     }
 
     const userAgent = request.headers['user-agent'];

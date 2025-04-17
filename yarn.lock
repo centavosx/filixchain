@@ -1409,6 +1409,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nestjs/throttler@npm:^6.4.0":
+  version: 6.4.0
+  resolution: "@nestjs/throttler@npm:6.4.0"
+  peerDependencies:
+    "@nestjs/common": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
+    "@nestjs/core": ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
+    reflect-metadata: ^0.1.13 || ^0.2.0
+  checksum: 10c0/796134644e341aad4a403b7431524db97adc31ae8771fc1160a4694a24c295b7a3dd15abcb72b9ea3a0702247b929f501fc5dc74a3f30d915f2667a39ba5c5d7
+  languageName: node
+  linkType: hard
+
 "@nestjs/websockets@npm:^11.0.3":
   version: 11.0.3
   resolution: "@nestjs/websockets@npm:11.0.3"
@@ -1634,6 +1645,7 @@ __metadata:
     "@nestjs/schematics": "npm:^10.0.0"
     "@nestjs/swagger": "npm:8.1.1"
     "@nestjs/testing": "npm:^10.0.0"
+    "@nestjs/throttler": "npm:^6.4.0"
     "@nestjs/websockets": "npm:^11.0.3"
     "@ph-blockchain/block": "workspace:*"
     "@ph-blockchain/hash": "workspace:*"
