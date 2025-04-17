@@ -27,6 +27,8 @@ import {
 import { usePostSubscribe } from '@/hooks/api/use-post-subscribe';
 import { appToast } from './custom-toast';
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Defaults } from '@/constants/defaults';
 
 const CreateTransactionSchema = z.object({
   to: z.string().regex(/^ph-[0-9a-fA-F]{40}/, 'Not a valid address'),
@@ -34,11 +36,14 @@ const CreateTransactionSchema = z.object({
 });
 
 export const TransactionDialog = () => {
+  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { mutateAsync, isPending } = usePostSubscribe();
   const { account: authAccount } = useAuthStore();
-  const { account } = useUserAccountStore();
+  const { account, pendingTxs } = useUserAccountStore();
+  const size = pendingTxs.length;
+
   const form = useForm<z.infer<typeof CreateTransactionSchema>>({
     values: {
       to: '',
@@ -59,7 +64,7 @@ export const TransactionDialog = () => {
       from: Transform.addPrefix(account.address, Transaction.prefix),
       to: data.to,
       amount: Transform.toLowestUnit(data.amount),
-      nonce: account.nonce,
+      nonce: Number(account.nonce) + size,
       version: Block.version,
     });
 
@@ -71,6 +76,9 @@ export const TransactionDialog = () => {
 
     await mutateAsync([encodedTransaction], {
       onSuccess: ({ data }) => {
+        queryClient.invalidateQueries({
+          queryKey: ['mempool', 'walletAddress'],
+        });
         setIsDialogOpen(false);
         appToast({
           type: 'success',
@@ -130,7 +138,7 @@ export const TransactionDialog = () => {
                       <FormLabel>Amount</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Amount In Peso"
+                          placeholder={`Amount In ${Defaults.nativeCoinName}`}
                           type="number"
                           {...field}
                         />

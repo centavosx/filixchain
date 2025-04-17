@@ -74,6 +74,7 @@ export class MempoolService {
               Number(a.nonce - b.nonce),
             ),
           );
+
           accountTemp.set(rawFromAddress, account);
         }
 
@@ -101,7 +102,10 @@ export class MempoolService {
       }
 
       Object.entries(accountTx).forEach(([address, txs]) => {
-        this.blockGateway.sendNewPendingTx(address, txs);
+        this.blockGateway.sendNewPendingTx(
+          address,
+          txs.map((value) => value.serialize()),
+        );
       });
 
       return {

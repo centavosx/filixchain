@@ -25,8 +25,8 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Peso In Blockchain')
-    .setDescription('This blockchain api for peso')
+    .setTitle('FiliXChain')
+    .setDescription('A Filipino blockchain')
     .addApiKey(
       {
         type: 'apiKey',

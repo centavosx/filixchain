@@ -1,3 +1,4 @@
+import { Defaults } from '@/constants/defaults';
 import { getQueryClient } from '@/lib/query-client';
 import { Mempool } from '@ph-blockchain/api';
 import { SerializedTransaction } from '@ph-blockchain/api/src/types/transaction';
@@ -25,7 +26,7 @@ const adapter = (data: SerializedTransaction) => {
     ...data,
     displayAmount: `${(
       BigInt(data.amount) / Transaction.TX_CONVERSION_UNIT
-    ).toString()} PESO`,
+    ).toString()} ${Defaults.nativeCoinName}`,
     viewLink: `/mempool/${data.transactionId}`,
   };
 };

@@ -39,6 +39,7 @@ export const useAuthStore = create<
         const storedAccount = get().storedAccount;
         if (!storedAccount) throw new Error('No account added');
         const data = await decryptWithPassword(storedAccount.data, password);
+
         const account = new Account(data);
         await account.init();
         set({

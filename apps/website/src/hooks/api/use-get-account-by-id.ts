@@ -1,3 +1,4 @@
+import { Defaults } from '@/constants/defaults';
 import { getQueryClient } from '@/lib/query-client';
 import { Account } from '@ph-blockchain/api';
 import { GetAccountResult } from '@ph-blockchain/api/src/types/account';
@@ -15,7 +16,7 @@ export const prefetchGetAccountByIdQuery = async ({
   };
 }) => {
   await queryClient.prefetchQuery({
-    queryKey: ['account', data.id],
+    queryKey: ['account', 'address', data.id],
     queryFn: () => Account.getAccount(data.id),
   });
   return queryClient;
@@ -25,14 +26,14 @@ export const getAccountByIdAdapter = (data: GetAccountResult) => {
   return {
     ...data,
     displayAddress: Transform.addPrefix(data.address, Transaction.prefix),
-    displayBalance: `${Transform.toHighestUnit(data.amount)} PESO`,
+    displayBalance: `${Transform.toHighestUnit(data.amount)} ${Defaults.nativeCoinName}`,
     size: +data.size,
   };
 };
 
 export const useGetAccountByIdQuery = (id: string, disabled?: boolean) => {
   return useQuery({
-    queryKey: ['account', id],
+    queryKey: ['account', 'address', id],
     queryFn: () => Account.getAccount(id),
     select: getAccountByIdAdapter,
     enabled: !disabled,

@@ -37,6 +37,7 @@ export class SignAccount {
 
 export class Account {
   private bip32: BIP32Interface | undefined;
+  private _isMnemonic: boolean | undefined;
 
   constructor(private readonly data: string) {}
 
@@ -44,10 +45,18 @@ export class Account {
     return `m/44'/0'/0'/0/${index}`;
   }
 
+  get mnemonicOrKey() {
+    return this.data;
+  }
+
+  get isMnemonic() {
+    return Boolean(this._isMnemonic);
+  }
+
   async init() {
     if (this.bip32) return;
-    const isMnemonic = bip39.validateMnemonic(this.data);
-    if (isMnemonic) {
+    this._isMnemonic = bip39.validateMnemonic(this.data);
+    if (this._isMnemonic) {
       const seed = await bip39.mnemonicToSeed(this.data);
       this.bip32 = bip32.fromSeed(seed);
       return;

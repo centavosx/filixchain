@@ -51,7 +51,7 @@ export default async function AccountPage({
   });
 
   const queryData: { data: { size: number } } | undefined =
-    queryClient.getQueryData(['account', accountId]);
+    queryClient.getQueryData(['account', 'address', accountId]);
 
   if (!queryData) notFound();
 

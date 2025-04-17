@@ -182,8 +182,8 @@ export class Account extends BlockAccount {
 
     for (const tx of transaction) {
       // Transaction nonce are validated first before being added
-      if (tx.nonce !== this._nonce) {
-        throw new Error('Nonce has already been used.');
+      if (tx.nonce !== temporaryNonce) {
+        throw new Error('Nonce is not available.');
       }
 
       if (tx.rawFromAddress !== this._address) {

@@ -387,7 +387,10 @@ export class BlockGateway implements OnModuleInit {
     };
   }
 
-  sendNewPendingTx(rawAddress: string, txs: Transaction[]) {
+  sendNewPendingTx(
+    rawAddress: string,
+    txs: ReturnType<Transaction['serialize']>[],
+  ) {
     this.sendTo('newPendingTxs', rawAddress, txs);
   }
 }

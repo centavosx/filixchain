@@ -1,3 +1,4 @@
+import { Defaults } from '@/constants/defaults';
 import { MintOrTxSerialize, RawBlock, Transaction } from '@ph-blockchain/block';
 import { Transform } from '@ph-blockchain/transformer';
 
@@ -24,12 +25,12 @@ export class UiMapper {
         : undefined,
       displayAmount: `${(
         BigInt(value.amount) / Transaction.TX_CONVERSION_UNIT
-      ).toString()} PESO`,
+      ).toString()} ${Defaults.nativeCoinName}`,
       viewLink: `/transaction/${value.transactionId}`,
       mintData:
         'fixedFee' in value
           ? {
-              displayFixedFee: `${Transform.toHighestUnit(value.fixedFee)} PESO`,
+              displayFixedFee: `${Transform.toHighestUnit(value.fixedFee)} ${Defaults.nativeCoinName}`,
             }
           : undefined,
     };
