@@ -195,7 +195,7 @@ export const RegisterSheetContent = () => {
               Generate Mnemonic
             </Button>
             <Button type="submit" isLoading={isSubmitting}>
-              Save changes
+              Submit
             </Button>
           </SheetFooter>
         </form>

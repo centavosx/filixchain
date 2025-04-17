@@ -15,6 +15,8 @@ import Link from 'next/link';
 import { Label } from '../ui/label';
 import { Typography } from '../ui/typography';
 
+import { FaucetDialogButton } from './faucet-dialog-button';
+
 // Menu items.
 const items = [
   {
@@ -63,6 +65,11 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <FaucetDialogButton />
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

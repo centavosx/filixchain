@@ -1,4 +1,5 @@
 import { BaseApi } from './base';
+import { PaginationData } from './types/pagination';
 import { SerializedTransaction } from './types/transaction';
 
 export class AppApi extends BaseApi {
@@ -19,8 +20,11 @@ export class AppApi extends BaseApi {
   }
 
   static faucet(address: string) {
-    return super.post<unknown, unknown, SerializedTransaction>('/faucet', {
-      address,
-    });
+    return super.post<unknown, unknown, PaginationData<SerializedTransaction>>(
+      '/faucet',
+      {
+        address,
+      },
+    );
   }
 }

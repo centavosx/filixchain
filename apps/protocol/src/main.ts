@@ -24,7 +24,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  app.set('trust proxy', (io) => console.log(io));
+  app.set('trust proxy', true);
   const config = new DocumentBuilder()
     .setTitle('FiliXChain')
     .setDescription('A Filipino blockchain')
