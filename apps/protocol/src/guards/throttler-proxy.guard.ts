@@ -25,12 +25,20 @@ export class ThrottlerProxyGuard extends ThrottlerGuard {
   }
 
   protected async shouldSkip(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { currentIp: string }>();
     const ip = getClientIp(request);
+    request.currentIp = ip;
 
     this.logger.log(`Request from IP: ${ip}`);
 
-    if (ip === '127.0.0.1' || ip === '::1' || ip === 'localhost') {
+    if (
+      ip === '127.0.0.1' ||
+      ip === '::1' ||
+      ip === 'localhost' ||
+      ip.startsWith('::ffff:')
+    ) {
       this.logger.log(`Skipping rate limiting for IP: ${ip}`);
       return true;
     }
