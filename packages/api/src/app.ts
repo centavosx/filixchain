@@ -1,4 +1,5 @@
 import { BaseApi } from './base';
+import { SerializedTransaction } from './types/transaction';
 
 export class AppApi extends BaseApi {
   static getHealth() {
@@ -15,5 +16,11 @@ export class AppApi extends BaseApi {
         value: string;
       }
     >('/search', { search });
+  }
+
+  static faucet(address: string) {
+    return super.post<unknown, unknown, SerializedTransaction>('/faucet', {
+      address,
+    });
   }
 }
