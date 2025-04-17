@@ -13,10 +13,17 @@
     "build": "npx tsc"
   },
   "dependencies": {
-    "@ph-blockchain/hash": "workspace:*"
+    "@bitcoin-js/tiny-secp256k1-asmjs": "^2.2.3",
+    "@ph-blockchain/hash": "workspace:*",
+    "bip32": "4.0.0",
+    "bip39": "3.1.0",
+    "tweetnacl": "^1.0.3"
   },
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
+  },
+  "resolutions": {
+    "tiny-secp256k1": "2.2.3"
   }
 }

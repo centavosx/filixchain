@@ -12,10 +12,12 @@ export class RedisService implements OnModuleDestroy {
   async get<T>(key: string): Promise<T | null> {
     const result = await this.redisClient.get(key);
 
-    if (typeof result === 'string') return result as T;
-
-    if (result) {
-      return JSON.parse(result);
+    try {
+      if (result) {
+        return JSON.parse(result);
+      }
+    } catch {
+      return result as T;
     }
 
     return null;
@@ -31,7 +33,44 @@ export class RedisService implements OnModuleDestroy {
       await this.redisClient.set(key, valueToStore, 'PX', expiry);
     }
   }
+
   async delete(key: string): Promise<void> {
     await this.redisClient.del(key);
+  }
+
+  async limitIncrementValid(key: string, maximumLimit = 3, ms = 86_400_000) {
+    const currentKey = `limitter-${key}`;
+    const value = await this.get<{ count: number; exp: number }>(currentKey);
+
+    if (!value) {
+      await this.set(
+        currentKey,
+        {
+          count: 1,
+          exp: Date.now() + ms,
+        },
+        ms,
+      );
+      return true;
+    }
+
+    const { count, exp } = value;
+
+    const remaining = exp - Date.now();
+
+    if (count >= maximumLimit) {
+      return false;
+    }
+
+    await this.set(
+      currentKey,
+      {
+        count: count + 1,
+        exp,
+      },
+      remaining,
+    );
+
+    return true;
   }
 }

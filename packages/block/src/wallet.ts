@@ -1,9 +1,7 @@
-'use client';
-
 import * as bip39 from 'bip39';
 import BIP32Factory from 'bip32';
-import * as ecc from 'tiny-secp256k1';
-import { BIP32Interface } from 'bip32';
+import * as ecc from '@bitcoin-js/tiny-secp256k1-asmjs';
+import type { BIP32Interface } from 'bip32';
 import * as tweetnacl from 'tweetnacl';
 import { Crypto } from '@ph-blockchain/hash';
 
@@ -14,7 +12,7 @@ export class SignAccount {
   private _keyPairs: tweetnacl.SignKeyPair;
   private _index: number;
 
-  constructor(buffer: Buffer, derivationIndex: number) {
+  constructor(buffer: Uint8Array, derivationIndex: number) {
     this._index = derivationIndex;
     this._keyPairs = Crypto.getKeyPairsFromSeed(buffer);
     this._walletAddress = Crypto.generateWalletAddress(
@@ -35,11 +33,13 @@ export class SignAccount {
   }
 }
 
-export class Account {
+export class WalletAccount {
   private bip32: BIP32Interface | undefined;
   private _isMnemonic: boolean | undefined;
 
-  constructor(private readonly data: string) {}
+  constructor(private readonly data: string) {
+    console.log(data);
+  }
 
   static getDerivationPath(index = 0) {
     return `m/44'/0'/0'/0/${index}`;
@@ -72,7 +72,7 @@ export class Account {
       throw new Error('Bip32 Not initialized');
     }
     const newBip = this.bip32.derivePath(
-      Account.getDerivationPath(derivationIndex),
+      WalletAccount.getDerivationPath(derivationIndex),
     );
 
     if (!newBip?.privateKey) throw new Error('Invalid path');

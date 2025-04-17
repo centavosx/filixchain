@@ -58,7 +58,6 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 USER nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/tiny-secp256k1/lib/secp256k1.wasm ./node_modules/tiny-secp256k1/lib/
 COPY --from=builder --chown=nextjs:nodejs /app/apps/website/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/website/public ./apps/website/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/website/.next/static ./apps/website/.next/static

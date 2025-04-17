@@ -1,4 +1,4 @@
-import { Account } from '@/lib/wallet/account';
+import { WalletAccount } from '@ph-blockchain/block';
 import { decryptWithPassword, encryptWithPassword } from './../lib/encrypt';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -7,7 +7,7 @@ export type Derivation = {
   name: string;
 };
 export type UseAuthStore = {
-  account?: Account;
+  account?: WalletAccount;
   storedAccount?: {
     data: string;
   };
@@ -26,7 +26,7 @@ export const useAuthStore = create<
       storedAccount: undefined,
       register: async (data, password) => {
         const encryptedData = await encryptWithPassword(data, password);
-        const account = new Account(data);
+        const account = new WalletAccount(data);
         await account.init();
         set({
           account,
@@ -40,7 +40,7 @@ export const useAuthStore = create<
         if (!storedAccount) throw new Error('No account added');
         const data = await decryptWithPassword(storedAccount.data, password);
 
-        const account = new Account(data);
+        const account = new WalletAccount(data);
         await account.init();
         set({
           account,

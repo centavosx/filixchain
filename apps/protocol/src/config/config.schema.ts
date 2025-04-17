@@ -1,3 +1,4 @@
+import { Crypto } from '@ph-blockchain/hash';
 import { plainToInstance, Transform, Type } from 'class-transformer';
 import {
   IsIn,
@@ -55,6 +56,11 @@ export class EnvironmentVariables {
 
   @IsString()
   MINER_USER_AGENT: string;
+
+  @IsString()
+  FAUCET_KEY: string = Buffer.from(
+    Crypto.generateKeyPairs().secretKey,
+  ).toString('hex');
 }
 
 export function validate(config: Record<string, unknown>) {
