@@ -3,7 +3,7 @@ import {
   ThrottlerGuard,
   ThrottlerRequest,
 } from '@nestjs/throttler';
-import { ExecutionContext, Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 
 @Injectable()
