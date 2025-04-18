@@ -5,7 +5,7 @@ import { Block } from '../block';
 const RESET_NUMBER_OF_BLOCK = 10;
 const BLOCK_MINE_MILLISECONDS = 1000;
 const MAX_TARGET = BigInt(
-  '0x0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+  '0x0fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
 );
 
 describe('Block - Block', () => {
@@ -21,6 +21,7 @@ describe('Block - Block', () => {
 
       const fromWalletAddress = Crypto.generateWalletAddress(from.publicKey);
       const toWalletAddress = Crypto.generateWalletAddress(to.publicKey);
+      const shouldAssignMemo = Math.random() > 0.5;
 
       const encodedTransaction = new Transaction({
         from: fromWalletAddress,
@@ -28,6 +29,7 @@ describe('Block - Block', () => {
         amount: value,
         nonce: 0,
         version: 1,
+        memo: shouldAssignMemo ? 'RANDOM' : undefined,
       })
         .sign(from.secretKey)
         .encode();

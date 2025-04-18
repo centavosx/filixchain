@@ -15,4 +15,5 @@ export type RawTransaction = {
   signature?: TransactionSignature;
   timestamp?: bigint | string | number;
   blockHeight?: bigint | string | number;
+  memo?: string | Uint8Array;
 };
