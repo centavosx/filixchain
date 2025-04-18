@@ -17,7 +17,7 @@ const ProtectedTextarea = React.forwardRef<
   const [_value, _setValue] = React.useState(value);
 
   React.useEffect(() => {
-    _setValue(value.replaceAll(/[^\s\n]/g, '*'));
+    _setValue(value.replaceAll(/[^\s\n]/g, '\u2022'));
   }, [value]);
 
   const handleSelect = (event: React.ChangeEvent<HTMLTextAreaElement>) => {

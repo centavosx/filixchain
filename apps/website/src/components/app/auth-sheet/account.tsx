@@ -99,7 +99,9 @@ export const Account = () => {
           {account?.isMnemonic ? 'Recovery Phrase' : 'Recovery Key'}
         </Typography>
         <Typography as="small">
-          {shouldShowKey ? account?.mnemonicOrKey : '******************'}
+          {shouldShowKey
+            ? account?.mnemonicOrKey
+            : Array.from({ length: 40 }, () => `\u2022`).join('')}
         </Typography>
         <div className="flex space-x-2 py-2 items-center">
           <Checkbox
