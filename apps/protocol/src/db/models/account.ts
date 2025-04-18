@@ -191,7 +191,8 @@ export class Account extends BlockAccount {
       }
 
       if (tx instanceof Transaction) {
-        amount -= tx.amount + Transaction.FIXED_FEE;
+        const additionalFee = Transaction.FIXED_FEE + tx.totalMemoBytesFee;
+        amount -= tx.amount + additionalFee;
       }
 
       if (this._batches) {

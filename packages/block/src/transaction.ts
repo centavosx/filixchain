@@ -15,6 +15,7 @@ export class Transaction {
 
   public static readonly TX_CONVERSION_UNIT = BigInt(1_000_000_000);
   public static readonly FIXED_FEE = Transaction.TX_CONVERSION_UNIT;
+  public static readonly BYTES_FEE = BigInt(5_000_000);
 
   public readonly from: string;
   public readonly to: string;
@@ -22,6 +23,7 @@ export class Transaction {
   public readonly nonce: bigint;
   public readonly version: bigint;
   public readonly memoInByteString?: string;
+  public readonly totalMemoBytesFee: bigint;
   private _timestamp?: bigint;
   private _blockHeight?: bigint;
 
@@ -53,12 +55,6 @@ export class Transaction {
     const currentEncodedMemo =
       typeof memo === 'string' ? new TextEncoder().encode(memo) : memo;
 
-    if (currentEncodedMemo?.length > Transaction.MEMO_MAX_BYTES) {
-      throw new Error(
-        `Memo should not exceed ${Transaction.MEMO_MAX_BYTES} bytes`,
-      );
-    }
-
     this.from = from;
     this.to = to;
     this.amount = BigInt(amount);
@@ -72,6 +68,9 @@ export class Transaction {
     this.memoInByteString = !!currentEncodedMemo
       ? Buffer.from(currentEncodedMemo).toString('hex')
       : undefined;
+
+    this.totalMemoBytesFee =
+      BigInt(currentEncodedMemo?.length ?? 0) * Transaction.BYTES_FEE;
   }
 
   addBlock(block: Block) {
@@ -92,6 +91,7 @@ export class Transaction {
       timestamp: this._timestamp?.toString(),
       blockHeight: this._blockHeight?.toString(),
       memo: this.memoInByteString,
+      additionalFee: this.totalMemoBytesFee,
     };
   }
 

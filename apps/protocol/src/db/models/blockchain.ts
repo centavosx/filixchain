@@ -409,7 +409,9 @@ export class Blockchain {
           txSize++;
 
           if (decoded instanceof Transaction) {
-            mintAccount.addTotalFee(Transaction.FIXED_FEE);
+            const additionalFee =
+              Transaction.FIXED_FEE + decoded.totalMemoBytesFee;
+            mintAccount.addTotalFee(additionalFee);
             continue;
           }
 
