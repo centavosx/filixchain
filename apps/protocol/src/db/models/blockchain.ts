@@ -383,7 +383,6 @@ export class Blockchain {
           const rawToAddress = decoded.rawToAddress;
 
           let fromAccount = mappedAccount.get(rawFromAddress);
-          let toAccount = mappedAccount.get(rawToAddress);
 
           if (!fromAccount) {
             fromAccount = await Account.findByAddress(rawFromAddress);
@@ -391,6 +390,8 @@ export class Blockchain {
             fromAccount.startBatch();
             mappedAccount.set(rawFromAddress, fromAccount);
           }
+
+          let toAccount = mappedAccount.get(rawToAddress);
 
           if (!toAccount) {
             toAccount = await Account.findByAddress(rawToAddress);
