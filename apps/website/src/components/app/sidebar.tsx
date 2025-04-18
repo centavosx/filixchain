@@ -46,12 +46,7 @@ export function AppSidebar() {
             <SidebarMenuButton className="h-14" asChild>
               <Link href="/">
                 <div className="flex flex-row gap-2 items-center">
-                  <Image
-                    src="/logo-180.png"
-                    height={48}
-                    width={48}
-                    alt="logo"
-                  />
+                  <Image src="/icon.png" height={48} width={48} alt="logo" />
                   <Typography as="large">FiliXChain</Typography>
                 </div>
               </Link>
