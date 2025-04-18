@@ -28,7 +28,10 @@ export const Account = () => {
   const usedAmount = useMemo(() => {
     return pendingTxs.reduce(
       (accumulator, value) =>
-        accumulator + Number(value.amount) + Number(value.fixedFee),
+        accumulator +
+        Number(value.amount) +
+        Number(value.fixedFee) +
+        Number(value.additionalFee),
       0,
     );
   }, [pendingTxs]);

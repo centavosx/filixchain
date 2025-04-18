@@ -14,8 +14,8 @@ export class Transaction {
   );
 
   public static readonly TX_CONVERSION_UNIT = BigInt(1_000_000_000);
-  public static readonly FIXED_FEE = Transaction.TX_CONVERSION_UNIT;
-  public static readonly BYTES_FEE = BigInt(5_000_000);
+  public static readonly FIXED_FEE = BigInt(10_000_000);
+  public static readonly BYTES_FEE = BigInt(1_000_000);
 
   public readonly from: string;
   public readonly to: string;
@@ -91,7 +91,7 @@ export class Transaction {
       timestamp: this._timestamp?.toString(),
       blockHeight: this._blockHeight?.toString(),
       memo: this.memoInByteString,
-      additionalFee: this.totalMemoBytesFee,
+      additionalFee: this.totalMemoBytesFee?.toString(),
     };
   }
 

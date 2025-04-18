@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transaction } from '@ph-blockchain/block';
 import { AppHash } from '@ph-blockchain/hash';
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, Length, Matches } from 'class-validator';
+import { IsNotEmpty, Length, Matches, MinLength } from 'class-validator';
 
 export class MempoolDto {
   @ApiProperty({
@@ -19,9 +19,9 @@ export class MempoolDto {
     each: true,
     message: 'Not a valid signed message',
   })
-  @Length(Transaction.ENCODED_SIZE, Transaction.ENCODED_SIZE, {
+  @MinLength(Transaction.ENCODED_SIZE, {
     each: true,
-    message: 'Transactions should be in 232 bytes',
+    message: 'Transactions should be in minimum 232 bytes',
   })
   transaction: string[];
 }

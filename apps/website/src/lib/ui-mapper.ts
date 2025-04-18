@@ -30,7 +30,7 @@ export class UiMapper {
       mintData:
         'fixedFee' in value
           ? {
-              displayFixedFee: `${Transform.toHighestUnit(value.fixedFee)} ${Defaults.nativeCoinName}`,
+              displayFixedFee: `${Transform.toHighestUnit(Number(value.fixedFee) + Number(value.additionalFee))} ${Defaults.nativeCoinName}`,
             }
           : undefined,
     };

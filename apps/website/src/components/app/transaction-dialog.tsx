@@ -29,10 +29,12 @@ import { appToast } from './custom-toast';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Defaults } from '@/constants/defaults';
+import { Textarea } from '../ui/textarea';
 
 const CreateTransactionSchema = z.object({
   to: z.string().regex(/^ph-[0-9a-fA-F]{40}/, 'Not a valid address'),
   amount: z.coerce.number().gt(0, 'Amount should be greater than zero'),
+  memo: z.string().optional(),
 });
 
 export const TransactionDialog = () => {
@@ -66,6 +68,7 @@ export const TransactionDialog = () => {
       amount: Transform.toLowestUnit(data.amount),
       nonce: Number(account.nonce) + size,
       version: Block.version,
+      memo: data.memo,
     });
 
     const signedTransaction = transaction.sign(
@@ -142,6 +145,21 @@ export const TransactionDialog = () => {
                           type="number"
                           {...field}
                         />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-col gap-4">
+                <FormField
+                  control={form.control}
+                  name="memo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Memo</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder={`Memo (Optional)`} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

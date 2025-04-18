@@ -15,10 +15,14 @@ export class Transform {
   }
 
   static toHighestUnit(value: string | bigint | number) {
-    return (BigInt(value) / Transaction.TX_CONVERSION_UNIT).toString();
+    return Number(
+      (Number(value) / Number(Transaction.TX_CONVERSION_UNIT)).toFixed(9),
+    ).toString();
   }
 
   static toLowestUnit(value: string | bigint | number) {
-    return (BigInt(value) * Transaction.TX_CONVERSION_UNIT).toString();
+    return BigInt(
+      +Number(value).toFixed(9) * Number(Transaction.TX_CONVERSION_UNIT),
+    ).toString();
   }
 }
