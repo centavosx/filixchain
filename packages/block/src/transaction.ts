@@ -4,7 +4,8 @@ import { RawTransaction, TransactionSignature } from './types';
 import { Block } from './block';
 
 export class Transaction {
-  static MEMO_MAX_BYTES = 255;
+  // Max memo byte size is 8kb
+  static readonly MEMO_MAX_BYTES = 8_000;
 
   static prefix = 'ph-';
   static readonly BYTES_STRING_SIZES = [16, 16, 16, 64, 40, 40, 128] as const;
@@ -69,8 +70,15 @@ export class Transaction {
       ? Buffer.from(currentEncodedMemo).toString('hex')
       : undefined;
 
-    this.totalMemoBytesFee =
-      BigInt(currentEncodedMemo?.length ?? 0) * Transaction.BYTES_FEE;
+    const memoSize = currentEncodedMemo?.length ?? 0;
+
+    if (memoSize > Transaction.MEMO_MAX_BYTES) {
+      throw new Error(
+        `Memo should not exceed ${Transaction.MEMO_MAX_BYTES} bytes`,
+      );
+    }
+
+    this.totalMemoBytesFee = BigInt(memoSize) * Transaction.BYTES_FEE;
   }
 
   addBlock(block: Block) {
