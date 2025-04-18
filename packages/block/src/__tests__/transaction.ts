@@ -14,7 +14,7 @@ describe('Block - Transaction', () => {
 
       const fromWalletAddress = Crypto.generateWalletAddress(from.publicKey);
       const toWalletAddress = Crypto.generateWalletAddress(to.publicKey);
-      const shouldAssignMemo = Math.random() > 0.5; // 50% chance
+      const shouldAssignMemo = Math.random() > 0.5;
 
       return {
         transaction: new Transaction({
