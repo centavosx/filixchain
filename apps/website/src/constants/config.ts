@@ -1,4 +1,7 @@
 export class Config {
+  static get appUrl() {
+    return process.env.APP_URL as string;
+  }
   static get isDevelop() {
     return process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
   }

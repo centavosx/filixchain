@@ -27,7 +27,7 @@ const url = createSiteUrl(undefined, true);
 
 const title = 'FiliXChain | Blockchain';
 const description =
-  'iliXChain is a blockchain system for the Philippines, enabling secure and scalable apps built by and for Filipinos.';
+  'FiliXChain is a blockchain system for the Philippines, enabling secure and scalable apps built by and for Filipinos.';
 
 export const metadata: Metadata = {
   metadataBase: url,

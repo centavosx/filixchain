@@ -10,6 +10,7 @@ services:
         - NEXT_PUBLIC_BASE_API_URL=${BASE_API_URL}
         - SERVER_BASE_API_URL=${SERVER_BASE_API_URL}
         - COOKIE_DOMAIN=${COOKIE_DOMAIN}
+        - APP_URL=${APP_URL}
     restart: always
     depends_on:
       - api
