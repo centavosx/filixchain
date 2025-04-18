@@ -21,7 +21,7 @@ export default function MempoolScreen() {
       </div>
       <TransactionTable
         data={
-          (transactions?.data ?? []) as ReturnType<
+          (transactions?.data ?? []) as unknown as ReturnType<
             (typeof UiMapper)['transactions']
           >
         }
