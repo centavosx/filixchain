@@ -59,6 +59,11 @@ export class Transaction {
     this.from = from;
     this.to = to;
     this.amount = BigInt(amount);
+
+    if (this.amount < 0) {
+      throw new Error('Amount cannot be negative.');
+    }
+
     this.nonce = BigInt(nonce);
     this.version = BigInt(version);
     this.signature = signature;

@@ -33,7 +33,7 @@ import { Textarea } from '../ui/textarea';
 
 const CreateTransactionSchema = z.object({
   to: z.string().regex(/^ph-[0-9a-fA-F]{40}/, 'Not a valid address'),
-  amount: z.coerce.number().gt(0, 'Amount should be greater than zero'),
+  amount: z.coerce.number().gte(0, 'Not a valid number'),
   memo: z.string().optional(),
 });
 
@@ -65,7 +65,7 @@ export const TransactionDialog = () => {
     const transaction = new Transaction({
       from: Transform.addPrefix(account.address, Transaction.prefix),
       to: data.to,
-      amount: Transform.toLowestUnit(data.amount),
+      amount: Transform.toLowestUnit(data.amount ?? 0),
       nonce: Number(account.nonce) + size,
       version: Block.version,
       memo: data.memo,
