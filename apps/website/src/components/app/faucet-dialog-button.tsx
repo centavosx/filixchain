@@ -89,7 +89,7 @@ export const FaucetDialogButton = () => {
               </DialogDescription>
               <DialogDescription>
                 You can request tokens from the faucet up to 3 times per day,
-                totaling 10 {Defaults.nativeCoinName}.
+                receiving 10 {Defaults.nativeCoinName} per request.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4">

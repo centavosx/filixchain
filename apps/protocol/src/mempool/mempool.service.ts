@@ -17,9 +17,9 @@ export class MempoolService {
 
   public getMempool() {
     return {
-      data: [...this.blockGateway.mempoolQueue.values()].map((value) =>
-        value.serialize(),
-      ),
+      data: [...this.blockGateway.mempoolQueue.values()]
+        .reverse()
+        .map((value) => value.serialize()),
     };
   }
 
@@ -33,9 +33,9 @@ export class MempoolService {
 
   public getMempoolFromAddress(address: string) {
     return {
-      data: [
-        ...(this.blockGateway.mempoolMap.get(address)?.values() ?? []),
-      ].map((value) => value.serialize()),
+      data: [...(this.blockGateway.mempoolMap.get(address)?.values() ?? [])]
+        .reverse()
+        .map((value) => value.serialize()),
     };
   }
 

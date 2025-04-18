@@ -21,7 +21,16 @@ export default function BlocksScreen({
   });
   return (
     <div className="flex flex-col p-6 gap-8">
-      <Typography as="h4">Blocks</Typography>
+      <div className="flex flex-col gap-2">
+        <Typography as="h4">Blocks</Typography>
+        <Typography as="muted">
+          A block is a data structure used to record a group of transactions.
+          Each block contains a unique identifier (hash), a reference to the
+          hash of the previous block, a timestamp, and a list of confirmed
+          transactions. These blocks are linked together through cryptographic
+          hashes in chronological order, forming the blockchain.
+        </Typography>
+      </div>
       <BlocksTable
         data={blocks?.data ?? []}
         pagination={{

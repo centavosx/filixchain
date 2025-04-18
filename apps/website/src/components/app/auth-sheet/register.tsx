@@ -176,8 +176,11 @@ export const RegisterSheetContent = () => {
                     </div>
                   </div>
                   <FormDescription>
-                    Your private key / mnemonic will be encrypted by your
-                    password.
+                    Your private key or mnemonic is stored locally and encrypted
+                    with your password. Your account’s private keys are never
+                    stored on the blockchain or server. All transactions are
+                    signed locally using your private key and then validated on
+                    the server.
                   </FormDescription>
                   <FormDescription>
                     NOTE: Private key should be in hexadecimals

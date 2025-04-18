@@ -127,8 +127,9 @@ export const AuthSheet = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline">
           <User />
+          Login
         </Button>
       </SheetTrigger>
 
