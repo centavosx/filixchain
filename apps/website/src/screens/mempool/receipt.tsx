@@ -1,5 +1,7 @@
 'use client';
 
+import { DisplayMemo } from '@/components/app/display-memo';
+import { FeeToolTip } from '@/components/app/fee-tooltip';
 import {
   Card,
   CardContent,
@@ -47,9 +49,23 @@ export default function PendingTransactionReceiptScreen() {
                 <Typography as="large">{data?.nonce}</Typography>
               </div>
               <Separator />
+              {!!data?.memo && (
+                <>
+                  <DisplayMemo rawMemo={data.memo} />
+                  <Separator />
+                </>
+              )}
               <div className="flex flex-col gap-2">
                 <Typography as="large">Amount:</Typography>
                 <Typography as="h3">{data?.displayAmount}</Typography>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-row gap-2 items-center">
+                  <Typography as="large">Fee:</Typography>
+                  <FeeToolTip />
+                </div>
+                <Typography as="small">{data?.displayFee}</Typography>
               </div>
             </div>
           </CardContent>

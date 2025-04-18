@@ -1,5 +1,7 @@
 'use client';
 
+import { DisplayMemo } from '@/components/app/display-memo';
+import { FeeToolTip } from '@/components/app/fee-tooltip';
 import {
   Card,
   CardContent,
@@ -11,7 +13,6 @@ import { Separator } from '@/components/ui/separator';
 import { Typography } from '@/components/ui/typography';
 import { useGetTransactionByIdQueryQuery } from '@/hooks/api/use-get-transaction-by-id';
 import { useParams } from 'next/navigation';
-
 export default function TransactionReceiptScreen() {
   const params = useParams<{ id: string }>();
   const transactionHash = params.id;
@@ -43,7 +44,9 @@ export default function TransactionReceiptScreen() {
                 <Typography as="large">{data?.from}</Typography>
               </div>
               <div className="flex flex-col gap-2">
-                <Typography as="muted">To:</Typography>
+                <Typography as="muted">
+                  {!data?.mintData ? 'Minted To' : 'To'}:
+                </Typography>
                 <Typography as="large">{data?.to}</Typography>
               </div>
               <div className="flex flex-col gap-2">
@@ -51,16 +54,23 @@ export default function TransactionReceiptScreen() {
                 <Typography as="large">{data?.nonce}</Typography>
               </div>
               <Separator />
+              {!!data && 'memo' in data && !!data.memo && (
+                <>
+                  <DisplayMemo rawMemo={data.memo} />
+                  <Separator />
+                </>
+              )}
               <div className="flex flex-col gap-2">
                 <Typography as="large">Amount:</Typography>
                 <Typography as="h3">{data?.displayAmount}</Typography>
               </div>
               {!!data?.mintData && (
                 <div className="flex flex-col gap-2">
-                  <Typography as="muted">Fee:</Typography>
-                  <Typography as="large">
-                    {data.mintData.displayFixedFee}
-                  </Typography>
+                  <div className="flex flex-row gap-2 items-center">
+                    <Typography as="large">Fee:</Typography>
+                    <FeeToolTip />
+                  </div>
+                  <Typography as="small">{data.mintData.displayFee}</Typography>
                 </div>
               )}
             </div>

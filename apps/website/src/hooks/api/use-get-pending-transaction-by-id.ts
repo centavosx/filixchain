@@ -2,7 +2,7 @@ import { Defaults } from '@/constants/defaults';
 import { getQueryClient } from '@/lib/query-client';
 import { Mempool } from '@ph-blockchain/api';
 import { SerializedTransaction } from '@ph-blockchain/api/src/types/transaction';
-import { Transaction } from '@ph-blockchain/block';
+import { Transform } from '@ph-blockchain/transformer';
 import { QueryClient, useQuery } from '@tanstack/react-query';
 
 export const prefetchGetPendingTransactionByIdQuery = async ({
@@ -21,13 +21,14 @@ export const prefetchGetPendingTransactionByIdQuery = async ({
   return queryClient;
 };
 
-const adapter = (data: SerializedTransaction) => {
+const adapter = (value: SerializedTransaction) => {
   return {
-    ...data,
-    displayAmount: `${(
-      BigInt(data.amount) / Transaction.TX_CONVERSION_UNIT
+    ...value,
+    displayAmount: `${Transform.toHighestUnit(
+      value.amount,
     ).toString()} ${Defaults.nativeCoinName}`,
-    viewLink: `/mempool/${data.transactionId}`,
+    displayFee: `${Transform.toHighestUnit(Number(value.fixedFee) + Number(value.additionalFee))} ${Defaults.nativeCoinName}`,
+    viewLink: `/mempool/${value.transactionId}`,
   };
 };
 

@@ -7,6 +7,7 @@ import { BaseApi, Events } from '@ph-blockchain/api';
 import { SidebarProvider } from '../ui/sidebar';
 import { Toaster } from '../ui/sonner';
 import { Config } from '@/constants/config';
+import { TooltipProvider } from '../ui/tooltip';
 
 BaseApi.init(Config.apiBaseUrl);
 Events.connect(Config.wsUrl);
@@ -26,7 +27,9 @@ export const Providers = ({
         disableTransitionOnChange
         nonce={nonce ?? ''}
       >
-        <SidebarProvider>{children}</SidebarProvider>
+        <TooltipProvider delayDuration={0}>
+          <SidebarProvider>{children}</SidebarProvider>
+        </TooltipProvider>
         <Toaster />
       </ThemeProvider>
     </QueryClientProvider>

@@ -1,5 +1,5 @@
 import { Defaults } from '@/constants/defaults';
-import { MintOrTxSerialize, RawBlock, Transaction } from '@ph-blockchain/block';
+import { MintOrTxSerialize, RawBlock } from '@ph-blockchain/block';
 import { Transform } from '@ph-blockchain/transformer';
 
 export class UiMapper {
@@ -23,14 +23,14 @@ export class UiMapper {
       displayCreated: value.timestamp
         ? Transform.date.formatToReadable(Number(value.timestamp))
         : undefined,
-      displayAmount: `${(
-        BigInt(value.amount) / Transaction.TX_CONVERSION_UNIT
+      displayAmount: `${Transform.toHighestUnit(
+        value.amount,
       ).toString()} ${Defaults.nativeCoinName}`,
       viewLink: `/transaction/${value.transactionId}`,
       mintData:
         'fixedFee' in value
           ? {
-              displayFixedFee: `${Transform.toHighestUnit(Number(value.fixedFee) + Number(value.additionalFee))} ${Defaults.nativeCoinName}`,
+              displayFee: `${Transform.toHighestUnit(Number(value.fixedFee) + Number(value.additionalFee))} ${Defaults.nativeCoinName}`,
             }
           : undefined,
     };

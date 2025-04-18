@@ -8,12 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/table';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '../ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { Button } from '../ui/button';
 import { Typography } from '../ui/typography';
 import {
@@ -43,18 +38,16 @@ export const TransactionTable = ({
             <TableHead className="min-w-[180px]">To</TableHead>
             <TableHead className="text-center">Amount</TableHead>
             <TableHead>
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <HelpCircle />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <Typography>View Transaction</Typography>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <HelpCircle />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <Typography>View Transaction</Typography>
+                </TooltipContent>
+              </Tooltip>
             </TableHead>
           </TableRow>
         </TableHeader>

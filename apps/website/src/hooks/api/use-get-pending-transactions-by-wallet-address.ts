@@ -10,7 +10,6 @@ const adapter = ({ data }: { data: SerializedTransaction[] }) => {
     displayAmount: `${Transform.toHighestUnit(
       value.amount,
     ).toString()} ${Defaults.nativeCoinName}`,
-    nonce: value.nonce,
     displayFee: `${Transform.toHighestUnit(Number(value.fixedFee) + Number(value.additionalFee))} ${Defaults.nativeCoinName}`,
   }));
 };
