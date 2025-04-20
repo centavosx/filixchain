@@ -6,6 +6,7 @@ import {
   Receipt,
   FileBoxIcon,
   Copyright,
+  Github,
 } from 'lucide-react';
 
 import {
@@ -147,6 +148,27 @@ export function AppSidebar({ year }: AppSidebarProps) {
               <Typography as="muted" className="text-xs">
                 <Copyright /> {year} FiliXChain All rights reserved
               </Typography>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <div>
+                <Link
+                  href="https://github.com/centavosx/filixchain"
+                  target="_blank"
+                >
+                  <Image
+                    src={
+                      isDarkMode
+                        ? '/svg/github-mark-white.svg'
+                        : '/svg/github-mark.svg'
+                    }
+                    height={18}
+                    width={18}
+                    alt="github"
+                  />
+                </Link>
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
