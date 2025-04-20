@@ -6,7 +6,6 @@ import {
   Receipt,
   FileBoxIcon,
   Copyright,
-  Github,
 } from 'lucide-react';
 
 import {
