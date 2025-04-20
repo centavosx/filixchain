@@ -1,3 +1,4 @@
+import { version } from './package.json';
 import type { NextConfig } from 'next';
 import { envSchema } from './config.schema';
 import { ZodError } from 'zod';
@@ -7,6 +8,7 @@ try {
   Object.keys(data).forEach((key) => {
     process.env[key] = data[key as keyof typeof data];
   });
+  process.env.NEXT_PUBLIC_APP_VERSION = version;
 } catch (error) {
   if (error instanceof ZodError) {
     console.error(JSON.stringify(error.errors, null, 2));

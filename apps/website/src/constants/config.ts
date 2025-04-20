@@ -1,4 +1,7 @@
 export class Config {
+  static get version() {
+    return process.env.NEXT_PUBLIC_APP_VERSION as string;
+  }
   static get appUrl() {
     return process.env.APP_URL as string;
   }

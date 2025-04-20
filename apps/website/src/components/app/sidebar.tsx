@@ -28,6 +28,7 @@ import { FaucetDialogButton } from './faucet-dialog-button';
 import Image from 'next/image';
 import { useCheckDarkMode } from '@/hooks/use-check-dark-mode';
 import { usePathname } from 'next/navigation';
+import { Config } from '@/constants/config';
 
 // Menu items.
 const items = [
@@ -85,7 +86,7 @@ export function AppSidebar({ year }: AppSidebarProps) {
                   <div className="flex flex-col">
                     <Typography as="large">FiliXChain</Typography>
                     <Typography as="muted" className="text-xs">
-                      v1.0.0
+                      v{Config.version}
                     </Typography>
                   </div>
                 </div>

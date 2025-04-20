@@ -1,6 +1,6 @@
 {
   "name": "@ph-blockchain/api",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "",
   "main": "./dist/index.js",
   "types": "./src/index.ts",
