@@ -58,7 +58,7 @@ services:
         - NODE_ENV=${NODE_ENV}
         - FAUCET_KEY=${FAUCET_KEY}
     volumes:
-      - blockchain_data:/app/database
+      - ./blockchain_data:/app/database
     restart: always
     networks:
       - dokploy-network
