@@ -57,7 +57,8 @@ services:
         - WS_ALLOWED_ORIGIN=${WS_ALLOWED_ORIGIN}
         - NODE_ENV=${NODE_ENV}
         - FAUCET_KEY=${FAUCET_KEY}
-    volume: blockchain_data:/app/database
+    volumes:
+      - blockchain_data:/app/database
     restart: always
     networks:
       - dokploy-network
