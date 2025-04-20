@@ -145,13 +145,6 @@ export function AppSidebar({ year }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Typography as="muted" className="text-xs">
-                <Copyright /> {year} FiliXChain All rights reserved
-              </Typography>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
               <div>
                 <Link
                   href="https://github.com/centavosx/filixchain"
@@ -169,6 +162,13 @@ export function AppSidebar({ year }: AppSidebarProps) {
                   />
                 </Link>
               </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Typography as="muted" className="text-xs">
+                <Copyright /> {year} FiliXChain All rights reserved
+              </Typography>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
