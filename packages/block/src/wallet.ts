@@ -37,9 +37,7 @@ export class WalletAccount {
   private bip32: BIP32Interface | undefined;
   private _isMnemonic: boolean | undefined;
 
-  constructor(private readonly data: string) {
-    console.log(data);
-  }
+  constructor(private readonly data: string) {}
 
   static getDerivationPath(index = 0) {
     return `m/44'/0'/0'/0/${index}`;
