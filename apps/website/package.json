@@ -1,5 +1,6 @@
 {
   "name": "@ph-blockchain/website",
+  "author": "Vincent Llanto",
   "version": "0.1.0",
   "private": true,
   "scripts": {

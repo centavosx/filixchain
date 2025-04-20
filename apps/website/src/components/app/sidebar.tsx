@@ -1,10 +1,17 @@
 'use client';
 
-import { Home, BlocksIcon, Receipt, FileBoxIcon } from 'lucide-react';
+import {
+  Home,
+  BlocksIcon,
+  Receipt,
+  FileBoxIcon,
+  Copyright,
+} from 'lucide-react';
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -41,7 +48,10 @@ const items = [
   },
 ];
 
-export function AppSidebar() {
+export type AppSidebarProps = {
+  year: number;
+};
+export function AppSidebar({ year }: AppSidebarProps) {
   const isDarkMode = useCheckDarkMode();
   const pathname = usePathname();
 
@@ -72,7 +82,12 @@ export function AppSidebar() {
                       alt="logo"
                     />
                   )}
-                  <Typography as="large">FiliXChain</Typography>
+                  <div className="flex flex-col">
+                    <Typography as="large">FiliXChain</Typography>
+                    <Typography as="muted" className="text-xs">
+                      v1.0.0
+                    </Typography>
+                  </div>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -124,6 +139,17 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Typography as="muted" className="text-xs">
+                <Copyright /> {year} FiliXChain All rights reserved
+              </Typography>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

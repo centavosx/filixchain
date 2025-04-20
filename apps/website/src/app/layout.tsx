@@ -103,12 +103,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const nonce = (await headers()).get('x-nonce');
+  const currentYear = new Date().getFullYear();
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${quantico.variable} antialiased w-full flex flex-col`}>
         <Providers nonce={nonce}>
-          <AppSidebar />
+          <AppSidebar year={currentYear} />
           <main className="flex flex-col w-full">
             <Header />
             {children}

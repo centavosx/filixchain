@@ -2,7 +2,7 @@
   "name": "@ph-blockchain/protocol",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "Vincent Llanto",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
