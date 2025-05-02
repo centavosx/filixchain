@@ -35,7 +35,7 @@ export const withAuth =
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         ...(!Config.isDevelop && {
-          sameSite: 'none',
+          sameSite: 'lax',
           domain: Config.cookieDomain,
         }),
       });
