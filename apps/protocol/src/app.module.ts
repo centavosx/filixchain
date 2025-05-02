@@ -10,6 +10,7 @@ import { AppService } from './app.service';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerProxyGuard } from './guards/throttler-proxy.guard';
+import { TestModule } from './test/test.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ThrottlerProxyGuard } from './guards/throttler-proxy.guard';
     MempoolModule,
     AccountModule,
     BlockModule,
+    TestModule,
   ],
   controllers: [AppController],
   providers: [
